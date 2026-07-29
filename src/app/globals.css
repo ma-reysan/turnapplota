@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6f2;
+  --surface: #ffffff;
+  --surface-soft: #eef1eb;
+  --foreground: #18211b;
+  --muted: #68746d;
+  --line: #d9dfda;
+  --brand: #1e6a4f;
+  --brand-strong: #134b39;
+  --day: #f3c75f;
+  --day-border: #8a5a08;
+  --night: #8fbde7;
+  --night-border: #164f83;
+  --danger: #bd3c43;
+}
+
+.dark {
+  --background: #111713;
+  --surface: #18201b;
+  --surface-soft: #202a23;
+  --foreground: #edf4ef;
+  --muted: #a6b3aa;
+  --line: #334039;
+  --brand: #5ab58e;
+  --brand-strong: #7ad1aa;
+  --day: #745722;
+  --day-border: #e2b44f;
+  --night: #244c70;
+  --night-border: #75b5ee;
+  --danger: #f07178;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  color: var(--foreground);
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 30rem),
+    var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.glass {
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 45px rgb(14 30 21 / 8%);
+  backdrop-filter: blur(18px);
+}
+
+.scrollbar-subtle {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
