@@ -1,4 +1,5 @@
 import { asc, isNull } from "drizzle-orm";
+import { connection } from "next/server";
 import seedJson from "@/data/seed.json";
 import { getDb, isDatabaseConfigured } from "@/db";
 import {
@@ -15,6 +16,7 @@ const seed = seedJson as SeedData;
 export async function getAppData(): Promise<SeedData> {
   if (!isDatabaseConfigured()) return seed;
 
+  await connection();
   const db = getDb();
   const [doctorRows, monthRows, assignmentRows, replacementRows, typeRows] =
     await Promise.all([
