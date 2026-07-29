@@ -5,6 +5,41 @@ import { useMemo, useState } from "react";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
 
+const pearlSectionLabels = {
+  perlas: "Perlas",
+  puntos: "Puntos",
+  superheroe: "Superhéroe",
+  comodindeapoyo: "Comodín de apoyo",
+} as const;
+
+type PearlSectionKey = keyof typeof pearlSectionLabels;
+
+function groupPearls(pearls: string[]) {
+  const sections: Record<PearlSectionKey, string[]> = {
+    perlas: [],
+    puntos: [],
+    superheroe: [],
+    comodindeapoyo: [],
+  };
+  let current: PearlSectionKey = "perlas";
+
+  for (const line of pearls) {
+    const key = line
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z]/gi, "")
+      .toLowerCase() as PearlSectionKey;
+
+    if (key in pearlSectionLabels) {
+      current = key;
+    } else if (line.trim()) {
+      sections[current].push(line.trim());
+    }
+  }
+
+  return Object.entries(sections) as [PearlSectionKey, string[]][];
+}
+
 export function ReplacementsView({
   doctors,
   replacements,
@@ -27,10 +62,7 @@ export function ReplacementsView({
   const lastInvokedDoctor = lastInvokedDoctorId
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
-  const pearlColumns = [
-    pearls.slice(0, Math.ceil(pearls.length / 2)),
-    pearls.slice(Math.ceil(pearls.length / 2)),
-  ];
+  const pearlSections = groupPearls(pearls);
   const active = replacements.filter((replacement) => isActiveReplacement(replacement.date));
   const dates = [...new Set(active.map((replacement) => replacement.date))]
     .sort((a, b) => b.localeCompare(a))
@@ -157,13 +189,22 @@ export function ReplacementsView({
             <h2 className="text-sm font-semibold">Perlas del equipo</h2>
           </div>
           <div className="mt-2 grid gap-2 md:grid-cols-2">
-            {pearlColumns.map((column, index) => (
-              <div
-                className="whitespace-pre-line rounded-xl bg-[var(--surface-soft)] p-3 text-[11px] leading-[1.45]"
-                key={`pearls-${index}`}
-              >
-                {column.join("\n")}
-              </div>
+            {pearlSections.map(([key, lines]) => (
+              <article className="rounded-xl bg-[var(--surface-soft)] p-3" key={key}>
+                <h3 className="text-xs font-semibold text-[var(--brand)]">
+                  {pearlSectionLabels[key]}
+                </h3>
+                <div className="mt-1.5 divide-y divide-[var(--line)]">
+                  {lines.map((line, index) => (
+                    <p
+                      className="py-1.5 text-[11px] leading-[1.4] first:pt-0 last:pb-0"
+                      key={`${key}-${index}`}
+                    >
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              </article>
             ))}
           </div>
         </section>

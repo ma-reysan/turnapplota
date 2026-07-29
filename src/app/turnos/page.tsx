@@ -9,9 +9,8 @@ export default async function TurnosPage() {
   return (
     <>
       <PageHeader
-        description="Consulta los tres médicos de día y los dos médicos de noche de cada jornada."
         eyebrow="Calendario clínico"
-        title="Turnos médicos"
+        title="Turnos, Servicio de urgencia"
       />
       <ScheduleCalendar doctors={data.doctors} schedules={published} />
     </>

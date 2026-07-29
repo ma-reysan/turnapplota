@@ -57,8 +57,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        <div className="mt-auto flex items-center justify-between rounded-xl bg-[var(--surface-soft)] p-2">
+          <span className="text-xs text-[var(--muted)]">Apariencia</span>
+          <ThemeToggle />
+        </div>
         {showingSchedule ? (
-          <div className="mt-5 rounded-xl border border-[var(--line)] p-2">
+          <div className="mt-2 rounded-xl border border-[var(--line)] p-2">
             <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
               Exportar
             </p>
@@ -78,10 +82,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           </div>
         ) : null}
-        <div className="mt-auto flex items-center justify-between rounded-xl bg-[var(--surface-soft)] p-2">
-          <span className="text-xs text-[var(--muted)]">Apariencia</span>
-          <ThemeToggle />
-        </div>
       </aside>
 
       <main className="min-w-0 pb-24 lg:col-start-2 lg:pb-0">

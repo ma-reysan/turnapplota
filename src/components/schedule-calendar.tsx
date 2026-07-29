@@ -30,7 +30,7 @@ function ShiftChip({
         assignment?.kind === "NIGHT"
           ? "border-[var(--night-border)] bg-[var(--night)]"
           : "border-[var(--day-border)] bg-[var(--day)]",
-        dimmed && "opacity-20",
+        dimmed && "opacity-55",
       )}
       disabled={!doctor}
       onBlur={() => onHighlight(null)}
@@ -62,6 +62,18 @@ export function ScheduleCalendar({
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
     [doctors],
+  );
+  const assignmentsBySlot = useMemo(
+    () =>
+      new Map(
+        schedules.flatMap((item) =>
+          item.assignments.map((assignment) => [
+            `${assignment.date}-${assignment.kind}-${assignment.slot}`,
+            assignment,
+          ] as const),
+        ),
+      ),
+    [schedules],
   );
 
   const visibleDoctors = useMemo(() => {
@@ -152,15 +164,8 @@ export function ScheduleCalendar({
     return <div className="rounded-2xl bg-[var(--surface)] p-5">No hay meses publicados.</div>;
   }
 
-  const assignmentsBySlot = new Map(
-    schedule.assignments.map((assignment) => [
-      `${assignment.date}-${assignment.kind}-${assignment.slot}`,
-      assignment,
-    ]),
-  );
-
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(680px,1fr)_220px]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(680px,70%)_220px]">
       <section className="min-w-0">
         <div className="no-print mb-2 flex items-center rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
           <label className="flex items-center gap-2 text-sm">
@@ -272,7 +277,7 @@ export function ScheduleCalendar({
                 highlightedDoctor === doctor.id
                   ? "bg-[var(--brand)] text-white"
                   : highlightedDoctor
-                    ? "opacity-30"
+                    ? "opacity-60"
                     : "hover:bg-[var(--surface-soft)]",
               )}
               key={doctor.id}

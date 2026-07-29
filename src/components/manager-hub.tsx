@@ -7,6 +7,7 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { addDays } from "date-fns";
 import {
   CalendarCheck,
   GripVertical,
@@ -526,60 +527,56 @@ function ScoreManager({
   const [typeCode, setTypeCode] = useState(firstType?.code ?? "");
   const [points, setPoints] = useState(firstType?.defaultPoints ?? 0);
   const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
+  const [history, setHistory] = useState(() =>
+    [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
+  );
   const doctorsById = new Map(doctors.map((doctor) => [doctor.id, doctor]));
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    const replacement = {
+      id: crypto.randomUUID(),
+      date,
+      doctorId,
+      typeCode,
+      points,
+      mode,
+      expiresAt: addDays(new Date(`${date}T12:00:00`), 120)
+        .toISOString()
+        .slice(0, 10),
+    };
     const response = await fetch("/api/replacements", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: crypto.randomUUID(),
-        date,
-        doctorId,
-        typeCode,
-        points,
-        mode,
-      }),
+      body: JSON.stringify(replacement),
     });
     const result = (await response.json()) as { error?: string };
     if (!response.ok) toast.error(result.error ?? "No fue posible guardar");
-    else toast.success("Reemplazo guardado");
+    else {
+      setHistory((current) =>
+        [replacement, ...current]
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 15),
+      );
+      toast.success("Puntaje guardado");
+    }
   }
 
   return (
-    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
-        <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
-        <div className="mt-2 divide-y divide-[var(--line)]">
-          {recent.slice(0, 30).map((replacement) => (
-            <div className="grid grid-cols-[90px_1fr_auto] gap-2 py-2 text-xs" key={replacement.id}>
-              <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
-              <span>
-                <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
-                <small className="ml-2 text-[var(--muted)]">
-                  {types.find((type) => type.code === replacement.typeCode)?.label ??
-                    "Histórico"}
-                </small>
-              </span>
-              <strong className="text-[var(--brand)]">+{replacement.points}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
+    <div className="grid gap-3 xl:w-3/5 xl:min-w-[760px]">
       <form
-        className="self-start rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
+        className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
         onSubmit={submit}
       >
         <div className="flex items-center gap-2">
-          <Star size={18} className="text-[var(--brand)]" />
-          <h2 className="font-semibold">Agregar reemplazo</h2>
+          <Star size={17} className="text-[var(--brand)]" />
+          <h2 className="text-sm font-semibold">Agregar Puntaje Nuevo</h2>
         </div>
-        <div className="mt-3 grid gap-2.5">
+        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[120px_minmax(150px,1.2fr)_minmax(160px,1.4fr)_120px_76px_auto] xl:items-end">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
-              className="mt-1 block w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
+              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
               onChange={(event) => setDate(event.target.value)}
               type="date"
               value={date}
@@ -588,7 +585,7 @@ function ScoreManager({
           <label className="text-xs text-[var(--muted)]">
             Médico
             <select
-              className="mt-1 block w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
+              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
               onChange={(event) => setDoctorId(event.target.value)}
               value={doctorId}
             >
@@ -604,7 +601,7 @@ function ScoreManager({
           <label className="text-xs text-[var(--muted)]">
             Tipo
             <select
-              className="mt-1 block w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
+              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
               onChange={(event) => {
                 const next = types.find((type) => type.code === event.target.value);
                 setTypeCode(event.target.value);
@@ -619,38 +616,54 @@ function ScoreManager({
               ))}
             </select>
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-[var(--muted)]">
-              Modalidad
-              <select
-                className="mt-1 block w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
-                onChange={(event) => setMode(event.target.value as "voluntary" | "invoked")}
-                value={mode}
-              >
-                <option value="voluntary">Voluntario</option>
-                <option value="invoked">Invocado</option>
-              </select>
-            </label>
-            <label className="text-xs text-[var(--muted)]">
-              Puntos
-              <input
-                className="mt-1 block w-full rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 text-sm text-[var(--foreground)]"
-                max={20}
-                min={0}
-                onChange={(event) => setPoints(Number(event.target.value))}
-                type="number"
-                value={points}
-              />
-            </label>
-          </div>
+          <label className="text-xs text-[var(--muted)]">
+            Modalidad
+            <select
+              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
+              onChange={(event) => setMode(event.target.value as "voluntary" | "invoked")}
+              value={mode}
+            >
+              <option value="voluntary">Voluntario</option>
+              <option value="invoked">Invocado</option>
+            </select>
+          </label>
+          <label className="text-xs text-[var(--muted)]">
+            Puntos
+            <input
+              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
+              max={20}
+              min={0}
+              onChange={(event) => setPoints(Number(event.target.value))}
+              type="number"
+              value={points}
+            />
+          </label>
+          <button
+            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 xl:col-span-1"
+            type="submit"
+          >
+            <Save size={14} /> Guardar
+          </button>
         </div>
-        <button
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white"
-          type="submit"
-        >
-          <Save size={16} /> Guardar item
-        </button>
       </form>
+      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
+        <div className="mt-2 divide-y divide-[var(--line)]">
+          {history.map((replacement) => (
+            <div className="grid grid-cols-[90px_1fr_auto] gap-2 py-2 text-xs" key={replacement.id}>
+              <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
+              <span>
+                <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
+                <small className="ml-2 text-[var(--muted)]">
+                  {types.find((type) => type.code === replacement.typeCode)?.label ??
+                    "Histórico"}
+                </small>
+              </span>
+              <strong className="text-[var(--brand)]">+{replacement.points}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
