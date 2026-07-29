@@ -125,7 +125,7 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "h-5 w-full rounded border px-1 text-center text-[8px] font-bold uppercase outline-none transition focus:ring-2 focus:ring-[var(--brand)]",
+          "h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           kind === "DAY"
             ? "border-[var(--day-border)] bg-[var(--day)]"
             : "border-[var(--night-border)] bg-[var(--night)]",
