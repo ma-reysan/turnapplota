@@ -24,6 +24,13 @@ export function ReplacementsView({
     [doctors],
   );
   const typesByCode = useMemo(() => new Map(types.map((type) => [type.code, type])), [types]);
+  const lastInvokedDoctor = lastInvokedDoctorId
+    ? doctorsById.get(lastInvokedDoctorId)
+    : undefined;
+  const pearlColumns = [
+    pearls.slice(0, Math.ceil(pearls.length / 2)),
+    pearls.slice(Math.ceil(pearls.length / 2)),
+  ];
   const active = replacements.filter((replacement) => isActiveReplacement(replacement.date));
   const dates = [...new Set(active.map((replacement) => replacement.date))]
     .sort((a, b) => b.localeCompare(a))
@@ -40,18 +47,25 @@ export function ReplacementsView({
     .sort((a, b) => a.points - b.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface)]">
-        <div className="flex flex-col gap-3 border-b border-[var(--line)] p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-3">
+      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+        <div className="flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-semibold">Puntajes vigentes</h2>
-            <p className="text-xs text-[var(--muted)]">Ventana móvil de los últimos 120 días</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
+              <span className="rounded-lg border border-amber-200 bg-[#fff8e8] px-2 py-1 text-[10px] font-semibold text-[#5d4822]">
+                Último invocado: {lastInvokedDoctor?.shortName ?? "—"}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[10px] text-[var(--muted)]">
+              Ventana móvil de los últimos 120 días
+            </p>
           </div>
-          <div className="flex rounded-xl bg-[var(--surface-soft)] p-1">
+          <div className="flex rounded-lg bg-[var(--surface-soft)] p-0.5">
             {(["table", "list"] as const).map((item) => (
               <button
                 className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
+                  "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium",
                   mode === item ? "bg-[var(--surface)] shadow-sm" : "text-[var(--muted)]",
                 )}
                 key={item}
@@ -70,12 +84,12 @@ export function ReplacementsView({
             <table className="min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
-                  <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface-soft)] px-4 py-3 text-left">
+                  <th className="sticky left-0 z-10 min-w-28 bg-[var(--surface-soft)] px-3 py-2 text-left">
                     Médico
                   </th>
-                  <th className="px-3 py-3 text-right">Total</th>
+                  <th className="px-2 py-2 text-right">Total</th>
                   {dates.map((date) => (
-                    <th className="min-w-20 px-2 py-3 text-center font-medium" key={date}>
+                    <th className="min-w-16 px-1.5 py-2 text-center font-medium" key={date}>
                       {new Intl.DateTimeFormat("es-CL", {
                         day: "2-digit",
                         month: "short",
@@ -87,15 +101,10 @@ export function ReplacementsView({
               <tbody>
                 {rankedDoctors.map(({ doctor, points }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
-                    <th className="sticky left-0 z-10 bg-[var(--surface)] px-4 py-3 text-left font-semibold">
+                    <th className="sticky left-0 z-10 bg-[var(--surface)] px-3 py-2 text-left font-semibold">
                       {doctor.shortName}
-                      {doctor.id === lastInvokedDoctorId ? (
-                        <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] text-amber-900">
-                          Último invocado
-                        </span>
-                      ) : null}
                     </th>
-                    <td className="px-3 py-3 text-right text-base font-bold text-[var(--brand)]">
+                    <td className="px-2 py-2 text-right text-sm font-bold text-[var(--brand)]">
                       {points}
                     </td>
                     {dates.map((date) => {
@@ -106,7 +115,7 @@ export function ReplacementsView({
                         )
                         .reduce((sum, replacement) => sum + replacement.points, 0);
                       return (
-                        <td className="px-2 py-3 text-center" key={date}>
+                        <td className="px-1.5 py-2 text-center" key={date}>
                           {value || "·"}
                         </td>
                       );
@@ -123,7 +132,7 @@ export function ReplacementsView({
               const type = typesByCode.get(replacement.typeCode);
               return (
                 <article
-                  className="grid gap-2 px-4 py-3 sm:grid-cols-[120px_1fr_1fr_70px] sm:items-center"
+                  className="grid gap-1 px-3 py-2 sm:grid-cols-[105px_1fr_1fr_58px] sm:items-center"
                   key={replacement.id}
                 >
                   <time className="text-xs text-[var(--muted)]">{replacement.date}</time>
@@ -131,7 +140,7 @@ export function ReplacementsView({
                   <span className="text-xs text-[var(--muted)]">
                     {type?.label ?? "Registro histórico · tipo no informado"}
                   </span>
-                  <span className="justify-self-start rounded-full bg-[var(--surface-soft)] px-3 py-1 text-sm font-bold text-[var(--brand)] sm:justify-self-end">
+                  <span className="justify-self-start rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-xs font-bold text-[var(--brand)] sm:justify-self-end">
                     +{replacement.points}
                   </span>
                 </article>
@@ -141,34 +150,37 @@ export function ReplacementsView({
         )}
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-7">
+      <div className="grid items-start gap-3 xl:grid-cols-[1.5fr_1fr]">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
           <div className="flex items-center gap-2">
-            <BookOpen className="text-[var(--brand)]" size={19} />
-            <h2 className="text-lg font-semibold">Perlas del equipo</h2>
+            <BookOpen className="text-[var(--brand)]" size={16} />
+            <h2 className="text-sm font-semibold">Perlas del equipo</h2>
           </div>
-          <div className="mt-5 space-y-3">
-            {pearls.map((pearl, index) => (
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            {pearlColumns.map((column, index) => (
               <div
-                className="rounded-2xl bg-[var(--surface-soft)] px-4 py-3 text-sm leading-6"
-                key={`${index}-${pearl.slice(0, 18)}`}
+                className="whitespace-pre-line rounded-xl bg-[var(--surface-soft)] p-3 text-[11px] leading-[1.45]"
+                key={`pearls-${index}`}
               >
-                {pearl}
+                {column.join("\n")}
               </div>
             ))}
           </div>
         </section>
-        <section className="self-start rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-7">
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="text-[var(--brand)]" size={19} />
-            <h2 className="text-lg font-semibold">Tablita de días</h2>
+            <Sparkles className="text-[var(--brand)]" size={16} />
+            <h2 className="text-sm font-semibold">Tablita de días</h2>
           </div>
-          <dl className="mt-5 divide-y divide-[var(--line)]">
+          <dl className="mt-2 grid grid-cols-2 gap-1.5">
             {types.map((type) => (
-              <div className="flex items-center justify-between gap-4 py-3" key={type.code}>
-                <dt className="text-sm text-[var(--muted)]">{type.label}</dt>
-                <dd className="text-lg font-bold text-[var(--brand)]">
-                  {type.code.startsWith("HERO") ? "+1" : type.defaultPoints}
+              <div
+                className="flex min-h-11 items-center justify-between gap-2 rounded-lg bg-[var(--surface-soft)] px-2 py-1.5"
+                key={type.code}
+              >
+                <dt className="text-[10px] leading-tight text-[var(--muted)]">{type.label}</dt>
+                <dd className="text-sm font-bold text-[var(--brand)]">
+                  +{type.defaultPoints}
                 </dd>
               </div>
             ))}

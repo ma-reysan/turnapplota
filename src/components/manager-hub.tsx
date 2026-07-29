@@ -43,7 +43,7 @@ function DoctorDragCard({ doctor }: { doctor: Doctor }) {
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left transition",
+        "flex w-full items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-left transition",
         isDragging && "opacity-40",
       )}
       ref={setNodeRef}
@@ -53,9 +53,9 @@ function DoctorDragCard({ doctor }: { doctor: Doctor }) {
       {...attributes}
     >
       <GripVertical size={15} className="text-[var(--muted)]" />
-      <span className="min-w-0">
-        <strong className="block truncate text-xs">{doctor.longName}</strong>
-        <small className="text-[10px] text-[var(--muted)]">{doctor.shortName}</small>
+      <span className="flex min-w-0 flex-1 items-center justify-between gap-1">
+        <strong className="truncate text-[10px]">{doctor.longName}</strong>
+        <small className="shrink-0 text-[8px] text-[var(--muted)]">{doctor.shortName}</small>
       </span>
     </button>
   );
@@ -125,7 +125,7 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "h-7 w-full rounded-md border px-1 text-center text-[9px] font-bold uppercase outline-none transition focus:ring-2 focus:ring-[var(--brand)]",
+          "h-5 w-full rounded border px-1 text-center text-[8px] font-bold uppercase outline-none transition focus:ring-2 focus:ring-[var(--brand)]",
           kind === "DAY"
             ? "border-[var(--day-border)] bg-[var(--day)]"
             : "border-[var(--night-border)] bg-[var(--night)]",
@@ -152,10 +152,10 @@ function EditableShiftCard({
         value={query}
       />
       {open && suggestions.length ? (
-        <div className="absolute left-0 top-8 z-50 min-w-48 overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
+        <div className="absolute left-0 top-6 z-50 min-w-44 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
           {suggestions.map((doctor) => (
             <button
-              className="block w-full rounded-lg px-3 py-2 text-left hover:bg-[var(--surface-soft)]"
+              className="block w-full rounded-md px-2 py-1.5 text-left hover:bg-[var(--surface-soft)]"
               key={doctor.id}
               onMouseDown={(event) => {
                 event.preventDefault();
@@ -225,16 +225,16 @@ function RosterEditor({
   }
 
   return (
-    <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
-      <h3 className="font-semibold">Nómina dinámica</h3>
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+      <h3 className="text-sm font-semibold">Nómina dinámica</h3>
       <p className="mt-1 text-xs text-[var(--muted)]">
         Los inactivos se conservan en el historial, pero no aparecen al autocompletar.
       </p>
-      <div className="mt-4 grid gap-2">
+      <div className="mt-3 grid gap-1.5">
         {doctors.map((doctor) => (
           <div
             className={cn(
-              "grid grid-cols-[1fr_110px_auto] gap-2 rounded-xl bg-[var(--surface-soft)] p-2",
+              "grid grid-cols-[1fr_90px_auto] gap-1.5 rounded-lg bg-[var(--surface-soft)] p-1.5",
               !doctor.active && "opacity-60",
             )}
             key={doctor.id}
@@ -269,7 +269,7 @@ function RosterEditor({
           </div>
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-[1fr_110px_auto] gap-2">
+      <div className="mt-2 grid grid-cols-[1fr_90px_auto] gap-1.5">
         <input
           className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs"
           onChange={(event) => setNewLongName(event.target.value)}
@@ -379,11 +379,11 @@ function ScheduleManager({
 
   return (
     <DndContext onDragEnd={onDragEnd}>
-      <div className="grid gap-5 2xl:grid-cols-[minmax(760px,1fr)_300px]">
+      <div className="grid gap-3 xl:grid-cols-[minmax(680px,1fr)_230px]">
         <section className={cn("min-w-0 transition", editingRoster && "opacity-30")}>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <select
-              className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm font-medium capitalize"
+              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium capitalize"
               onChange={(event) => setSelectedId(event.target.value)}
               value={selectedId}
             >
@@ -395,14 +395,14 @@ function ScheduleManager({
             </select>
             <div className="flex gap-2">
               <button
-                className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs font-medium"
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium"
                 onClick={() => save(false)}
                 type="button"
               >
                 <Save size={15} /> Guardar
               </button>
               <button
-                className="flex items-center gap-2 rounded-xl bg-[var(--brand)] px-3 py-2 text-xs font-medium text-white"
+                className="flex items-center gap-1.5 rounded-lg bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-white"
                 onClick={() => save(true)}
                 type="button"
               >
@@ -410,10 +410,10 @@ function ScheduleManager({
               </button>
             </div>
           </div>
-          <div className="scrollbar-subtle overflow-x-auto rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-4">
-            <div className="grid min-w-[740px] grid-cols-7 gap-1.5">
+          <div className="scrollbar-subtle overflow-x-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
+            <div className="grid min-w-[680px] grid-cols-7 gap-1">
               {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day) => (
-                <div className="pb-2 text-center text-[10px] font-semibold text-[var(--muted)]" key={day}>
+                <div className="pb-1 text-center text-[9px] font-semibold text-[var(--muted)]" key={day}>
                   {day}
                 </div>
               ))}
@@ -423,15 +423,15 @@ function ScheduleManager({
                 return (
                   <div
                     className={cn(
-                      "min-h-36 rounded-xl border border-[var(--line)] p-1.5",
+                      "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "opacity-20",
                     )}
                     key={dateKey}
                   >
-                    <span className="mb-1 block text-right text-[10px] text-[var(--muted)]">
+                    <span className="block text-right text-[9px] leading-3 text-[var(--muted)]">
                       {date.getDate()}
                     </span>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {([1, 2, 3] as const).map((slot) => (
                         <EditableShiftCard
                           assignment={slots.get(`${dateKey}-DAY-${slot}`)}
@@ -461,9 +461,9 @@ function ScheduleManager({
             </div>
           </div>
         </section>
-        <aside className="space-y-3">
+        <aside className="space-y-2">
           <button
-            className="flex w-full items-center justify-between rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm font-medium"
+            className="flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs font-medium"
             onClick={() => setEditingRoster((value) => !value)}
             type="button"
           >
@@ -475,11 +475,11 @@ function ScheduleManager({
           {editingRoster ? (
             <RosterEditor doctors={doctors} onChange={setDoctors} />
           ) : (
-            <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
-              <p className="mb-3 text-xs text-[var(--muted)]">
+            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-2">
+              <p className="mb-2 text-[10px] text-[var(--muted)]">
                 Arrastra o escribe directamente en una tarjeta.
               </p>
-              <div className="grid gap-2 sm:grid-cols-2 2xl:grid-cols-1">
+              <div className="grid gap-1">
                 {doctors
                   .filter((doctor) => doctor.active)
                   .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -532,12 +532,12 @@ function ScoreManager({
   }
 
   return (
-    <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
-      <section className="rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5">
-        <h2 className="font-semibold">Últimos reemplazos</h2>
-        <div className="mt-4 divide-y divide-[var(--line)]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
+        <div className="mt-2 divide-y divide-[var(--line)]">
           {recent.slice(0, 30).map((replacement) => (
-            <div className="grid grid-cols-[100px_1fr_auto] gap-3 py-3 text-sm" key={replacement.id}>
+            <div className="grid grid-cols-[90px_1fr_auto] gap-2 py-2 text-xs" key={replacement.id}>
               <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
               <span>
                 <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
@@ -552,14 +552,14 @@ function ScoreManager({
         </div>
       </section>
       <form
-        className="self-start rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5"
+        className="self-start rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
         onSubmit={submit}
       >
         <div className="flex items-center gap-2">
           <Star size={18} className="text-[var(--brand)]" />
           <h2 className="font-semibold">Agregar reemplazo</h2>
         </div>
-        <div className="mt-5 grid gap-4">
+        <div className="mt-3 grid gap-2.5">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -629,7 +629,7 @@ function ScoreManager({
           </div>
         </div>
         <button
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-3 font-semibold text-white"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white"
           type="submit"
         >
           <Save size={16} /> Guardar item
@@ -653,17 +653,17 @@ export function ManagerHub({
   const [tab, setTab] = useState<"schedule" | "scores">("schedule");
   return (
     <div>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--brand)]">
             Acceso autorizado
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">Jefe de Urgencias</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Jefe de Urgencias</h1>
         </div>
-        <div className="flex rounded-2xl bg-[var(--surface-soft)] p-1">
+        <div className="flex rounded-xl bg-[var(--surface-soft)] p-0.5">
           <button
             className={cn(
-              "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium",
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
               tab === "schedule" && "bg-[var(--surface)] shadow-sm",
             )}
             onClick={() => setTab("schedule")}
@@ -673,7 +673,7 @@ export function ManagerHub({
           </button>
           <button
             className={cn(
-              "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium",
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
               tab === "scores" && "bg-[var(--surface)] shadow-sm",
             )}
             onClick={() => setTab("scores")}

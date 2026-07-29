@@ -10,8 +10,7 @@ export const REPLACEMENT_TYPES: ReplacementType[] = [
   { code: "SAT_12", label: "Sábado (12 h)", defaultPoints: 3 },
   { code: "SUN_DAY", label: "Domingo día", defaultPoints: 3 },
   { code: "SUN_NIGHT", label: "Domingo noche", defaultPoints: 2 },
-  { code: "HERO_12", label: "Superhéroe (12 h)", defaultPoints: 4 },
-  { code: "HERO_24", label: "Superhéroe (24 h)", defaultPoints: 7 },
+  { code: "HERO", label: "Superhéroe", defaultPoints: 1 },
 ];
 
 export const NAV_ITEMS = [

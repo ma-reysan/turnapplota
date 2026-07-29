@@ -1,7 +1,7 @@
 "use client";
 
-import { Download, FileImage, FileText } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { UsersRound } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { Doctor, ScheduleMonth, ShiftAssignment } from "@/lib/types";
 import { calendarDays, cn, monthKey, monthLabel } from "@/lib/utils";
@@ -26,7 +26,7 @@ function ShiftChip({
     <button
       aria-label={doctor ? `Destacar turnos de ${doctor.longName}` : "Turno sin asignar"}
       className={cn(
-        "min-h-6 w-full truncate rounded-md border px-1.5 py-0.5 text-center text-[9px] font-bold tracking-tight transition sm:text-[10px]",
+        "h-5 w-full truncate rounded border px-1 text-center text-[8px] font-bold tracking-tight transition sm:text-[9px]",
         assignment?.kind === "NIGHT"
           ? "border-[var(--night-border)] bg-[var(--night)]"
           : "border-[var(--day-border)] bg-[var(--day)]",
@@ -71,27 +71,17 @@ export function ScheduleCalendar({
       .sort((a, b) => a.longName.localeCompare(b.longName, "es-CL"));
   }, [doctors, schedule]);
 
-  if (!schedule) {
-    return <div className="rounded-3xl bg-[var(--surface)] p-8">No hay meses publicados.</div>;
-  }
-
-  const assignmentsBySlot = new Map(
-    schedule.assignments.map((assignment) => [
-      `${assignment.date}-${assignment.kind}-${assignment.slot}`,
-      assignment,
-    ]),
-  );
-
-  async function makeImage() {
+  const makeImage = useCallback(async () => {
     if (!exportRef.current) return null;
     const { toBlob } = await import("html-to-image");
     return toBlob(exportRef.current, {
       backgroundColor: getComputedStyle(document.documentElement).getPropertyValue("--surface"),
       pixelRatio: 2,
     });
-  }
+  }, []);
 
-  async function exportImage() {
+  const exportImage = useCallback(async () => {
+    if (!schedule) return;
     const blob = await makeImage();
     if (!blob) return;
     try {
@@ -106,9 +96,10 @@ export function ScheduleCalendar({
       URL.revokeObjectURL(url);
       toast.success("Imagen descargada");
     }
-  }
+  }, [makeImage, schedule]);
 
-  async function exportPdf() {
+  const exportPdf = useCallback(async () => {
+    if (!schedule) return;
     const blob = await makeImage();
     if (!blob) return;
     const dataUrl = await new Promise<string>((resolve) => {
@@ -144,16 +135,38 @@ export function ScheduleCalendar({
     }
     pdf.save(suggestedName);
     toast.success("PDF descargado");
+  }, [makeImage, schedule]);
+
+  useEffect(() => {
+    const onImage = () => void exportImage();
+    const onPdf = () => void exportPdf();
+    window.addEventListener("turnapp:export-image", onImage);
+    window.addEventListener("turnapp:export-pdf", onPdf);
+    return () => {
+      window.removeEventListener("turnapp:export-image", onImage);
+      window.removeEventListener("turnapp:export-pdf", onPdf);
+    };
+  }, [exportImage, exportPdf]);
+
+  if (!schedule) {
+    return <div className="rounded-2xl bg-[var(--surface)] p-5">No hay meses publicados.</div>;
   }
 
+  const assignmentsBySlot = new Map(
+    schedule.assignments.map((assignment) => [
+      `${assignment.date}-${assignment.kind}-${assignment.slot}`,
+      assignment,
+    ]),
+  );
+
   return (
-    <div className="grid gap-5 2xl:grid-cols-[minmax(760px,1fr)_280px]">
+    <div className="grid gap-3 xl:grid-cols-[minmax(680px,1fr)_220px]">
       <section className="min-w-0">
-        <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <div className="no-print mb-2 flex items-center rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
           <label className="flex items-center gap-2 text-sm">
             <span className="text-[var(--muted)]">Mes</span>
             <select
-              className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2 font-medium capitalize outline-none focus:ring-2 focus:ring-[var(--brand)]"
+              className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs font-medium capitalize outline-none focus:ring-2 focus:ring-[var(--brand)]"
               onChange={(event) => setSelectedId(event.target.value)}
               value={schedule.id}
             >
@@ -164,35 +177,19 @@ export function ScheduleCalendar({
               ))}
             </select>
           </label>
-          <div className="flex gap-2">
-            <button
-              className="flex items-center gap-2 rounded-xl border border-[var(--line)] px-3 py-2 text-sm font-medium hover:bg-[var(--surface-soft)]"
-              onClick={exportImage}
-              type="button"
-            >
-              <FileImage size={16} /> Imagen
-            </button>
-            <button
-              className="flex items-center gap-2 rounded-xl bg-[var(--brand)] px-3 py-2 text-sm font-medium text-white"
-              onClick={exportPdf}
-              type="button"
-            >
-              <FileText size={16} /> PDF
-            </button>
-          </div>
         </div>
 
-        <div className="scrollbar-subtle overflow-x-auto rounded-3xl">
+        <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
           <div
-            className="min-w-[760px] border border-[var(--line)] bg-[var(--surface)] p-4 sm:p-6"
+            className="min-w-[680px] border border-[var(--line)] bg-[var(--surface)] p-3"
             ref={exportRef}
           >
-            <div className="mb-4 flex items-end justify-between">
+            <div className="mb-2 flex items-end justify-between">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--brand)]">
                   Urgencia · Lota
                 </span>
-                <h2 className="mt-1 text-2xl font-semibold capitalize">
+                <h2 className="text-lg font-semibold capitalize">
                   {monthLabel(schedule.year, schedule.month)}
                 </h2>
               </div>
@@ -207,10 +204,10 @@ export function ScheduleCalendar({
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1">
               {weekdayLabels.map((label) => (
                 <div
-                  className="pb-2 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]"
+                  className="pb-1 text-center text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]"
                   key={label}
                 >
                   {label}
@@ -225,15 +222,15 @@ export function ScheduleCalendar({
                 return (
                   <div
                     className={cn(
-                      "min-h-[132px] rounded-xl border border-[var(--line)] p-1.5",
+                      "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "bg-transparent opacity-25",
                     )}
                     key={dateKey}
                   >
-                    <span className="mb-1 block text-right text-[10px] font-semibold text-[var(--muted)]">
+                    <span className="block text-right text-[9px] font-semibold leading-3 text-[var(--muted)]">
                       {date.getDate()}
                     </span>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {[1, 2, 3].map((slot) => (
                         <ShiftChip
                           assignment={assignmentsBySlot.get(`${dateKey}-DAY-${slot}`)}
@@ -261,17 +258,17 @@ export function ScheduleCalendar({
         </div>
       </section>
 
-      <aside className="no-print rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-5">
+      <aside className="no-print self-start rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <div className="flex items-center gap-2">
-          <Download size={17} className="text-[var(--brand)]" />
-          <h3 className="font-semibold">Equipo del mes</h3>
+          <UsersRound size={15} className="text-[var(--brand)]" />
+          <h3 className="text-sm font-semibold">Equipo del mes</h3>
         </div>
-        <p className="mt-1 text-xs text-[var(--muted)]">Pasa sobre un nombre para destacarlo.</p>
-        <div className="mt-4 grid gap-1.5 sm:grid-cols-2 2xl:grid-cols-1">
+        <p className="mt-0.5 text-[10px] text-[var(--muted)]">Pasa sobre un nombre para destacarlo.</p>
+        <div className="mt-2 grid gap-0.5 sm:grid-cols-2 xl:grid-cols-1">
           {visibleDoctors.map((doctor) => (
             <button
               className={cn(
-                "rounded-xl px-3 py-2 text-left text-sm transition",
+                "rounded-lg px-2 py-1 text-left text-xs transition",
                 highlightedDoctor === doctor.id
                   ? "bg-[var(--brand)] text-white"
                   : highlightedDoctor
@@ -285,8 +282,10 @@ export function ScheduleCalendar({
               onMouseLeave={() => setHighlightedDoctor(null)}
               type="button"
             >
-              <span className="block font-medium">{doctor.longName}</span>
-              <span className="text-[10px] opacity-70">{doctor.shortName}</span>
+              <span className="flex items-center justify-between gap-1">
+                <span className="truncate font-medium">{doctor.longName}</span>
+                <span className="shrink-0 text-[8px] opacity-70">{doctor.shortName}</span>
+              </span>
             </button>
           ))}
         </div>
