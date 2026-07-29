@@ -1,4 +1,4 @@
-import { asc, isNull } from "drizzle-orm";
+import { asc, eq, isNull } from "drizzle-orm";
 import { connection } from "next/server";
 import seedJson from "@/data/seed.json";
 import { getDb, isDatabaseConfigured } from "@/db";
@@ -28,7 +28,11 @@ export async function getAppData(): Promise<SeedData> {
         .from(replacements)
         .where(isNull(replacements.deletedAt))
         .orderBy(asc(replacements.replacementDate)),
-      db.select().from(replacementTypes).orderBy(asc(replacementTypes.sortOrder)),
+      db
+        .select()
+        .from(replacementTypes)
+        .where(eq(replacementTypes.active, true))
+        .orderBy(asc(replacementTypes.sortOrder)),
     ]);
 
   return {
@@ -62,6 +66,7 @@ export async function getAppData(): Promise<SeedData> {
       typeCode: row.typeCode,
       points: row.points,
       mode: row.mode,
+      superhero: row.superhero,
       expiresAt: row.expiresAt,
       note: row.note ?? undefined,
     })),

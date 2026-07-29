@@ -39,6 +39,7 @@ export interface Replacement {
   typeCode: string;
   points: number;
   mode: ReplacementMode;
+  superhero: boolean;
   expiresAt: string;
   note?: string;
 }

@@ -57,31 +57,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-auto flex items-center justify-between rounded-xl bg-[var(--surface-soft)] p-2">
-          <span className="text-xs text-[var(--muted)]">Apariencia</span>
-          <ThemeToggle />
-        </div>
-        {showingSchedule ? (
-          <div className="mt-2 rounded-xl border border-[var(--line)] p-2">
-            <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
-              Exportar
-            </p>
-            <button
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-              onClick={() => window.dispatchEvent(new Event("turnapp:export-image"))}
-              type="button"
-            >
-              <FileImage size={15} /> Exportar imagen
-            </button>
-            <button
-              className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-              onClick={() => window.dispatchEvent(new Event("turnapp:export-pdf"))}
-              type="button"
-            >
-              <FileText size={15} /> Exportar PDF
-            </button>
+        <div className="mt-auto space-y-2">
+          {showingSchedule ? (
+            <div className="rounded-xl border border-[var(--line)] p-2">
+              <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                Exportar
+              </p>
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
+                onClick={() => window.dispatchEvent(new Event("turnapp:export-image"))}
+                type="button"
+              >
+                <FileImage size={15} /> Exportar imagen
+              </button>
+              <button
+                className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
+                onClick={() => window.dispatchEvent(new Event("turnapp:export-pdf"))}
+                type="button"
+              >
+                <FileText size={15} /> Exportar PDF
+              </button>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between rounded-xl bg-[var(--surface-soft)] p-2">
+            <span className="text-xs text-[var(--muted)]">Apariencia</span>
+            <ThemeToggle />
           </div>
-        ) : null}
+        </div>
       </aside>
 
       <main className="min-w-0 pb-24 lg:col-start-2 lg:pb-0">

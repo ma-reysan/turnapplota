@@ -91,6 +91,7 @@ export const replacements = pgTable("replacements", {
   typeCode: text("type_code").notNull(),
   points: integer("points").notNull(),
   mode: replacementMode("mode").notNull(),
+  superhero: boolean("superhero").notNull().default(false),
   note: text("note"),
   expiresAt: date("expires_at").notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),

@@ -66,6 +66,7 @@ async function main() {
     seed.replacements.map((replacement) => ({
       ...replacement,
       replacementDate: replacement.date,
+      superhero: replacement.superhero ?? replacement.typeCode === "HERO",
     })),
     (chunk) =>
       db

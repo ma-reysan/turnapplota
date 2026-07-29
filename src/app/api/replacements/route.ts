@@ -25,10 +25,11 @@ export async function POST(request: Request) {
   await sql.transaction([
     sql`
       INSERT INTO replacements (
-        id, replacement_date, doctor_id, type_code, points, mode, note, expires_at
+        id, replacement_date, doctor_id, type_code, points, mode, superhero, note, expires_at
       ) VALUES (
         ${record.id}, ${record.replacementDate}, ${record.doctorId}, ${record.typeCode},
-        ${record.points}, ${record.mode}, ${record.note ?? null}, ${record.expiresAt}
+        ${record.points}, ${record.mode}, ${record.superhero}, ${record.note ?? null},
+        ${record.expiresAt}
       )
     `,
     sql`

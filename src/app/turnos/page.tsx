@@ -10,7 +10,7 @@ export default async function TurnosPage() {
     <>
       <PageHeader
         eyebrow="Calendario clínico"
-        title="Turnos, Servicio de urgencia"
+        title="Turnos - Servicio de Urgencia - Lota"
       />
       <ScheduleCalendar doctors={data.doctors} schedules={published} />
     </>

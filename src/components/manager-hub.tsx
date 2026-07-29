@@ -3,6 +3,8 @@
 import {
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
   useDraggable,
   useDroppable,
 } from "@dnd-kit/core";
@@ -21,6 +23,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ReplacementStatus } from "@/components/replacement-status";
 import type {
   Doctor,
   Replacement,
@@ -44,7 +47,7 @@ function DoctorDragCard({ doctor }: { doctor: Doctor }) {
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-left transition",
+        "flex w-full items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-left transition-colors",
         isDragging && "opacity-40",
       )}
       ref={setNodeRef}
@@ -68,6 +71,7 @@ function EditableShiftCard({
   slot,
   assignment,
   doctors,
+  laneHighlighted,
   onAssign,
 }: {
   date: string;
@@ -75,6 +79,7 @@ function EditableShiftCard({
   slot: number;
   assignment?: ShiftAssignment;
   doctors: Doctor[];
+  laneHighlighted: boolean;
   onAssign: (doctorId: string | null) => void;
 }) {
   const dropId = `slot:${date}:${kind}:${slot}`;
@@ -126,11 +131,12 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          "block h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           kind === "DAY"
             ? "border-[var(--day-border)] bg-[var(--day)]"
             : "border-[var(--night-border)] bg-[var(--night)]",
-          isOver && "scale-105 ring-2 ring-[var(--brand)]",
+          isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
+          laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
         onBlur={() => window.setTimeout(validate, 120)}
         onChange={(event) => {
@@ -319,38 +325,90 @@ function ScheduleManager({
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, 1])),
   );
   const [editingRoster, setEditingRoster] = useState(false);
+  const [laneMode, setLaneMode] = useState(false);
+  const [draggedDoctorId, setDraggedDoctorId] = useState<string | null>(null);
+  const [overSlotId, setOverSlotId] = useState<string | null>(null);
   const schedule = sorted.find((item) => item.id === selectedId) ?? initialSchedule;
   const assignments = assignmentsByMonth[selectedId] ?? [];
 
   if (!schedule) return <p>No hay calendarios disponibles.</p>;
 
-  function assign(date: string, kind: ShiftKind, slot: number, doctorId: string | null) {
+  function assignToDates(
+    dates: string[],
+    kind: ShiftKind,
+    slot: number,
+    doctorId: string | null,
+  ) {
     setAssignmentsByMonth((current) => {
+      const targetDates = new Set(dates);
       const withoutSlot = (current[selectedId] ?? []).filter(
-        (item) => !(item.date === date && item.kind === kind && item.slot === slot),
+        (item) => !(targetDates.has(item.date) && item.kind === kind && item.slot === slot),
       );
       const next = doctorId
         ? [
             ...withoutSlot,
-            {
+            ...dates.map((date) => ({
               id: `${selectedId}-${date}-${kind.toLowerCase()}-${slot}`,
               date,
               kind,
               slot,
               doctorId,
-            },
+            })),
           ]
         : withoutSlot;
       return { ...current, [selectedId]: next };
     });
   }
 
+  function assign(date: string, kind: ShiftKind, slot: number, doctorId: string | null) {
+    assignToDates([date], kind, slot, doctorId);
+  }
+
+  function laneDates(date: string) {
+    const dates: string[] = [];
+    const final = new Date(schedule.year, schedule.month, 0, 12);
+    let cursor = new Date(`${date}T12:00:00`);
+
+    while (cursor <= final) {
+      if (
+        cursor.getFullYear() === schedule.year &&
+        cursor.getMonth() + 1 === schedule.month
+      ) {
+        dates.push(
+          `${monthKey(cursor.getFullYear(), cursor.getMonth() + 1)}-${String(cursor.getDate()).padStart(2, "0")}`,
+        );
+      }
+      cursor = addDays(cursor, 6);
+    }
+    return dates;
+  }
+
+  function onDragStart(event: DragStartEvent) {
+    setDraggedDoctorId(String(event.active.id).replace("doctor:", ""));
+  }
+
+  function onDragOver(event: DragOverEvent) {
+    const target = event.over ? String(event.over.id) : null;
+    setOverSlotId(target?.startsWith("slot:") ? target : null);
+  }
+
   function onDragEnd(event: DragEndEvent) {
     const doctorId = String(event.active.id).replace("doctor:", "");
     const target = event.over ? String(event.over.id) : "";
+    setDraggedDoctorId(null);
+    setOverSlotId(null);
     if (!target.startsWith("slot:")) return;
     const [, date, kind, slot] = target.split(":");
-    assign(date, kind as ShiftKind, Number(slot), doctorId);
+    if (laneMode) {
+      assignToDates(laneDates(date), kind as ShiftKind, Number(slot), doctorId);
+    } else {
+      assign(date, kind as ShiftKind, Number(slot), doctorId);
+    }
+  }
+
+  function cancelDrag() {
+    setDraggedDoctorId(null);
+    setOverSlotId(null);
   }
 
   async function save(publish: boolean) {
@@ -382,9 +440,19 @@ function ScheduleManager({
       assignment,
     ]),
   );
+  const lanePreview = new Set<string>();
+  if (laneMode && draggedDoctorId && overSlotId) {
+    const [, date, kind, slot] = overSlotId.split(":");
+    laneDates(date).forEach((laneDate) => lanePreview.add(`${laneDate}-${kind}-${slot}`));
+  }
 
   return (
-    <DndContext onDragEnd={onDragEnd}>
+    <DndContext
+      onDragCancel={cancelDrag}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragStart={onDragStart}
+    >
       <div className="relative grid gap-3 xl:grid-cols-[minmax(680px,1fr)_230px]">
         <section
           className={cn(
@@ -404,7 +472,36 @@ function ScheduleManager({
                 </option>
               ))}
             </select>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                aria-checked={laneMode}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                  laneMode
+                    ? "border-purple-600 bg-purple-600 text-white"
+                    : "border-purple-400 bg-[var(--surface)] text-purple-600",
+                )}
+                onClick={() => setLaneMode((value) => !value)}
+                role="switch"
+                type="button"
+              >
+                <span
+                  className={cn(
+                    "relative h-3.5 w-6 rounded-full transition-colors",
+                    laneMode ? "bg-white/30" : "bg-purple-100",
+                  )}
+                >
+                  <i
+                    className={cn(
+                      "absolute top-0.5 h-2.5 w-2.5 rounded-full transition-transform",
+                      laneMode
+                        ? "translate-x-3 bg-white"
+                        : "translate-x-0.5 bg-purple-500",
+                    )}
+                  />
+                </span>
+                Carriles de Turno
+              </button>
               <button
                 className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium"
                 onClick={() => save(false)}
@@ -450,6 +547,7 @@ function ScheduleManager({
                           doctors={doctors}
                           key={`day-${slot}-${slots.get(`${dateKey}-DAY-${slot}`)?.doctorId ?? "empty"}`}
                           kind="DAY"
+                          laneHighlighted={lanePreview.has(`${dateKey}-DAY-${slot}`)}
                           onAssign={(doctorId) => assign(dateKey, "DAY", slot, doctorId)}
                           slot={slot}
                         />
@@ -461,6 +559,7 @@ function ScheduleManager({
                           doctors={doctors}
                           key={`night-${slot}-${slots.get(`${dateKey}-NIGHT-${slot}`)?.doctorId ?? "empty"}`}
                           kind="NIGHT"
+                          laneHighlighted={lanePreview.has(`${dateKey}-NIGHT-${slot}`)}
                           onAssign={(doctorId) => assign(dateKey, "NIGHT", slot, doctorId)}
                           slot={slot}
                         />
@@ -521,12 +620,14 @@ function ScoreManager({
   types: ReplacementType[];
   recent: Replacement[];
 }) {
-  const firstType = types[0];
+  const formTypes = types.filter((type) => type.code !== "HERO");
+  const firstType = formTypes[0];
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [doctorId, setDoctorId] = useState(doctors.find((doctor) => doctor.active)?.id ?? "");
   const [typeCode, setTypeCode] = useState(firstType?.code ?? "");
   const [points, setPoints] = useState(firstType?.defaultPoints ?? 0);
   const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
+  const [superhero, setSuperhero] = useState(false);
   const [history, setHistory] = useState(() =>
     [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
   );
@@ -541,6 +642,7 @@ function ScoreManager({
       typeCode,
       points,
       mode,
+      superhero,
       expiresAt: addDays(new Date(`${date}T12:00:00`), 120)
         .toISOString()
         .slice(0, 10),
@@ -570,9 +672,9 @@ function ScoreManager({
       >
         <div className="flex items-center gap-2">
           <Star size={17} className="text-[var(--brand)]" />
-          <h2 className="text-sm font-semibold">Agregar Puntaje Nuevo</h2>
+          <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[120px_minmax(150px,1.2fr)_minmax(160px,1.4fr)_120px_76px_auto] xl:items-end">
+        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_105px_65px_90px_auto] xl:items-end">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -603,13 +705,13 @@ function ScoreManager({
             <select
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
               onChange={(event) => {
-                const next = types.find((type) => type.code === event.target.value);
+                const next = formTypes.find((type) => type.code === event.target.value);
                 setTypeCode(event.target.value);
-                if (next) setPoints(next.defaultPoints);
+                if (next) setPoints(next.defaultPoints + (superhero ? 1 : 0));
               }}
               value={typeCode}
             >
-              {types.map((type) => (
+              {formTypes.map((type) => (
                 <option key={type.code} value={type.code}>
                   {type.label}
                 </option>
@@ -638,6 +740,18 @@ function ScoreManager({
               value={points}
             />
           </label>
+          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 text-[10px] font-medium">
+            <input
+              checked={superhero}
+              className="accent-purple-600"
+              onChange={(event) => {
+                setSuperhero(event.target.checked);
+                setPoints((value) => Math.max(0, value + (event.target.checked ? 1 : -1)));
+              }}
+              type="checkbox"
+            />
+            🦸 Superhéroe
+          </label>
           <button
             className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 xl:col-span-1"
             type="submit"
@@ -646,20 +760,31 @@ function ScoreManager({
           </button>
         </div>
       </form>
-      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 xl:w-[72%] xl:min-w-[540px]">
         <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
         <div className="mt-2 divide-y divide-[var(--line)]">
           {history.map((replacement) => (
-            <div className="grid grid-cols-[90px_1fr_auto] gap-2 py-2 text-xs" key={replacement.id}>
+            <div
+              className="grid grid-cols-[78px_minmax(70px,.65fr)_minmax(120px,1.35fr)_40px] items-center gap-2 py-2 text-xs"
+              key={replacement.id}
+            >
               <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
-              <span>
-                <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
-                <small className="ml-2 text-[var(--muted)]">
-                  {types.find((type) => type.code === replacement.typeCode)?.label ??
-                    "Histórico"}
+              <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
+              <span className="flex items-center justify-end gap-1 text-right">
+                <small className="truncate text-[var(--muted)]">
+                  {replacement.typeCode === "HERO"
+                    ? "Histórico"
+                    : types.find((type) => type.code === replacement.typeCode)?.label ??
+                      "Histórico"}
                 </small>
+                {replacement.mode === "invoked" ? (
+                  <ReplacementStatus emoji="🪽" label="Invocado" />
+                ) : null}
+                {replacement.superhero ? (
+                  <ReplacementStatus emoji="🦸" label="Superhéroe" />
+                ) : null}
               </span>
-              <strong className="text-[var(--brand)]">+{replacement.points}</strong>
+              <strong className="text-right text-[var(--brand)]">+{replacement.points}</strong>
             </div>
           ))}
         </div>

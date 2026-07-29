@@ -47,5 +47,6 @@ export const replacementInputSchema = z.object({
   typeCode: z.string().min(1),
   points: z.number().int().min(0).max(20),
   mode: z.enum(["voluntary", "invoked"]),
+  superhero: z.boolean().default(false),
   note: z.string().trim().max(500).optional(),
 });

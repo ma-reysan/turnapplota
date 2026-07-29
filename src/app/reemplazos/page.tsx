@@ -9,7 +9,7 @@ export default async function ReemplazosPage() {
       <PageHeader
         description="Consulta quién ha cubierto reemplazos y cómo se distribuyen los puntos durante los últimos 120 días."
         eyebrow="Equidad del equipo"
-        title="Tabla de reemplazos"
+        title="Tabla de Reemplazos"
       />
       <ReplacementsView
         doctors={data.doctors}

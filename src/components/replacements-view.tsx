@@ -1,7 +1,8 @@
 "use client";
 
 import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ReplacementStatus } from "@/components/replacement-status";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export function ReplacementsView({
   lastInvokedDoctorId?: string;
 }) {
   const [mode, setMode] = useState<"table" | "list">("table");
+  const tableScrollRef = useRef<HTMLDivElement>(null);
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
     [doctors],
@@ -63,56 +65,62 @@ export function ReplacementsView({
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
   const pearlSections = groupPearls(pearls);
+  const sortedReplacements = [...replacements].sort((a, b) => b.date.localeCompare(a.date));
   const active = replacements.filter((replacement) => isActiveReplacement(replacement.date));
-  const dates = [...new Set(active.map((replacement) => replacement.date))]
-    .sort((a, b) => b.localeCompare(a))
-    .slice(0, 18)
-    .reverse();
+  const dates = [...new Set(replacements.map((replacement) => replacement.date))].sort((a, b) =>
+    a.localeCompare(b),
+  );
   const rankedDoctors = doctors
     .map((doctor) => ({
       doctor,
+      hasEntries: replacements.some((replacement) => replacement.doctorId === doctor.id),
       points: active
         .filter((replacement) => replacement.doctorId === doctor.id)
         .reduce((sum, replacement) => sum + replacement.points, 0),
     }))
-    .filter(({ points }) => points > 0)
+    .filter(({ hasEntries }) => hasEntries)
     .sort((a, b) => a.points - b.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
+
+  useEffect(() => {
+    if (mode !== "table" || !tableScrollRef.current) return;
+    tableScrollRef.current.scrollLeft = tableScrollRef.current.scrollWidth;
+  }, [dates.length, mode]);
 
   return (
     <div className="space-y-3">
       <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
         <div className="flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
-              <span className="rounded-lg border border-amber-200 bg-[#fff8e8] px-2 py-1 text-[10px] font-semibold text-[#5d4822]">
-                Último invocado: {lastInvokedDoctor?.shortName ?? "—"}
-              </span>
-            </div>
+            <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
             <p className="mt-0.5 text-[10px] text-[var(--muted)]">
               Ventana móvil de los últimos 120 días
             </p>
           </div>
-          <div className="flex rounded-lg bg-[var(--surface-soft)] p-0.5">
-            {(["table", "list"] as const).map((item) => (
-              <button
-                className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium",
-                  mode === item ? "bg-[var(--surface)] shadow-sm" : "text-[var(--muted)]",
-                )}
-                key={item}
-                onClick={() => setMode(item)}
-                type="button"
-              >
-                {item === "table" ? <Table2 size={15} /> : <List size={15} />}
-                {item === "table" ? "Tabla" : "Lista"}
-              </button>
-            ))}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <span className="flex h-8 w-full items-center justify-center rounded-lg border border-amber-200 bg-[#fff8e8] px-2 text-[10px] font-semibold text-[#5d4822] sm:w-[190px]">
+              🛡️ Último Convocado: {lastInvokedDoctor?.shortName ?? "—"}
+            </span>
+            <div className="flex h-8 w-full rounded-lg bg-[var(--surface-soft)] p-0.5 sm:w-[190px]">
+              {(["table", "list"] as const).map((item) => (
+                <button
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium",
+                    mode === item ? "bg-[var(--surface)] shadow-sm" : "text-[var(--muted)]",
+                  )}
+                  key={item}
+                  onClick={() => setMode(item)}
+                  type="button"
+                >
+                  {item === "table" ? <Table2 size={15} /> : <List size={15} />}
+                  {item === "table" ? "Tabla" : "Lista"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {mode === "table" ? (
-          <div className="scrollbar-subtle overflow-x-auto">
+          <div className="scrollbar-subtle overflow-x-auto" ref={tableScrollRef}>
             <table className="min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
@@ -121,7 +129,13 @@ export function ReplacementsView({
                   </th>
                   <th className="px-2 py-2 text-right">Total</th>
                   {dates.map((date) => (
-                    <th className="min-w-16 px-1.5 py-2 text-center font-medium" key={date}>
+                    <th
+                      className={cn(
+                        "min-w-16 px-1.5 py-2 text-center font-medium",
+                        !isActiveReplacement(date) && "opacity-35",
+                      )}
+                      key={date}
+                    >
                       {new Intl.DateTimeFormat("es-CL", {
                         day: "2-digit",
                         month: "short",
@@ -140,14 +154,20 @@ export function ReplacementsView({
                       {points}
                     </td>
                     {dates.map((date) => {
-                      const value = active
+                      const value = replacements
                         .filter(
                           (replacement) =>
                             replacement.doctorId === doctor.id && replacement.date === date,
                         )
                         .reduce((sum, replacement) => sum + replacement.points, 0);
                       return (
-                        <td className="px-1.5 py-2 text-center" key={date}>
+                        <td
+                          className={cn(
+                            "px-1.5 py-2 text-center",
+                            !isActiveReplacement(date) && "text-[var(--muted)] opacity-35",
+                          )}
+                          key={date}
+                        >
                           {value || "·"}
                         </td>
                       );
@@ -158,19 +178,27 @@ export function ReplacementsView({
             </table>
           </div>
         ) : (
-          <div className="divide-y divide-[var(--line)]">
-            {replacements.slice(0, 80).map((replacement) => {
+          <div className="mx-auto divide-y divide-[var(--line)] lg:w-3/5">
+            {sortedReplacements.slice(0, 80).map((replacement) => {
               const doctor = doctorsById.get(replacement.doctorId);
               const type = typesByCode.get(replacement.typeCode);
               return (
                 <article
-                  className="grid gap-1 px-3 py-2 sm:grid-cols-[105px_1fr_1fr_58px] sm:items-center"
+                  className="grid gap-x-2 gap-y-0.5 px-2 py-1.5 sm:grid-cols-[90px_110px_minmax(150px,1fr)_auto_48px] sm:items-center"
                   key={replacement.id}
                 >
                   <time className="text-xs text-[var(--muted)]">{replacement.date}</time>
-                  <strong className="text-sm">{doctor?.shortName ?? replacement.doctorId}</strong>
-                  <span className="text-xs text-[var(--muted)]">
+                  <strong className="text-xs">{doctor?.shortName ?? replacement.doctorId}</strong>
+                  <span className="text-[11px] text-[var(--muted)]">
                     {type?.label ?? "Registro histórico · tipo no informado"}
+                  </span>
+                  <span className="flex items-center justify-start gap-0.5 sm:justify-end">
+                    {replacement.mode === "invoked" ? (
+                      <ReplacementStatus emoji="🪽" label="Invocado" />
+                    ) : null}
+                    {replacement.superhero ? (
+                      <ReplacementStatus emoji="🦸" label="Superhéroe" />
+                    ) : null}
                   </span>
                   <span className="justify-self-start rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-xs font-bold text-[var(--brand)] sm:justify-self-end">
                     +{replacement.points}
@@ -219,8 +247,10 @@ export function ReplacementsView({
                 className="flex min-h-11 items-center justify-between gap-2 rounded-lg bg-[var(--surface-soft)] px-2 py-1.5"
                 key={type.code}
               >
-                <dt className="text-[10px] leading-tight text-[var(--muted)]">{type.label}</dt>
-                <dd className="text-sm font-bold text-[var(--brand)]">
+                <dt className="text-[10px] leading-tight text-[var(--muted)] lg:text-xs">
+                  {type.label}
+                </dt>
+                <dd className="text-sm font-bold text-[var(--brand)] lg:text-base">
                   +{type.defaultPoints}
                 </dd>
               </div>
