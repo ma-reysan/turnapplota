@@ -9,12 +9,12 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   CalendarCheck,
-  Check,
   GripVertical,
   Plus,
   Save,
   Settings2,
   Star,
+  Trash2,
   UserRound,
   X,
 } from "lucide-react";
@@ -183,7 +183,8 @@ function RosterEditor({
   const [newLongName, setNewLongName] = useState("");
   const [newShortName, setNewShortName] = useState("");
 
-  async function persist(doctor: Doctor) {
+  async function persist(doctor: Doctor, successMessage = "Nómina actualizada") {
+    const previous = doctors;
     onChange(doctors.map((item) => (item.id === doctor.id ? doctor : item)));
     const response = await fetch("/api/doctors", {
       method: "POST",
@@ -191,11 +192,22 @@ function RosterEditor({
       body: JSON.stringify(doctor),
     });
     if (!response.ok) {
+      onChange(previous);
       const result = (await response.json()) as { error?: string };
       toast.error(result.error ?? "No fue posible guardar el médico");
+      return false;
     } else {
-      toast.success("Nómina actualizada");
+      toast.success(successMessage);
+      return true;
     }
+  }
+
+  async function removeDoctor(doctor: Doctor) {
+    const confirmed = window.confirm(
+      `¿Quitar a ${doctor.longName} de la nómina activa? Su historial se conservará.`,
+    );
+    if (!confirmed) return;
+    await persist({ ...doctor, active: false }, "Médico retirado de la nómina");
   }
 
   async function addDoctor() {
@@ -225,66 +237,59 @@ function RosterEditor({
   }
 
   return (
-    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 shadow-2xl">
       <h3 className="text-sm font-semibold">Nómina dinámica</h3>
-      <p className="mt-1 text-xs text-[var(--muted)]">
-        Los inactivos se conservan en el historial, pero no aparecen al autocompletar.
+      <p className="mt-0.5 text-[10px] text-[var(--muted)]">
+        Eliminar quita al médico de la nómina activa y del autocompletado, sin borrar su historial.
       </p>
-      <div className="mt-3 grid gap-1.5">
-        {doctors.map((doctor) => (
+      <div className="mt-3 grid gap-1.5 md:grid-cols-2">
+        {doctors.filter((doctor) => doctor.active).map((doctor) => (
           <div
-            className={cn(
-              "grid grid-cols-[1fr_90px_auto] gap-1.5 rounded-lg bg-[var(--surface-soft)] p-1.5",
-              !doctor.active && "opacity-60",
-            )}
+            className="grid grid-cols-[minmax(0,1.35fr)_minmax(80px,.75fr)_30px] gap-1 rounded-lg bg-[var(--surface-soft)] p-1.5"
             key={doctor.id}
           >
             <input
               aria-label={`Nombre largo de ${doctor.shortName}`}
-              className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"
+              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-[10px]"
               onBlur={(event) => persist({ ...doctor, longName: event.target.value.trim() })}
               defaultValue={doctor.longName}
             />
             <input
               aria-label={`Nombre corto de ${doctor.longName}`}
-              className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs font-bold"
+              className="min-w-0 rounded-md border border-[var(--line)] bg-[var(--surface)] px-2 py-1 text-[10px] font-bold"
               onBlur={(event) =>
                 persist({ ...doctor, shortName: normalizeDoctorSearch(event.target.value) })
               }
               defaultValue={doctor.shortName}
             />
             <button
-              aria-label={doctor.active ? `Desactivar ${doctor.longName}` : `Activar ${doctor.longName}`}
-              className={cn(
-                "grid h-8 w-8 place-items-center rounded-lg",
-                doctor.active
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-[var(--surface)] text-[var(--muted)]",
-              )}
-              onClick={() => persist({ ...doctor, active: !doctor.active })}
+              aria-label={`Eliminar ${doctor.longName} de la nómina`}
+              className="grid h-[30px] w-[30px] place-items-center rounded-md text-[var(--muted)] transition hover:bg-red-100 hover:text-red-700"
+              onClick={() => removeDoctor(doctor)}
+              title="Quitar de la nómina activa"
               type="button"
             >
-              {doctor.active ? <Check size={15} /> : <X size={15} />}
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-[1fr_90px_auto] gap-1.5">
+      <div className="mt-2 grid gap-1.5 sm:grid-cols-[minmax(0,1.35fr)_minmax(100px,.75fr)_32px]">
         <input
-          className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs"
+          className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-[10px]"
           onChange={(event) => setNewLongName(event.target.value)}
           placeholder="Nombre largo"
           value={newLongName}
         />
         <input
-          className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs"
+          className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-[10px]"
           onChange={(event) => setNewShortName(event.target.value)}
           placeholder="CORTO"
           value={newShortName}
         />
         <button
           aria-label="Agregar médico"
-          className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--brand)] text-white"
+          className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--brand)] text-white"
           onClick={addDoctor}
           type="button"
         >
@@ -379,8 +384,13 @@ function ScheduleManager({
 
   return (
     <DndContext onDragEnd={onDragEnd}>
-      <div className="grid gap-3 xl:grid-cols-[minmax(680px,1fr)_230px]">
-        <section className={cn("min-w-0 transition", editingRoster && "opacity-30")}>
+      <div className="relative grid gap-3 xl:grid-cols-[minmax(680px,1fr)_230px]">
+        <section
+          className={cn(
+            "min-w-0 transition",
+            editingRoster && "pointer-events-none opacity-20",
+          )}
+        >
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <select
               className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium capitalize"
@@ -461,7 +471,13 @@ function ScheduleManager({
             </div>
           </div>
         </section>
-        <aside className="space-y-2">
+        <aside
+          className={cn(
+            "space-y-2",
+            editingRoster &&
+              "absolute right-0 top-0 z-20 w-full rounded-2xl bg-[var(--background)]/95 p-2 shadow-2xl backdrop-blur sm:w-[min(760px,calc(100%-1rem))]",
+          )}
+        >
           <button
             className="flex w-full items-center justify-between rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs font-medium"
             onClick={() => setEditingRoster((value) => !value)}
