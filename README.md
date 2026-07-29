@@ -13,7 +13,11 @@ administrar reemplazos.
 - Exportación del calendario como imagen y PDF.
 - Persistencia preparada para Neon PostgreSQL.
 
-La aplicación todavía no está desplegada ni conectada a Vercel.
+Producción: [turnapplota.vercel.app](https://turnapplota.vercel.app)
+
+El acceso de Jefatura está configurado mediante variables sensibles de Vercel.
+Hasta conectar y migrar Neon PostgreSQL, las vistas utilizan el snapshot histórico
+incluido y las operaciones de escritura permanecen deshabilitadas.
 
 ## Desarrollo local
 
