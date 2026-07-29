@@ -1,6 +1,5 @@
 import { addDays } from "date-fns";
-import { getDb, isDatabaseConfigured } from "@/db";
-import { auditEvents, replacements } from "@/db/schema";
+import { getSql, isDatabaseConfigured } from "@/db";
 import { hasJefaturaSession } from "@/lib/auth";
 import { replacementInputSchema } from "@/lib/validation";
 
@@ -21,16 +20,24 @@ export async function POST(request: Request) {
   const expiresAt = addDays(new Date(`${parsed.data.date}T12:00:00`), 120)
     .toISOString()
     .slice(0, 10);
-  const db = getDb();
   const record = { ...parsed.data, replacementDate: parsed.data.date, expiresAt };
-  await db.transaction(async (transaction) => {
-    await transaction.insert(replacements).values(record);
-    await transaction.insert(auditEvents).values({
-      action: "replacement.created",
-      entityType: "replacement",
-      entityId: parsed.data.id,
-      after: record,
-    });
-  });
+  const sql = getSql();
+  await sql.transaction([
+    sql`
+      INSERT INTO replacements (
+        id, replacement_date, doctor_id, type_code, points, mode, note, expires_at
+      ) VALUES (
+        ${record.id}, ${record.replacementDate}, ${record.doctorId}, ${record.typeCode},
+        ${record.points}, ${record.mode}, ${record.note ?? null}, ${record.expiresAt}
+      )
+    `,
+    sql`
+      INSERT INTO audit_events (action, entity_type, entity_id, after)
+      VALUES (
+        'replacement.created', 'replacement', ${record.id},
+        ${JSON.stringify(record)}::jsonb
+      )
+    `,
+  ]);
   return Response.json({ ok: true });
 }

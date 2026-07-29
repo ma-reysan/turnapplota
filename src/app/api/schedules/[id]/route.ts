@@ -1,10 +1,6 @@
 import { eq } from "drizzle-orm";
-import { getDb, isDatabaseConfigured } from "@/db";
-import {
-  auditEvents,
-  scheduleMonths,
-  shiftAssignments,
-} from "@/db/schema";
+import { getDb, getSql, isDatabaseConfigured } from "@/db";
+import { scheduleMonths } from "@/db/schema";
 import { hasJefaturaSession } from "@/lib/auth";
 import { scheduleUpdateSchema } from "@/lib/validation";
 
@@ -41,41 +37,40 @@ export async function PUT(
 
   const [year, month] = id.split("-").map(Number);
   const nextVersion = current[0] ? parsed.data.version + 1 : 1;
-  await db.transaction(async (transaction) => {
-    await transaction
-      .insert(scheduleMonths)
-      .values({
-        id,
-        year,
-        month,
-        status: parsed.data.publish ? "published" : "draft",
-        version: nextVersion,
-      })
-      .onConflictDoUpdate({
-        target: scheduleMonths.id,
-        set: {
-          status: parsed.data.publish ? "published" : "draft",
-          version: nextVersion,
-          updatedAt: new Date(),
-        },
-      });
-    await transaction.delete(shiftAssignments).where(eq(shiftAssignments.scheduleId, id));
-    if (parsed.data.assignments.length) {
-      await transaction.insert(shiftAssignments).values(
-        parsed.data.assignments.map((assignment) => ({
-          ...assignment,
-          scheduleId: id,
-          shiftDate: assignment.date,
-        })),
-      );
-    }
-    await transaction.insert(auditEvents).values({
-      action: parsed.data.publish ? "schedule.published" : "schedule.saved",
-      entityType: "schedule",
-      entityId: id,
-      before: current[0] ?? null,
-      after: { assignments: parsed.data.assignments.length },
-    });
-  });
+  const status = parsed.data.publish ? "published" : "draft";
+  const sql = getSql();
+  const assignmentQueries = parsed.data.assignments.map(
+    (assignment) => sql`
+      INSERT INTO shift_assignments (
+        id, schedule_id, shift_date, kind, slot, doctor_id
+      ) VALUES (
+        ${assignment.id}, ${id}, ${assignment.date}, ${assignment.kind},
+        ${assignment.slot}, ${assignment.doctorId}
+      )
+    `,
+  );
+  await sql.transaction([
+    sql`
+      INSERT INTO schedule_months (id, year, month, status, version)
+      VALUES (${id}, ${year}, ${month}, ${status}, ${nextVersion})
+      ON CONFLICT (id) DO UPDATE SET
+        status = EXCLUDED.status,
+        version = EXCLUDED.version,
+        updated_at = now()
+    `,
+    sql`DELETE FROM shift_assignments WHERE schedule_id = ${id}`,
+    ...assignmentQueries,
+    sql`
+      INSERT INTO audit_events (
+        action, entity_type, entity_id, before, after
+      ) VALUES (
+        ${parsed.data.publish ? "schedule.published" : "schedule.saved"},
+        'schedule',
+        ${id},
+        ${JSON.stringify(current[0] ?? null)}::jsonb,
+        ${JSON.stringify({ assignments: parsed.data.assignments.length })}::jsonb
+      )
+    `,
+  ]);
   return Response.json({ ok: true, version: nextVersion });
 }

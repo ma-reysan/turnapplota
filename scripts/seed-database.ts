@@ -11,7 +11,6 @@ import {
 import type { SeedData } from "../src/lib/types";
 
 const seed = seedJson as SeedData;
-const db = getDb();
 
 async function inChunks<T>(values: T[], callback: (chunk: T[]) => Promise<unknown>) {
   for (let index = 0; index < values.length; index += 400) {
@@ -19,13 +18,14 @@ async function inChunks<T>(values: T[], callback: (chunk: T[]) => Promise<unknow
   }
 }
 
-await db.transaction(async (transaction) => {
-  await transaction
+async function main() {
+  const db = getDb();
+  await db
     .insert(doctors)
     .values(seed.doctors)
     .onConflictDoNothing({ target: doctors.id });
 
-  await transaction
+  await db
     .insert(replacementTypes)
     .values(
       seed.replacementTypes.map((type, index) => ({
@@ -35,7 +35,7 @@ await db.transaction(async (transaction) => {
     )
     .onConflictDoNothing({ target: replacementTypes.code });
 
-  await transaction
+  await db
     .insert(scheduleMonths)
     .values(
       seed.schedules.map((schedule) => ({
@@ -56,7 +56,7 @@ await db.transaction(async (transaction) => {
     })),
   );
   await inChunks(assignments, (chunk) =>
-    transaction
+    db
       .insert(shiftAssignments)
       .values(chunk)
       .onConflictDoNothing({ target: shiftAssignments.id }),
@@ -68,13 +68,18 @@ await db.transaction(async (transaction) => {
       replacementDate: replacement.date,
     })),
     (chunk) =>
-      transaction
+      db
         .insert(replacements)
         .values(chunk)
         .onConflictDoNothing({ target: replacements.id }),
   );
-});
 
-console.log(
-  `Seed aplicado: ${seed.doctors.length} médicos, ${seed.migration.assignments} turnos y ${seed.replacements.length} reemplazos.`,
-);
+  console.log(
+    `Seed aplicado: ${seed.doctors.length} médicos, ${seed.migration.assignments} turnos y ${seed.replacements.length} reemplazos.`,
+  );
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

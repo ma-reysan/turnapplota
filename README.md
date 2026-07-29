@@ -16,8 +16,8 @@ administrar reemplazos.
 Producción: [turnapplota.vercel.app](https://turnapplota.vercel.app)
 
 El acceso de Jefatura está configurado mediante variables sensibles de Vercel.
-Hasta conectar y migrar Neon PostgreSQL, las vistas utilizan el snapshot histórico
-incluido y las operaciones de escritura permanecen deshabilitadas.
+Neon PostgreSQL contiene el historial importado. Las ediciones de médicos, turnos
+y puntajes se guardan fuera del código y se conservan entre despliegues.
 
 ## Desarrollo local
 
