@@ -8,17 +8,21 @@ import {
   replacements,
   scheduleMonths,
   shiftAssignments,
+  vacations,
+  holidays,
 } from "@/db/schema";
 import type { SeedData } from "@/lib/types";
 
 const seed = seedJson as SeedData;
 
 export async function getAppData(): Promise<SeedData> {
-  if (!isDatabaseConfigured()) return seed;
+  if (!isDatabaseConfigured()) {
+    return { ...seed, vacations: seed.vacations ?? [], holidays: seed.holidays ?? [] };
+  }
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, replacementRows, typeRows] =
+  const [doctorRows, monthRows, assignmentRows, replacementRows, typeRows, vacationRows, holidayRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
@@ -33,6 +37,8 @@ export async function getAppData(): Promise<SeedData> {
         .from(replacementTypes)
         .where(eq(replacementTypes.active, true))
         .orderBy(asc(replacementTypes.sortOrder)),
+      db.select().from(vacations).orderBy(asc(vacations.startDate)),
+      db.select().from(holidays).orderBy(asc(holidays.holidayDate)),
     ]);
 
   return {
@@ -74,6 +80,16 @@ export async function getAppData(): Promise<SeedData> {
       code: row.code,
       label: row.label,
       defaultPoints: row.defaultPoints,
+    })),
+    vacations: vacationRows.map((row) => ({
+      id: row.id,
+      doctorId: row.doctorId,
+      startDate: row.startDate,
+      endDate: row.endDate,
+    })),
+    holidays: holidayRows.map((row) => ({
+      date: row.holidayDate,
+      label: row.label ?? undefined,
     })),
   };
 }

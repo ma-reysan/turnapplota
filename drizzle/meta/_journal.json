@@ -15,6 +15,13 @@
       "when": 1785349656856,
       "tag": "0001_warm_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785439701900,
+      "tag": "0002_gigantic_skrulls",
+      "breakpoints": true
     }
   ]
 }

@@ -44,11 +44,25 @@ export interface Replacement {
   note?: string;
 }
 
+export interface Vacation {
+  id: string;
+  doctorId: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface Holiday {
+  date: string;
+  label?: string;
+}
+
 export interface SeedData {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
   replacements: Replacement[];
   replacementTypes: ReplacementType[];
+  vacations: Vacation[];
+  holidays: Holiday[];
   pearls: string[];
   lastInvokedDoctorId?: string;
   migration: {

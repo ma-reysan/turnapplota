@@ -24,13 +24,16 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
+import { VacationManager } from "@/components/vacation-manager";
 import type {
   Doctor,
+  Holiday,
   Replacement,
   ReplacementType,
   ScheduleMonth,
   ShiftAssignment,
   ShiftKind,
+  Vacation,
 } from "@/lib/types";
 import {
   calendarDays,
@@ -131,7 +134,7 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "block h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          "relative z-30 block h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           kind === "DAY"
             ? "border-[var(--day-border)] bg-[var(--day)]"
             : "border-[var(--night-border)] bg-[var(--night)]",
@@ -310,9 +313,11 @@ function RosterEditor({
 function ScheduleManager({
   initialDoctors,
   schedules,
+  vacations,
 }: {
   initialDoctors: Doctor[];
   schedules: ScheduleMonth[];
+  vacations: Vacation[];
 }) {
   const sorted = useMemo(() => [...schedules].sort((a, b) => b.id.localeCompare(a.id)), [schedules]);
   const [selectedId, setSelectedId] = useState(sorted[0]?.id ?? "");
@@ -445,6 +450,14 @@ function ScheduleManager({
     const [, date, kind, slot] = overSlotId.split(":");
     laneDates(date).forEach((laneDate) => lanePreview.add(`${laneDate}-${kind}-${slot}`));
   }
+  const vacationPreview = new Set<string>();
+  if (draggedDoctorId) {
+    for (const vacation of vacations.filter((item) => item.doctorId === draggedDoctorId)) {
+      for (let cursor = new Date(`${vacation.startDate}T12:00:00`); cursor <= new Date(`${vacation.endDate}T12:00:00`); cursor = addDays(cursor, 1)) {
+        vacationPreview.add(`${monthKey(cursor.getFullYear(), cursor.getMonth() + 1)}-${String(cursor.getDate()).padStart(2, "0")}`);
+      }
+    }
+  }
 
   return (
     <DndContext
@@ -531,7 +544,7 @@ function ScheduleManager({
                 return (
                   <div
                     className={cn(
-                      "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
+                      "relative min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "opacity-20",
                     )}
                     key={dateKey}
@@ -539,6 +552,7 @@ function ScheduleManager({
                     <span className="block text-right text-[9px] leading-3 text-[var(--muted)]">
                       {date.getDate()}
                     </span>
+                    {vacationPreview.has(dateKey) ? <span className="pointer-events-none absolute inset-[-2px] z-20 rounded-lg border-2 border-sky-400 bg-sky-400/5 shadow-[0_0_0_1px_rgba(56,189,248,.25)] transition-opacity duration-150" /> : null}
                     <div className="space-y-0.5">
                       {([1, 2, 3] as const).map((slot) => (
                         <EditableShiftCard
@@ -798,23 +812,27 @@ export function ManagerHub({
   schedules,
   types,
   replacements,
+  vacations,
+  holidays,
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
   types: ReplacementType[];
   replacements: Replacement[];
+  vacations: Vacation[];
+  holidays: Holiday[];
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "vacations">("schedule");
   return (
     <div>
-      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--brand)]">
             Acceso autorizado
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Jefe de Urgencias</h1>
         </div>
-        <div className="flex rounded-xl bg-[var(--surface-soft)] p-0.5">
+        <div className="flex flex-wrap justify-center justify-self-center rounded-xl bg-[var(--surface-soft)] p-0.5">
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
@@ -835,12 +853,25 @@ export function ManagerHub({
           >
             <UserRound size={16} /> Gestor de puntajes
           </button>
+          <button
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
+              tab === "vacations" && "bg-[var(--surface)] shadow-sm",
+            )}
+            onClick={() => setTab("vacations")}
+            type="button"
+          >
+            <Star size={16} /> Vacaciones
+          </button>
         </div>
+        <div className="hidden sm:block" />
       </div>
       {tab === "schedule" ? (
-        <ScheduleManager initialDoctors={doctors} schedules={schedules} />
-      ) : (
+        <ScheduleManager initialDoctors={doctors} schedules={schedules} vacations={vacations} />
+      ) : tab === "scores" ? (
         <ScoreManager doctors={doctors} recent={replacements} types={types} />
+      ) : (
+        <VacationManager doctors={doctors} initialHolidays={holidays} initialVacations={vacations} />
       )}
     </div>
   );

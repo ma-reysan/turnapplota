@@ -99,6 +99,22 @@ export const replacements = pgTable("replacements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const vacations = pgTable("vacations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  doctorId: text("doctor_id")
+    .notNull()
+    .references(() => doctors.id),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const holidays = pgTable("holidays", {
+  holidayDate: date("holiday_date").primaryKey(),
+  label: text("label"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const auditEvents = pgTable("audit_events", {
   id: uuid("id").defaultRandom().primaryKey(),
   action: text("action").notNull(),

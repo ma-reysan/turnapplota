@@ -50,3 +50,19 @@ export const replacementInputSchema = z.object({
   superhero: z.boolean().default(false),
   note: z.string().trim().max(500).optional(),
 });
+
+export const vacationInputSchema = z
+  .object({
+    doctorId: z.string().min(1),
+    startDate: z.iso.date(),
+    endDate: z.iso.date(),
+  })
+  .refine((value) => value.startDate <= value.endDate, {
+    message: "La fecha de término debe ser posterior o igual al inicio",
+    path: ["endDate"],
+  });
+
+export const holidayInputSchema = z.object({
+  date: z.iso.date(),
+  label: z.string().trim().max(100).optional(),
+});
