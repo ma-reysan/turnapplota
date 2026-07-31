@@ -30,7 +30,7 @@ function ShiftChip({
         assignment?.kind === "NIGHT"
           ? "border-[var(--night-border)] bg-[var(--night)]"
           : "border-[var(--day-border)] bg-[var(--day)]",
-        dimmed && "opacity-75",
+        dimmed && "opacity-55",
       )}
       disabled={!doctor}
       onClick={() => {
@@ -280,7 +280,7 @@ export function ScheduleCalendar({
                 highlightedDoctor === doctor.id
                   ? "bg-[var(--brand)] text-white"
                   : highlightedDoctor
-                    ? "opacity-75"
+                    ? "opacity-55"
                     : "hover:bg-[var(--surface-soft)]",
               )}
               key={doctor.id}
