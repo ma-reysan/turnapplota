@@ -489,7 +489,7 @@ function ScheduleManager({
             editingRoster && "pointer-events-none opacity-20",
           )}
         >
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <select
               className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium capitalize"
               onChange={(event) => setSelectedId(event.target.value)}
@@ -501,11 +501,11 @@ function ScheduleManager({
                 </option>
               ))}
             </select>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
               <button
                 aria-checked={laneMode}
                 className={cn(
-                  "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                  "flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
                   laneMode
                     ? "border-purple-600 bg-purple-600 text-white"
                     : "border-purple-400 bg-[var(--surface)] text-purple-600",
@@ -516,20 +516,20 @@ function ScheduleManager({
               >
                 <span
                   className={cn(
-                    "relative h-3.5 w-6 shrink-0 rounded-full transition-colors",
+                    "relative block h-4 w-7 shrink-0 rounded-full transition-colors",
                     laneMode ? "bg-white/30" : "bg-purple-100",
                   )}
                 >
                   <i
                     className={cn(
-                      "absolute top-0.5 h-2.5 w-2.5 rounded-full transition-transform",
+                      "absolute top-0.5 h-3 w-3 rounded-full transition-transform",
                       laneMode
-                        ? "translate-x-3 bg-white"
+                        ? "translate-x-3.5 bg-white"
                         : "translate-x-0.5 bg-purple-500",
                     )}
                   />
                 </span>
-                Carriles de Turno
+                <span>Carriles de Turno</span>
               </button>
               <button
                 className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium"
@@ -720,7 +720,7 @@ function ScoreManager({
           <Star size={17} className="text-[var(--brand)]" />
           <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_105px_65px_90px_auto] xl:items-end">
+        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_105px_65px_118px_auto] xl:items-end">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -786,7 +786,7 @@ function ScoreManager({
               value={points}
             />
           </label>
-          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 text-[10px] font-medium">
+          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
             <input
               checked={superhero}
               className="accent-purple-600"
