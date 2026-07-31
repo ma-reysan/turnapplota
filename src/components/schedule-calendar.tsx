@@ -12,12 +12,12 @@ function ShiftChip({
   assignment,
   doctorsById,
   highlightedDoctor,
-  onHighlight,
+  onToggleHighlight,
 }: {
   assignment?: ShiftAssignment;
   doctorsById: Map<string, Doctor>;
   highlightedDoctor: string | null;
-  onHighlight: (doctorId: string | null) => void;
+  onToggleHighlight: (doctorId: string) => void;
 }) {
   const doctor = assignment ? doctorsById.get(assignment.doctorId) : undefined;
   const dimmed = Boolean(highlightedDoctor && doctor?.id !== highlightedDoctor);
@@ -30,13 +30,12 @@ function ShiftChip({
         assignment?.kind === "NIGHT"
           ? "border-[var(--night-border)] bg-[var(--night)]"
           : "border-[var(--day-border)] bg-[var(--day)]",
-        dimmed && "opacity-55",
+        dimmed && "opacity-75",
       )}
       disabled={!doctor}
-      onBlur={() => onHighlight(null)}
-      onFocus={() => doctor && onHighlight(doctor.id)}
-      onMouseEnter={() => doctor && onHighlight(doctor.id)}
-      onMouseLeave={() => onHighlight(null)}
+      onClick={() => {
+        if (doctor && window.matchMedia("(hover: none)").matches) onToggleHighlight(doctor.id);
+      }}
       type="button"
     >
       {doctor?.shortName ?? "—"}
@@ -82,6 +81,10 @@ export function ScheduleCalendar({
       .filter((doctor) => ids.has(doctor.id))
       .sort((a, b) => a.longName.localeCompare(b.longName, "es-CL"));
   }, [doctors, schedule]);
+
+  const toggleHighlightedDoctor = useCallback((doctorId: string) => {
+    setHighlightedDoctor((current) => current === doctorId ? null : doctorId);
+  }, []);
 
   const makeImage = useCallback(async () => {
     if (!exportRef.current) return null;
@@ -242,7 +245,7 @@ export function ScheduleCalendar({
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
                           key={`day-${slot}`}
-                          onHighlight={setHighlightedDoctor}
+                          onToggleHighlight={toggleHighlightedDoctor}
                         />
                       ))}
                       {[1, 2].map((slot) => (
@@ -251,7 +254,7 @@ export function ScheduleCalendar({
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
                           key={`night-${slot}`}
-                          onHighlight={setHighlightedDoctor}
+                          onToggleHighlight={toggleHighlightedDoctor}
                         />
                       ))}
                     </div>
@@ -268,7 +271,7 @@ export function ScheduleCalendar({
           <UsersRound size={15} className="text-[var(--brand)]" />
           <h3 className="text-sm font-semibold">Equipo del mes</h3>
         </div>
-        <p className="mt-0.5 text-[10px] text-[var(--muted)]">Pasa sobre un nombre para destacarlo.</p>
+        <p className="mt-0.5 text-[10px] text-[var(--muted)]">Pasa o toca un nombre para destacarlo.</p>
         <div className="mt-2 grid gap-0.5 sm:grid-cols-2 xl:grid-cols-1">
           {visibleDoctors.map((doctor) => (
             <button
@@ -277,12 +280,13 @@ export function ScheduleCalendar({
                 highlightedDoctor === doctor.id
                   ? "bg-[var(--brand)] text-white"
                   : highlightedDoctor
-                    ? "opacity-60"
+                    ? "opacity-75"
                     : "hover:bg-[var(--surface-soft)]",
               )}
               key={doctor.id}
-              onBlur={() => setHighlightedDoctor(null)}
-              onFocus={() => setHighlightedDoctor(doctor.id)}
+              onClick={() => {
+                if (window.matchMedia("(hover: none)").matches) toggleHighlightedDoctor(doctor.id);
+              }}
               onMouseEnter={() => setHighlightedDoctor(doctor.id)}
               onMouseLeave={() => setHighlightedDoctor(null)}
               type="button"

@@ -134,7 +134,7 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "relative z-30 block h-[18px] w-full rounded border px-1 py-0 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          "relative z-30 block h-[18px] w-full rounded border py-0 pl-1 pr-5 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           kind === "DAY"
             ? "border-[var(--day-border)] bg-[var(--day)]"
             : "border-[var(--night-border)] bg-[var(--night)]",
@@ -161,6 +161,22 @@ function EditableShiftCard({
         placeholder="Escribir…"
         value={query}
       />
+      {assignedDoctor ? (
+        <button
+          aria-label={`Quitar a ${assignedDoctor.shortName} del turno`}
+          className="absolute right-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-r text-[var(--foreground)]/45 transition hover:bg-black/10 hover:text-red-700"
+          onClick={() => {
+            setQuery("");
+            setOpen(false);
+            onAssign(null);
+          }}
+          onPointerDown={(event) => event.preventDefault()}
+          title="Quitar médico"
+          type="button"
+        >
+          <X size={11} strokeWidth={2.5} />
+        </button>
+      ) : null}
       {open && suggestions.length ? (
         <div className="absolute left-0 top-6 z-50 min-w-44 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
           {suggestions.map((doctor) => (
@@ -489,7 +505,7 @@ function ScheduleManager({
               <button
                 aria-checked={laneMode}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                  "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors",
                   laneMode
                     ? "border-purple-600 bg-purple-600 text-white"
                     : "border-purple-400 bg-[var(--surface)] text-purple-600",
@@ -500,7 +516,7 @@ function ScheduleManager({
               >
                 <span
                   className={cn(
-                    "relative h-3.5 w-6 rounded-full transition-colors",
+                    "relative h-3.5 w-6 shrink-0 rounded-full transition-colors",
                     laneMode ? "bg-white/30" : "bg-purple-100",
                   )}
                 >
@@ -678,6 +694,22 @@ function ScoreManager({
     }
   }
 
+  async function removeReplacement(replacement: Replacement) {
+    if (!window.confirm(`¿Eliminar el puntaje de ${doctorsById.get(replacement.doctorId)?.shortName ?? "este médico"} del ${replacement.date}?`)) return;
+    const response = await fetch("/api/replacements", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: replacement.id }),
+    });
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      toast.error(result.error ?? "No fue posible eliminar el puntaje");
+      return;
+    }
+    setHistory((current) => current.filter((item) => item.id !== replacement.id));
+    toast.success("Puntaje eliminado");
+  }
+
   return (
     <div className="grid gap-3 xl:w-3/5 xl:min-w-[760px]">
       <form
@@ -779,7 +811,7 @@ function ScoreManager({
         <div className="mt-2 divide-y divide-[var(--line)]">
           {history.map((replacement) => (
             <div
-              className="grid grid-cols-[78px_minmax(70px,.65fr)_minmax(120px,1.35fr)_40px] items-center gap-2 py-2 text-xs"
+              className="grid grid-cols-[78px_minmax(70px,.65fr)_minmax(120px,1.35fr)_40px_28px] items-center gap-2 py-2 text-xs"
               key={replacement.id}
             >
               <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
@@ -799,6 +831,15 @@ function ScoreManager({
                 ) : null}
               </span>
               <strong className="text-right text-[var(--brand)]">+{replacement.points}</strong>
+              <button
+                aria-label={`Eliminar puntaje de ${doctorsById.get(replacement.doctorId)?.shortName ?? "médico"}`}
+                className="grid h-7 w-7 place-items-center rounded-md text-[var(--muted)] transition hover:bg-red-100 hover:text-red-700"
+                onClick={() => removeReplacement(replacement)}
+                title="Eliminar puntaje"
+                type="button"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>
