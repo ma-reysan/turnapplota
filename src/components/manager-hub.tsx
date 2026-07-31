@@ -517,15 +517,15 @@ function ScheduleManager({
                 <span
                   className={cn(
                     "relative block h-4 w-7 shrink-0 rounded-full transition-colors",
-                    laneMode ? "bg-white/30" : "bg-purple-100",
+                    laneMode ? "bg-purple-300" : "bg-[var(--surface-soft)]",
                   )}
                 >
                   <i
                     className={cn(
-                      "absolute top-0.5 h-3 w-3 rounded-full transition-transform",
+                      "absolute top-0.5 h-3 w-3 rounded-full transition-[left,background-color]",
                       laneMode
-                        ? "translate-x-3.5 bg-white"
-                        : "translate-x-0.5 bg-purple-500",
+                        ? "left-[14px] bg-white"
+                        : "left-0.5 bg-[var(--muted)]",
                     )}
                   />
                 </span>

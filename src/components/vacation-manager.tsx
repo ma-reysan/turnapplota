@@ -18,7 +18,9 @@ export function VacationManager({
   const activeDoctors = doctors.filter((doctor) => doctor.active);
   const router = useRouter();
   const [vacations, setVacations] = useState(initialVacations);
-  const [holidays, setHolidays] = useState(initialHolidays);
+  const [holidays, setHolidays] = useState(() =>
+    [...initialHolidays].sort((a, b) => b.date.localeCompare(a.date)),
+  );
   const [doctorId, setDoctorId] = useState(activeDoctors[0]?.id ?? "");
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10),
@@ -87,7 +89,7 @@ export function VacationManager({
       [
         ...current.filter((item) => item.date !== result.holiday!.date),
         result.holiday!,
-      ].sort((a, b) => a.date.localeCompare(b.date)),
+      ].sort((a, b) => b.date.localeCompare(a.date)),
     );
     router.refresh();
     setHolidayLabel("");
