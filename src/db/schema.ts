@@ -74,6 +74,36 @@ export const shiftAssignments = pgTable(
   ],
 );
 
+export const shiftMarkers = pgTable(
+  "shift_markers",
+  {
+    id: text("id").primaryKey(),
+    scheduleId: text("schedule_id")
+      .notNull()
+      .references(() => scheduleMonths.id, { onDelete: "cascade" }),
+    shiftDate: date("shift_date").notNull(),
+    kind: shiftKind("kind").notNull(),
+    slot: integer("slot").notNull(),
+    colorKey: text("color_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("shift_marker_slot_unique").on(
+      table.scheduleId,
+      table.shiftDate,
+      table.kind,
+      table.slot,
+    ),
+  ],
+);
+
+export const shiftColorLegend = pgTable("shift_color_legend", {
+  colorKey: text("color_key").primaryKey(),
+  label: text("label").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const replacementTypes = pgTable("replacement_types", {
   code: text("code").primaryKey(),
   label: text("label").notNull(),

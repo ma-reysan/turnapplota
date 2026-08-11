@@ -7,7 +7,10 @@ import {
   replacements,
   scheduleMonths,
   shiftAssignments,
+  shiftColorLegend,
+  shiftMarkers,
 } from "../src/db/schema";
+import { DEFAULT_SHIFT_COLOR_LEGEND } from "../src/lib/shift-colors";
 import type { SeedData } from "../src/lib/types";
 
 const seed = seedJson as SeedData;
@@ -61,6 +64,27 @@ async function main() {
       .values(chunk)
       .onConflictDoNothing({ target: shiftAssignments.id }),
   );
+
+  const markers = seed.schedules.flatMap((schedule) =>
+    (schedule.markers ?? []).map((marker) => ({
+      ...marker,
+      scheduleId: schedule.id,
+      shiftDate: marker.date,
+    })),
+  );
+  if (markers.length) {
+    await inChunks(markers, (chunk) =>
+      db.insert(shiftMarkers).values(chunk).onConflictDoNothing({ target: shiftMarkers.id }),
+    );
+  }
+
+  await db
+    .insert(shiftColorLegend)
+    .values((seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND).map((item) => ({
+      colorKey: item.key,
+      label: item.label,
+    })))
+    .onConflictDoNothing({ target: shiftColorLegend.colorKey });
 
   await inChunks(
     seed.replacements.map((replacement) => ({

@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+export const shiftColorKeySchema = z.enum([
+  "yellow",
+  "sky",
+  "orange",
+  "coral",
+  "rose",
+  "violet",
+  "indigo",
+  "teal",
+  "lime",
+  "slate",
+]);
+
 export const assignmentSchema = z.object({
   id: z.string().min(1),
   date: z.iso.date(),
@@ -8,12 +21,21 @@ export const assignmentSchema = z.object({
   doctorId: z.string().min(1),
 });
 
+export const shiftMarkerSchema = z.object({
+  id: z.string().min(1),
+  date: z.iso.date(),
+  kind: z.enum(["DAY", "NIGHT"]),
+  slot: z.number().int().min(1).max(3),
+  colorKey: shiftColorKeySchema,
+});
+
 export const scheduleUpdateSchema = z
   .object({
     id: z.string().regex(/^\d{4}-\d{2}$/),
     version: z.number().int().positive(),
     publish: z.boolean().default(false),
     assignments: z.array(assignmentSchema),
+    markers: z.array(shiftMarkerSchema).default([]),
   })
   .superRefine((value, context) => {
     const seen = new Set<string>();
@@ -30,7 +52,27 @@ export const scheduleUpdateSchema = z
       }
       seen.add(key);
     }
+    const seenMarkers = new Set<string>();
+    for (const marker of value.markers) {
+      if (marker.kind === "NIGHT" && marker.slot > 2) {
+        context.addIssue({ code: "custom", message: "La noche admite solo dos médicos" });
+      }
+      const key = `${marker.date}-${marker.kind}-${marker.slot}`;
+      if (seenMarkers.has(key)) {
+        context.addIssue({ code: "custom", message: `Color duplicado: ${key}` });
+      }
+      seenMarkers.add(key);
+    }
   });
+
+export const shiftColorLegendSchema = z.object({
+  items: z.array(
+    z.object({
+      key: shiftColorKeySchema,
+      label: z.string().trim().min(1).max(60),
+    }),
+  ).length(10),
+});
 
 export const doctorInputSchema = z.object({
   id: z.string().min(1),

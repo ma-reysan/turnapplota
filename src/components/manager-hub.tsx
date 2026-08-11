@@ -13,6 +13,8 @@ import { addDays } from "date-fns";
 import {
   CalendarCheck,
   GripVertical,
+  Paintbrush,
+  Palette,
   Plus,
   Save,
   Settings2,
@@ -25,6 +27,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { VacationManager } from "@/components/vacation-manager";
+import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
 import type {
   Doctor,
   Holiday,
@@ -32,7 +35,10 @@ import type {
   ReplacementType,
   ScheduleMonth,
   ShiftAssignment,
+  ShiftColorKey,
+  ShiftColorLegendItem,
   ShiftKind,
+  ShiftMarker,
   Vacation,
 } from "@/lib/types";
 import {
@@ -73,23 +79,30 @@ function EditableShiftCard({
   kind,
   slot,
   assignment,
+  marker,
   doctors,
+  colorLegend,
   laneHighlighted,
   onAssign,
+  onColor,
 }: {
   date: string;
   kind: ShiftKind;
   slot: number;
   assignment?: ShiftAssignment;
+  marker?: ShiftMarker;
   doctors: Doctor[];
+  colorLegend: ShiftColorLegendItem[];
   laneHighlighted: boolean;
   onAssign: (doctorId: string | null) => void;
+  onColor: (colorKey: ShiftColorKey | null) => void;
 }) {
   const dropId = `slot:${date}:${kind}:${slot}`;
   const { isOver, setNodeRef } = useDroppable({ id: dropId });
   const assignedDoctor = doctors.find((doctor) => doctor.id === assignment?.doctorId);
   const [query, setQuery] = useState(assignedDoctor?.shortName ?? "");
   const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const normalized = normalizeDoctorSearch(query);
   const suggestions = doctors
     .filter((doctor) => doctor.active)
@@ -130,14 +143,14 @@ function EditableShiftCard({
   }
 
   return (
-    <div className="relative" ref={setNodeRef}>
+    <div className="group/shift relative" ref={setNodeRef}>
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "relative z-30 block h-[18px] w-full rounded border py-0 pl-1 pr-5 text-center text-[9px] font-bold uppercase leading-[18px] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          "relative z-30 block h-[18px] w-full rounded border-2 bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           kind === "DAY"
-            ? "border-[var(--day-border)] bg-[var(--day)]"
-            : "border-[var(--night-border)] bg-[var(--night)]",
+            ? "border-[var(--day-border)]"
+            : "border-[var(--night-border)]",
           isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
           laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
@@ -159,12 +172,27 @@ function EditableShiftCard({
           }
         }}
         placeholder="Escribir…"
+        style={shiftColorStyle(marker?.colorKey)}
         value={query}
       />
+      <button
+        aria-expanded={paletteOpen}
+        aria-label="Pintar turno"
+        className={cn(
+          "absolute left-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-l text-white opacity-0 drop-shadow-[0_1px_1px_rgba(0,0,0,.9)] transition-opacity hover:bg-black/15 focus:opacity-100 group-hover/shift:opacity-100 group-focus-within/shift:opacity-100 [@media(hover:none)]:opacity-60",
+          !marker && "text-[var(--shift-normal-text)]/65 drop-shadow-none",
+        )}
+        onClick={() => setPaletteOpen((value) => !value)}
+        onPointerDown={(event) => event.preventDefault()}
+        title="Pintar turno"
+        type="button"
+      >
+        <Paintbrush size={10} strokeWidth={2.4} />
+      </button>
       {assignedDoctor ? (
         <button
           aria-label={`Quitar a ${assignedDoctor.shortName} del turno`}
-          className="absolute right-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-r text-[var(--foreground)]/45 transition hover:bg-black/10 hover:text-red-700"
+          className="absolute right-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-r text-white/75 drop-shadow-[0_1px_1px_rgba(0,0,0,.8)] transition hover:bg-black/15 hover:text-red-200"
           onClick={() => {
             setQuery("");
             setOpen(false);
@@ -176,6 +204,41 @@ function EditableShiftCard({
         >
           <X size={11} strokeWidth={2.5} />
         </button>
+      ) : null}
+      {paletteOpen ? (
+        <div className="absolute left-0 top-5 z-[70] grid w-[104px] grid-cols-4 gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-xl">
+          <button
+            aria-label="Dejar turno con color normal"
+            className="grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--line)] bg-[var(--shift-normal)] text-[8px] font-bold text-[var(--shift-normal-text)]"
+            onClick={() => {
+              onColor(null);
+              setPaletteOpen(false);
+            }}
+            onPointerDown={(event) => event.preventDefault()}
+            title="Normal"
+            type="button"
+          >
+            ×
+          </button>
+          {SHIFT_COLOR_KEYS.map((colorKey) => (
+            <button
+              aria-label={`Pintar ${colorLegend.find((item) => item.key === colorKey)?.label ?? colorKey}`}
+              className={cn(
+                "h-5 w-5 rounded-full border-2 border-black/15 transition-transform hover:scale-110",
+                marker?.colorKey === colorKey && "ring-2 ring-[var(--foreground)] ring-offset-1 ring-offset-[var(--surface)]",
+              )}
+              key={colorKey}
+              onClick={() => {
+                onColor(colorKey);
+                setPaletteOpen(false);
+              }}
+              onPointerDown={(event) => event.preventDefault()}
+              style={shiftColorStyle(colorKey)}
+              title={colorLegend.find((item) => item.key === colorKey)?.label ?? colorKey}
+              type="button"
+            />
+          ))}
+        </div>
       ) : null}
       {open && suggestions.length ? (
         <div className="absolute left-0 top-6 z-50 min-w-44 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
@@ -326,14 +389,88 @@ function RosterEditor({
   );
 }
 
+function ColorLegendEditor({
+  items,
+  onChange,
+}: {
+  items: ShiftColorLegendItem[];
+  onChange: (items: ShiftColorLegendItem[]) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+
+  async function saveLegend() {
+    setSaving(true);
+    const response = await fetch("/api/shift-colors", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+    const result = (await response.json()) as { error?: string };
+    setSaving(false);
+    if (!response.ok) {
+      toast.error(result.error ?? "No fue posible guardar la leyenda");
+      return;
+    }
+    toast.success("Leyenda de colores guardada");
+  }
+
+  return (
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5">
+          <Palette size={13} className="text-[var(--brand)]" />
+          <strong className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
+            Colores
+          </strong>
+        </span>
+        <button
+          className="rounded-md bg-[var(--brand)] px-2 py-1 text-[9px] font-semibold text-white disabled:opacity-50"
+          disabled={saving}
+          onClick={saveLegend}
+          type="button"
+        >
+          {saving ? "Guardando…" : "Guardar leyenda"}
+        </button>
+      </div>
+      <div className="mt-2 grid gap-1">
+        {items.map((item) => (
+          <label className="flex items-center gap-2" key={item.key}>
+            <i
+              className="h-4 w-4 shrink-0 rounded-full border border-black/15"
+              style={shiftColorStyle(item.key)}
+            />
+            <input
+              aria-label={`Significado del color ${item.key}`}
+              className="min-w-0 flex-1 rounded-md border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-[10px]"
+              maxLength={60}
+              onChange={(event) =>
+                onChange(
+                  items.map((current) =>
+                    current.key === item.key
+                      ? { ...current, label: event.target.value }
+                      : current,
+                  ),
+                )
+              }
+              value={item.label}
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ScheduleManager({
   initialDoctors,
   schedules,
   vacations,
+  initialColorLegend,
 }: {
   initialDoctors: Doctor[];
   schedules: ScheduleMonth[];
   vacations: Vacation[];
+  initialColorLegend: ShiftColorLegendItem[];
 }) {
   const sorted = useMemo(() => [...schedules].sort((a, b) => b.id.localeCompare(a.id)), [schedules]);
   const [selectedId, setSelectedId] = useState(sorted[0]?.id ?? "");
@@ -342,8 +479,12 @@ function ScheduleManager({
   const [assignmentsByMonth, setAssignmentsByMonth] = useState<Record<string, ShiftAssignment[]>>(
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.assignments])),
   );
+  const [markersByMonth, setMarkersByMonth] = useState<Record<string, ShiftMarker[]>>(
+    () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.markers ?? []])),
+  );
+  const [colorLegend, setColorLegend] = useState(initialColorLegend);
   const [versions, setVersions] = useState<Record<string, number>>(
-    () => Object.fromEntries(sorted.map((schedule) => [schedule.id, 1])),
+    () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.version ?? 1])),
   );
   const [editingRoster, setEditingRoster] = useState(false);
   const [laneMode, setLaneMode] = useState(false);
@@ -351,6 +492,7 @@ function ScheduleManager({
   const [overSlotId, setOverSlotId] = useState<string | null>(null);
   const schedule = sorted.find((item) => item.id === selectedId) ?? initialSchedule;
   const assignments = assignmentsByMonth[selectedId] ?? [];
+  const markers = markersByMonth[selectedId] ?? [];
 
   if (!schedule) return <p>No hay calendarios disponibles.</p>;
 
@@ -383,6 +525,27 @@ function ScheduleManager({
 
   function assign(date: string, kind: ShiftKind, slot: number, doctorId: string | null) {
     assignToDates([date], kind, slot, doctorId);
+  }
+
+  function paint(date: string, kind: ShiftKind, slot: number, colorKey: ShiftColorKey | null) {
+    setMarkersByMonth((current) => {
+      const existing = (current[selectedId] ?? []).filter(
+        (item) => !(item.date === date && item.kind === kind && item.slot === slot),
+      );
+      const next = colorKey
+        ? [
+            ...existing,
+            {
+              id: `${selectedId}-${date}-${kind.toLowerCase()}-${slot}-color`,
+              date,
+              kind,
+              slot,
+              colorKey,
+            },
+          ]
+        : existing;
+      return { ...current, [selectedId]: next };
+    });
   }
 
   function laneDates(date: string) {
@@ -441,6 +604,7 @@ function ScheduleManager({
         version: versions[selectedId] ?? 1,
         publish,
         assignments,
+        markers,
       }),
     });
     const result = (await response.json()) as { error?: string; version?: number };
@@ -459,6 +623,12 @@ function ScheduleManager({
     assignments.map((assignment) => [
       `${assignment.date}-${assignment.kind}-${assignment.slot}`,
       assignment,
+    ]),
+  );
+  const markerSlots = new Map(
+    markers.map((marker) => [
+      `${marker.date}-${marker.kind}-${marker.slot}`,
+      marker,
     ]),
   );
   const lanePreview = new Set<string>();
@@ -573,24 +743,30 @@ function ScheduleManager({
                       {([1, 2, 3] as const).map((slot) => (
                         <EditableShiftCard
                           assignment={slots.get(`${dateKey}-DAY-${slot}`)}
+                          colorLegend={colorLegend}
                           date={dateKey}
                           doctors={doctors}
                           key={`day-${slot}-${slots.get(`${dateKey}-DAY-${slot}`)?.doctorId ?? "empty"}`}
                           kind="DAY"
                           laneHighlighted={lanePreview.has(`${dateKey}-DAY-${slot}`)}
+                          marker={markerSlots.get(`${dateKey}-DAY-${slot}`)}
                           onAssign={(doctorId) => assign(dateKey, "DAY", slot, doctorId)}
+                          onColor={(colorKey) => paint(dateKey, "DAY", slot, colorKey)}
                           slot={slot}
                         />
                       ))}
                       {([1, 2] as const).map((slot) => (
                         <EditableShiftCard
                           assignment={slots.get(`${dateKey}-NIGHT-${slot}`)}
+                          colorLegend={colorLegend}
                           date={dateKey}
                           doctors={doctors}
                           key={`night-${slot}-${slots.get(`${dateKey}-NIGHT-${slot}`)?.doctorId ?? "empty"}`}
                           kind="NIGHT"
                           laneHighlighted={lanePreview.has(`${dateKey}-NIGHT-${slot}`)}
+                          marker={markerSlots.get(`${dateKey}-NIGHT-${slot}`)}
                           onAssign={(doctorId) => assign(dateKey, "NIGHT", slot, doctorId)}
+                          onColor={(colorKey) => paint(dateKey, "NIGHT", slot, colorKey)}
                           slot={slot}
                         />
                       ))}
@@ -621,19 +797,22 @@ function ScheduleManager({
           {editingRoster ? (
             <RosterEditor doctors={doctors} onChange={setDoctors} />
           ) : (
-            <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-2">
-              <p className="mb-2 text-[10px] text-[var(--muted)]">
-                Arrastra o escribe directamente en una tarjeta.
-              </p>
-              <div className="grid gap-1">
-                {doctors
-                  .filter((doctor) => doctor.active)
-                  .sort((a, b) => a.sortOrder - b.sortOrder)
-                  .map((doctor) => (
-                    <DoctorDragCard doctor={doctor} key={doctor.id} />
-                  ))}
+            <>
+              <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-2">
+                <p className="mb-2 text-[10px] text-[var(--muted)]">
+                  Arrastra o escribe directamente en una tarjeta.
+                </p>
+                <div className="grid gap-1">
+                  {doctors
+                    .filter((doctor) => doctor.active)
+                    .sort((a, b) => a.sortOrder - b.sortOrder)
+                    .map((doctor) => (
+                      <DoctorDragCard doctor={doctor} key={doctor.id} />
+                    ))}
+                </div>
               </div>
-            </div>
+              <ColorLegendEditor items={colorLegend} onChange={setColorLegend} />
+            </>
           )}
         </aside>
       </div>
@@ -855,6 +1034,7 @@ export function ManagerHub({
   replacements,
   vacations,
   holidays,
+  shiftColorLegend,
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
@@ -862,6 +1042,7 @@ export function ManagerHub({
   replacements: Replacement[];
   vacations: Vacation[];
   holidays: Holiday[];
+  shiftColorLegend: ShiftColorLegendItem[];
 }) {
   const [tab, setTab] = useState<"schedule" | "scores" | "vacations">("schedule");
   return (
@@ -908,7 +1089,12 @@ export function ManagerHub({
         <div className="hidden sm:block" />
       </div>
       {tab === "schedule" ? (
-        <ScheduleManager initialDoctors={doctors} schedules={schedules} vacations={vacations} />
+        <ScheduleManager
+          initialColorLegend={shiftColorLegend}
+          initialDoctors={doctors}
+          schedules={schedules}
+          vacations={vacations}
+        />
       ) : tab === "scores" ? (
         <ScoreManager doctors={doctors} recent={replacements} types={types} />
       ) : (

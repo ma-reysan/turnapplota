@@ -18,12 +18,39 @@ export interface ShiftAssignment {
   doctorId: string;
 }
 
+export type ShiftColorKey =
+  | "yellow"
+  | "sky"
+  | "orange"
+  | "coral"
+  | "rose"
+  | "violet"
+  | "indigo"
+  | "teal"
+  | "lime"
+  | "slate";
+
+export interface ShiftMarker {
+  id: string;
+  date: string;
+  kind: ShiftKind;
+  slot: number;
+  colorKey: ShiftColorKey;
+}
+
+export interface ShiftColorLegendItem {
+  key: ShiftColorKey;
+  label: string;
+}
+
 export interface ScheduleMonth {
   id: string;
   year: number;
   month: number;
   status: ScheduleStatus;
+  version?: number;
   assignments: ShiftAssignment[];
+  markers?: ShiftMarker[];
 }
 
 export interface ReplacementType {
@@ -59,6 +86,7 @@ export interface Holiday {
 export interface SeedData {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
+  shiftColorLegend: ShiftColorLegendItem[];
   replacements: Replacement[];
   replacementTypes: ReplacementType[];
   vacations: Vacation[];

@@ -1,20 +1,29 @@
 "use client";
 
-import { UsersRound } from "lucide-react";
+import { Palette, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { Doctor, ScheduleMonth, ShiftAssignment } from "@/lib/types";
+import { shiftColorStyle } from "@/lib/shift-colors";
+import type {
+  Doctor,
+  ScheduleMonth,
+  ShiftAssignment,
+  ShiftColorLegendItem,
+  ShiftMarker,
+} from "@/lib/types";
 import { calendarDays, cn, monthKey, monthLabel } from "@/lib/utils";
 
 const weekdayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 function ShiftChip({
   assignment,
+  marker,
   doctorsById,
   highlightedDoctor,
   onToggleHighlight,
 }: {
   assignment?: ShiftAssignment;
+  marker?: ShiftMarker;
   doctorsById: Map<string, Doctor>;
   highlightedDoctor: string | null;
   onToggleHighlight: (doctorId: string) => void;
@@ -26,16 +35,17 @@ function ShiftChip({
     <button
       aria-label={doctor ? `Destacar turnos de ${doctor.longName}` : "Turno sin asignar"}
       className={cn(
-        "flex h-[18px] w-full items-center justify-center truncate rounded border px-1 text-center text-[9px] font-bold leading-none tracking-tight transition sm:text-[10px]",
+        "flex h-[18px] w-full items-center justify-center truncate rounded border-2 bg-[var(--shift-normal)] px-1 text-center text-[9px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[10px]",
         assignment?.kind === "NIGHT"
-          ? "border-[var(--night-border)] bg-[var(--night)]"
-          : "border-[var(--day-border)] bg-[var(--day)]",
+          ? "border-[var(--night-border)]"
+          : "border-[var(--day-border)]",
         dimmed && "opacity-55",
       )}
       disabled={!doctor}
       onClick={() => {
         if (doctor && window.matchMedia("(hover: none)").matches) onToggleHighlight(doctor.id);
       }}
+      style={shiftColorStyle(marker?.colorKey)}
       type="button"
     >
       {doctor?.shortName ?? "—"}
@@ -46,9 +56,11 @@ function ShiftChip({
 export function ScheduleCalendar({
   doctors,
   schedules,
+  shiftColorLegend,
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
+  shiftColorLegend: ShiftColorLegendItem[];
 }) {
   const sortedSchedules = useMemo(
     () => [...schedules].sort((a, b) => b.id.localeCompare(a.id)),
@@ -73,6 +85,22 @@ export function ScheduleCalendar({
         ),
       ),
     [schedules],
+  );
+  const markersBySlot = useMemo(
+    () =>
+      new Map(
+        schedules.flatMap((item) =>
+          (item.markers ?? []).map((marker) => [
+            `${marker.date}-${marker.kind}-${marker.slot}`,
+            marker,
+          ] as const),
+        ),
+      ),
+    [schedules],
+  );
+  const usedColorKeys = useMemo(
+    () => new Set(schedule?.markers?.map((marker) => marker.colorKey) ?? []),
+    [schedule],
   );
 
   const visibleDoctors = useMemo(() => {
@@ -203,11 +231,11 @@ export function ScheduleCalendar({
               </div>
               <div className="flex items-center gap-3 text-[10px] text-[var(--muted)]">
                 <span className="flex items-center gap-1">
-                  <i className="h-3 w-3 rounded border border-[var(--day-border)] bg-[var(--day)]" />
+                  <i className="h-3 w-3 rounded border-2 border-[var(--day-border)] bg-[var(--day)]" />
                   Día
                 </span>
                 <span className="flex items-center gap-1">
-                  <i className="h-3 w-3 rounded border border-[var(--night-border)] bg-[var(--night)]" />
+                  <i className="h-3 w-3 rounded border-2 border-[var(--night-border)] bg-[var(--night)]" />
                   Noche
                 </span>
               </div>
@@ -245,6 +273,7 @@ export function ScheduleCalendar({
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
                           key={`day-${slot}`}
+                          marker={markersBySlot.get(`${dateKey}-DAY-${slot}`)}
                           onToggleHighlight={toggleHighlightedDoctor}
                         />
                       ))}
@@ -254,6 +283,7 @@ export function ScheduleCalendar({
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
                           key={`night-${slot}`}
+                          marker={markersBySlot.get(`${dateKey}-NIGHT-${slot}`)}
                           onToggleHighlight={toggleHighlightedDoctor}
                         />
                       ))}
@@ -298,6 +328,29 @@ export function ScheduleCalendar({
             </button>
           ))}
         </div>
+        {usedColorKeys.size ? (
+          <div className="mt-3 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-2.5">
+            <div className="flex items-center gap-1.5">
+              <Palette size={13} className="text-[var(--brand)]" />
+              <h4 className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+                Colores
+              </h4>
+            </div>
+            <div className="mt-2 grid gap-1 sm:grid-cols-2 xl:grid-cols-1">
+              {shiftColorLegend
+                .filter((item) => usedColorKeys.has(item.key))
+                .map((item) => (
+                  <div className="flex items-center gap-2 text-[10px]" key={item.key}>
+                    <i
+                      className="h-3 w-3 shrink-0 rounded-full border border-black/15"
+                      style={shiftColorStyle(item.key)}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : null}
       </aside>
     </div>
   );

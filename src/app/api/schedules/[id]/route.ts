@@ -49,6 +49,16 @@ export async function PUT(
       )
     `,
   );
+  const markerQueries = parsed.data.markers.map(
+    (marker) => sql`
+      INSERT INTO shift_markers (
+        id, schedule_id, shift_date, kind, slot, color_key
+      ) VALUES (
+        ${marker.id}, ${id}, ${marker.date}, ${marker.kind},
+        ${marker.slot}, ${marker.colorKey}
+      )
+    `,
+  );
   await sql.transaction([
     sql`
       INSERT INTO schedule_months (id, year, month, status, version)
@@ -59,7 +69,9 @@ export async function PUT(
         updated_at = now()
     `,
     sql`DELETE FROM shift_assignments WHERE schedule_id = ${id}`,
+    sql`DELETE FROM shift_markers WHERE schedule_id = ${id}`,
     ...assignmentQueries,
+    ...markerQueries,
     sql`
       INSERT INTO audit_events (
         action, entity_type, entity_id, before, after
@@ -68,7 +80,10 @@ export async function PUT(
         'schedule',
         ${id},
         ${JSON.stringify(current[0] ?? null)}::jsonb,
-        ${JSON.stringify({ assignments: parsed.data.assignments.length })}::jsonb
+        ${JSON.stringify({
+          assignments: parsed.data.assignments.length,
+          markers: parsed.data.markers.length,
+        })}::jsonb
       )
     `,
   ]);

@@ -12,7 +12,11 @@ export default async function TurnosPage() {
         eyebrow="Calendario clínico"
         title="Turnos - Servicio de Urgencia - Lota"
       />
-      <ScheduleCalendar doctors={data.doctors} schedules={published} />
+      <ScheduleCalendar
+        doctors={data.doctors}
+        schedules={published}
+        shiftColorLegend={data.shiftColorLegend}
+      />
     </>
   );
 }

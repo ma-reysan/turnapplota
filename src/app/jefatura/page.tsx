@@ -15,6 +15,7 @@ export default async function JefaturaPage() {
       types={data.replacementTypes}
       vacations={data.vacations}
       holidays={data.holidays}
+      shiftColorLegend={data.shiftColorLegend}
     />
   );
 }
