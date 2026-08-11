@@ -83,6 +83,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-xs text-[var(--muted)]">Apariencia</span>
             <ThemeToggle />
           </div>
+          <p className="px-2 text-center text-[8px] leading-3 text-[var(--muted)] opacity-35">
+            Made by Dr. Mauricio Reyes using Codex
+          </p>
         </div>
       </aside>
 

@@ -35,7 +35,7 @@ function ShiftChip({
     <button
       aria-label={doctor ? `Destacar turnos de ${doctor.longName}` : "Turno sin asignar"}
       className={cn(
-        "flex h-[18px] w-full items-center justify-center truncate rounded border-2 bg-[var(--shift-normal)] px-1 text-center text-[9px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[10px]",
+        "flex h-[18px] w-full items-center justify-center truncate rounded border bg-[var(--shift-normal)] px-1 text-center text-[9px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[10px]",
         assignment?.kind === "NIGHT"
           ? "border-[var(--night-border)]"
           : "border-[var(--day-border)]",

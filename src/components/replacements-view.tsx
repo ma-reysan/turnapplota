@@ -124,14 +124,14 @@ export function ReplacementsView({
             <table className="min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
-                  <th className="sticky left-0 z-10 min-w-28 bg-[var(--surface-soft)] px-3 py-2 text-left">
+                  <th className="sticky left-0 z-10 min-w-24 bg-[var(--surface-soft)] px-2 py-1.5 text-left">
                     Médico
                   </th>
-                  <th className="px-2 py-2 text-right">Total</th>
+                  <th className="sticky left-24 z-10 min-w-14 bg-[var(--surface-soft)] px-1.5 py-1.5 text-right">Total vigente</th>
                   {dates.map((date) => (
                     <th
                       className={cn(
-                        "min-w-16 px-1.5 py-2 text-center font-medium",
+                        "min-w-14 px-1 py-1.5 text-center font-medium",
                         !isActiveReplacement(date) && "opacity-35",
                       )}
                       key={date}
@@ -147,10 +147,10 @@ export function ReplacementsView({
               <tbody>
                 {rankedDoctors.map(({ doctor, points }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
-                    <th className="sticky left-0 z-10 bg-[var(--surface)] px-3 py-2 text-left font-semibold">
+                    <th className="sticky left-0 z-10 bg-[var(--surface)] px-2 py-1.5 text-left font-semibold">
                       {doctor.shortName}
                     </th>
-                    <td className="px-2 py-2 text-right text-sm font-bold text-[var(--brand)]">
+                    <td className="sticky left-24 z-10 min-w-14 bg-[var(--surface)] px-1.5 py-1.5 text-right text-sm font-bold text-[var(--brand)]">
                       {points}
                     </td>
                     {dates.map((date) => {
@@ -163,7 +163,7 @@ export function ReplacementsView({
                       return (
                         <td
                           className={cn(
-                            "px-1.5 py-2 text-center",
+                            "px-1 py-1.5 text-center",
                             !isActiveReplacement(date) && "text-[var(--muted)] opacity-35",
                           )}
                           key={date}
