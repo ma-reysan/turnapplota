@@ -1,4 +1,4 @@
-import { asc, eq, isNull } from "drizzle-orm";
+import { asc, desc, eq, isNull } from "drizzle-orm";
 import { connection } from "next/server";
 import seedJson from "@/data/seed.json";
 import { getDb, isDatabaseConfigured } from "@/db";
@@ -12,6 +12,8 @@ import {
   shiftMarkers,
   vacations,
   holidays,
+  apsAgendas,
+  protocols,
 } from "@/db/schema";
 import type { SeedData, ShiftColorKey } from "@/lib/types";
 import { DEFAULT_SHIFT_COLOR_LEGEND } from "@/lib/shift-colors";
@@ -26,12 +28,14 @@ export async function getAppData(): Promise<SeedData> {
       shiftColorLegend: seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND,
       vacations: seed.vacations ?? [],
       holidays: seed.holidays ?? [],
+      protocols: seed.protocols ?? [],
+      apsAgenda: seed.apsAgenda,
     };
   }
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, replacementRows, typeRows, vacationRows, holidayRows] =
+  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, replacementRows, typeRows, vacationRows, holidayRows, protocolRows, agendaRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
@@ -50,6 +54,13 @@ export async function getAppData(): Promise<SeedData> {
         .orderBy(asc(replacementTypes.sortOrder)),
       db.select().from(vacations).orderBy(asc(vacations.startDate)),
       db.select().from(holidays).orderBy(asc(holidays.holidayDate)),
+      db.select().from(protocols).orderBy(asc(protocols.category), asc(protocols.title)),
+      db
+        .select()
+        .from(apsAgendas)
+        .where(isNull(apsAgendas.archivedAt))
+        .orderBy(desc(apsAgendas.createdAt))
+        .limit(1),
     ]);
 
   return {
@@ -101,6 +112,11 @@ export async function getAppData(): Promise<SeedData> {
       expiresAt: row.expiresAt,
       note: row.note ?? undefined,
     })),
+    lastInvokedDoctorId:
+      [...replacementRows]
+        .reverse()
+        .find((replacement) => replacement.mode === "invoked")?.doctorId ??
+      seed.lastInvokedDoctorId,
     replacementTypes: typeRows.map((row) => ({
       code: row.code,
       label: row.label,
@@ -116,5 +132,21 @@ export async function getAppData(): Promise<SeedData> {
       date: row.holidayDate,
       label: row.label ?? undefined,
     })),
+    protocols: protocolRows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      url: row.url,
+      category: row.category,
+      updatedBy: row.updatedBy,
+      updatedAt: row.updatedAt.toISOString(),
+    })),
+    apsAgenda: agendaRows[0]
+      ? {
+          id: agendaRows[0].id,
+          filename: agendaRows[0].filename,
+          updatedBy: agendaRows[0].updatedBy,
+          updatedAt: agendaRows[0].createdAt.toISOString(),
+        }
+      : undefined,
   };
 }

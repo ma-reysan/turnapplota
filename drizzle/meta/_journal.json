@@ -29,6 +29,20 @@
       "when": 1786407316236,
       "tag": "0003_sudden_preak",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786535643484,
+      "tag": "0004_low_spot",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786570446562,
+      "tag": "0005_curvy_salo",
+      "breakpoints": true
     }
   ]
 }

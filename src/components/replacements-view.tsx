@@ -79,7 +79,7 @@ export function ReplacementsView({
         .reduce((sum, replacement) => sum + replacement.points, 0),
     }))
     .filter(({ hasEntries }) => hasEntries)
-    .sort((a, b) => a.points - b.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
+    .sort((a, b) => b.points - a.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
 
   useEffect(() => {
     if (mode !== "table" || !tableScrollRef.current) return;
@@ -194,7 +194,7 @@ export function ReplacementsView({
                   </span>
                   <span className="flex items-center justify-start gap-0.5 sm:justify-end">
                     {replacement.mode === "invoked" ? (
-                      <ReplacementStatus emoji="🪽" label="Invocado" />
+                      <ReplacementStatus emoji="🛡️" label="Invocado" />
                     ) : null}
                     {replacement.superhero ? (
                       <ReplacementStatus emoji="🦸" label="Superhéroe" />
