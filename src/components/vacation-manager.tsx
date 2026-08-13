@@ -1,10 +1,33 @@
 "use client";
 
 import { CalendarOff, Plus, Trash2, Umbrella } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Doctor, Holiday, Vacation } from "@/lib/types";
+
+function chileDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const value = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+function formatHolidayDate(date: string) {
+  return new Intl.DateTimeFormat("es-CL", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00`));
+}
 
 export function VacationManager({
   doctors,
@@ -19,18 +42,33 @@ export function VacationManager({
   const router = useRouter();
   const [vacations, setVacations] = useState(initialVacations);
   const [holidays, setHolidays] = useState(() =>
-    [...initialHolidays].sort((a, b) => b.date.localeCompare(a.date)),
+    [...initialHolidays].sort((a, b) => a.date.localeCompare(b.date)),
   );
   const [doctorId, setDoctorId] = useState(activeDoctors[0]?.id ?? "");
   const [startDate, setStartDate] = useState(
-    new Date().toISOString().slice(0, 10),
+    chileDateKey(),
   );
-  const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+  const [endDate, setEndDate] = useState(chileDateKey());
+  const [singleDay, setSingleDay] = useState(false);
   const [holidayDate, setHolidayDate] = useState(
-    new Date().toISOString().slice(0, 10),
+    chileDateKey(),
   );
   const [holidayLabel, setHolidayLabel] = useState("");
   const byId = new Map(doctors.map((doctor) => [doctor.id, doctor]));
+  const { nextHolidays, yearHolidays } = useMemo(() => {
+    const today = chileDateKey();
+    const horizon = new Date(`${today}T12:00:00`);
+    horizon.setDate(horizon.getDate() + 365);
+    const limit = chileDateKey(horizon);
+    const upcoming = [...holidays]
+      .filter((holiday) => holiday.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      nextHolidays: upcoming.slice(0, 4),
+      yearHolidays: upcoming.filter((holiday) => holiday.date <= limit),
+    };
+  }, [holidays]);
 
   async function addVacation(event: React.FormEvent) {
     event.preventDefault();
@@ -89,7 +127,7 @@ export function VacationManager({
       [
         ...current.filter((item) => item.date !== result.holiday!.date),
         result.holiday!,
-      ].sort((a, b) => b.date.localeCompare(a.date)),
+      ].sort((a, b) => a.date.localeCompare(b.date)),
     );
     router.refresh();
     setHolidayLabel("");
@@ -119,7 +157,7 @@ export function VacationManager({
           azul al arrastrar un médico.
         </p>
         <form
-          className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(150px,1fr)_130px_130px_auto] xl:items-end"
+          className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(145px,1fr)_118px_118px_auto] xl:items-end"
           onSubmit={addVacation}
         >
           <label className="text-xs text-[var(--muted)]">
@@ -137,25 +175,46 @@ export function VacationManager({
             </select>
           </label>
           <label className="text-xs text-[var(--muted)]">
-            Inicio
+            Desde
             <input
-              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs"
+              aria-label="Inicio de vacaciones"
+              className="mt-1 block h-[31px] w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-xs"
               type="date"
               value={startDate}
-              onChange={(event) => setStartDate(event.target.value)}
+              onChange={(event) => {
+                const nextStart = event.target.value;
+                setStartDate(nextStart);
+                if (singleDay || endDate < nextStart) setEndDate(nextStart);
+              }}
             />
           </label>
           <label className="text-xs text-[var(--muted)]">
-            Término
+            Hasta
             <input
-              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs"
+              aria-label="Término de vacaciones"
+              className="mt-1 block h-[31px] w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-45"
+              disabled={singleDay}
+              min={startDate}
               type="date"
               value={endDate}
               onChange={(event) => setEndDate(event.target.value)}
             />
           </label>
+          <label className="col-span-full flex h-[29px] w-fit items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 text-xs text-[var(--foreground)] xl:col-span-1 xl:col-start-2">
+            <input
+              checked={singleDay}
+              className="size-3.5 accent-[var(--brand)]"
+              onChange={(event) => {
+                const checked = event.target.checked;
+                setSingleDay(checked);
+                if (checked) setEndDate(startDate);
+              }}
+              type="checkbox"
+            />
+            Solo un día
+          </label>
           <button
-            className="flex h-[31px] items-center justify-center gap-1 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white"
+            className="flex h-[31px] items-center justify-center gap-1 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white xl:col-start-4 xl:row-span-2"
             type="submit"
           >
             <Plus size={14} /> Añadir
@@ -221,15 +280,52 @@ export function VacationManager({
             Guardar
           </button>
         </form>
-        <div className="mt-3 divide-y divide-[var(--line)]">
-          {holidays.length ? (
-            holidays.map((item) => (
+        <p className="mt-2 text-[11px] text-[var(--muted)]">
+          Calendario oficial de Chile y días especiales agregados por el equipo.
+        </p>
+        <div className="mt-3 border-b border-[var(--line)] pb-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h3 className="text-xs font-semibold">Próximos feriados</h3>
+            <span className="text-[11px] text-[var(--muted)]">Desde hoy</span>
+          </div>
+          {nextHolidays.length ? (
+            <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+              {nextHolidays.map((item) => (
+                <div
+                  className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-xs"
+                  key={item.date}
+                >
+                  <strong className="block text-[var(--foreground)]">
+                    {formatHolidayDate(item.date)}
+                  </strong>
+                  <span className="mt-0.5 block truncate text-[11px] text-[var(--muted)]">
+                    {item.label || "Feriado"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="py-2 text-center text-xs text-[var(--muted)]">
+              No hay feriados próximos.
+            </p>
+          )}
+        </div>
+        <div className="mt-3">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <h3 className="text-xs font-semibold">Próximos 365 días</h3>
+            <span className="text-[11px] text-[var(--muted)]">
+              {yearHolidays.length} fechas
+            </span>
+          </div>
+          <div className="divide-y divide-[var(--line)]">
+          {yearHolidays.length ? (
+            yearHolidays.map((item) => (
               <div
                 className="flex items-center justify-between gap-2 py-2 text-xs"
                 key={item.date}
               >
                 <span>
-                  <strong>{item.date}</strong>
+                  <strong>{formatHolidayDate(item.date)}</strong>
                   {item.label ? (
                     <small className="ml-2 text-[var(--muted)]">
                       {item.label}
@@ -248,9 +344,10 @@ export function VacationManager({
             ))
           ) : (
             <p className="py-5 text-center text-xs text-[var(--muted)]">
-              No hay feriados configurados.
+              No hay feriados durante los próximos 365 días.
             </p>
           )}
+          </div>
         </div>
       </section>
     </div>

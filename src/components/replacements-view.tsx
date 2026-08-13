@@ -79,7 +79,7 @@ export function ReplacementsView({
         .reduce((sum, replacement) => sum + replacement.points, 0),
     }))
     .filter(({ hasEntries }) => hasEntries)
-    .sort((a, b) => a.points - b.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
+    .sort((a, b) => b.points - a.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
 
   useEffect(() => {
     if (mode !== "table" || !tableScrollRef.current) return;
@@ -124,10 +124,9 @@ export function ReplacementsView({
             <table className="min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
-                  <th className="sticky left-0 z-10 min-w-28 bg-[var(--surface-soft)] px-3 py-2 text-left">
-                    Médico
+                  <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface-soft)] px-3 py-2 text-left">
+                    Médico · vigente
                   </th>
-                  <th className="px-2 py-2 text-right">Total</th>
                   {dates.map((date) => (
                     <th
                       className={cn(
@@ -147,12 +146,12 @@ export function ReplacementsView({
               <tbody>
                 {rankedDoctors.map(({ doctor, points }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
-                    <th className="sticky left-0 z-10 bg-[var(--surface)] px-3 py-2 text-left font-semibold">
-                      {doctor.shortName}
+                    <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface)] px-3 py-2 text-left">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold">{doctor.shortName}</span>
+                        <span className="text-base font-bold leading-none text-[var(--brand)]">{points}</span>
+                      </div>
                     </th>
-                    <td className="px-2 py-2 text-right text-sm font-bold text-[var(--brand)]">
-                      {points}
-                    </td>
                     {dates.map((date) => {
                       const value = replacements
                         .filter(

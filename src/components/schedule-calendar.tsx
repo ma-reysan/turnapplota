@@ -35,11 +35,8 @@ function ShiftChip({
     <button
       aria-label={doctor ? `Destacar turnos de ${doctor.longName}` : "Turno sin asignar"}
       className={cn(
-        "flex h-[18px] w-full items-center justify-center truncate rounded border-2 bg-[var(--shift-normal)] px-1 text-center text-[9px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[10px]",
-        assignment?.kind === "NIGHT"
-          ? "border-[var(--night-border)]"
-          : "border-[var(--day-border)]",
-        dimmed && "opacity-55",
+        "flex h-5 w-full items-center justify-center truncate rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-1 text-center text-[10px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[11px]",
+        dimmed && "opacity-[.32]",
       )}
       disabled={!doctor}
       onClick={() => {
@@ -229,16 +226,6 @@ export function ScheduleCalendar({
                   {monthLabel(schedule.year, schedule.month)}
                 </h2>
               </div>
-              <div className="flex items-center gap-3 text-[10px] text-[var(--muted)]">
-                <span className="flex items-center gap-1">
-                  <i className="h-3 w-3 rounded border-2 border-[var(--day-border)] bg-[var(--day)]" />
-                  Día
-                </span>
-                <span className="flex items-center gap-1">
-                  <i className="h-3 w-3 rounded border-2 border-[var(--night-border)] bg-[var(--night)]" />
-                  Noche
-                </span>
-              </div>
             </div>
             <div className="grid grid-cols-7 gap-1">
               {weekdayLabels.map((label) => (
@@ -277,6 +264,7 @@ export function ScheduleCalendar({
                           onToggleHighlight={toggleHighlightedDoctor}
                         />
                       ))}
+                      <div aria-hidden className="mx-1 my-1 h-px bg-[var(--shift-divider)]" />
                       {[1, 2].map((slot) => (
                         <ShiftChip
                           assignment={assignmentsBySlot.get(`${dateKey}-NIGHT-${slot}`)}
@@ -310,7 +298,7 @@ export function ScheduleCalendar({
                 highlightedDoctor === doctor.id
                   ? "bg-[var(--brand)] text-white"
                   : highlightedDoctor
-                    ? "opacity-55"
+                    ? "opacity-[.32]"
                     : "hover:bg-[var(--surface-soft)]",
               )}
               key={doctor.id}

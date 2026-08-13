@@ -83,6 +83,24 @@ export interface Holiday {
   label?: string;
 }
 
+export type ProtocolCategory = "clinical" | "surgery" | "neurology" | "pediatrics" | "ophthalmology" | "ent" | "aps_network";
+
+export interface Protocol {
+  id: string;
+  title: string;
+  url: string;
+  category: ProtocolCategory;
+  updatedBy: string;
+  updatedAt: string;
+}
+
+export interface ApsAgenda {
+  id: string;
+  filename: string;
+  updatedBy: string;
+  updatedAt: string;
+}
+
 export interface SeedData {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
@@ -91,6 +109,8 @@ export interface SeedData {
   replacementTypes: ReplacementType[];
   vacations: Vacation[];
   holidays: Holiday[];
+  protocols: Protocol[];
+  apsAgenda?: ApsAgenda;
   pearls: string[];
   lastInvokedDoctorId?: string;
   migration: {

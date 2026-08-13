@@ -108,3 +108,22 @@ export const holidayInputSchema = z.object({
   date: z.iso.date(),
   label: z.string().trim().max(100).optional(),
 });
+
+export const protocolInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  title: z.string().trim().min(3).max(160),
+  url: z.url().refine((value) => /^https?:\/\//i.test(value), {
+    message: "El enlace debe comenzar con http:// o https://",
+  }),
+  category: z.enum(["clinical", "surgery", "neurology", "pediatrics", "ophthalmology", "ent", "aps_network"]),
+  updatedBy: z.string().trim().min(2).max(80),
+});
+
+export const protocolDeleteSchema = z.object({
+  id: z.string().uuid(),
+  updatedBy: z.string().trim().min(2).max(80),
+});
+
+export const agendaContributorSchema = z.object({
+  updatedBy: z.string().trim().min(2).max(80),
+});

@@ -147,10 +147,7 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "relative z-30 block h-[18px] w-full rounded border-2 bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
-          kind === "DAY"
-            ? "border-[var(--day-border)]"
-            : "border-[var(--night-border)]",
+          "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
           laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
@@ -755,6 +752,7 @@ function ScheduleManager({
                           slot={slot}
                         />
                       ))}
+                      <div aria-hidden className="mx-1 my-1 h-px bg-[var(--shift-divider)]" />
                       {([1, 2] as const).map((slot) => (
                         <EditableShiftCard
                           assignment={slots.get(`${dateKey}-NIGHT-${slot}`)}

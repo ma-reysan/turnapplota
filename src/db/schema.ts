@@ -145,6 +145,37 @@ export const holidays = pgTable("holidays", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const protocolCategory = pgEnum("protocol_category", [
+  "clinical",
+  "surgery",
+  "neurology",
+  "pediatrics",
+  "ophthalmology",
+  "ent",
+  "aps_network",
+]);
+
+export const protocols = pgTable("protocols", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  url: text("url").notNull(),
+  category: protocolCategory("category").notNull(),
+  updatedBy: text("updated_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const apsAgendas = pgTable("aps_agendas", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  blobUrl: text("blob_url").notNull(),
+  blobPath: text("blob_path").notNull(),
+  filename: text("filename").notNull(),
+  contentType: text("content_type").notNull(),
+  updatedBy: text("updated_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+});
+
 export const auditEvents = pgTable("audit_events", {
   id: uuid("id").defaultRandom().primaryKey(),
   action: text("action").notNull(),
