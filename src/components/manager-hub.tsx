@@ -836,7 +836,7 @@ function ScoreManager({
   const [doctorId, setDoctorId] = useState(doctors.find((doctor) => doctor.active)?.id ?? "");
   const [typeCode, setTypeCode] = useState(firstType?.code ?? "");
   const [points, setPoints] = useState(firstType?.defaultPoints ?? 0);
-  const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
+  const [invoked, setInvoked] = useState(false);
   const [superhero, setSuperhero] = useState(false);
   const [history, setHistory] = useState(() =>
     [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
@@ -851,7 +851,7 @@ function ScoreManager({
       doctorId,
       typeCode,
       points,
-      mode,
+      mode: invoked ? "invoked" as const : "voluntary" as const,
       superhero,
       expiresAt: addDays(new Date(`${date}T12:00:00`), 120)
         .toISOString()
@@ -944,16 +944,14 @@ function ScoreManager({
               ))}
             </select>
           </label>
-          <label className="text-xs text-[var(--muted)]">
-            Modalidad
-            <select
-              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
-              onChange={(event) => setMode(event.target.value as "voluntary" | "invoked")}
-              value={mode}
-            >
-              <option value="voluntary">Voluntario</option>
-              <option value="invoked">Invocado</option>
-            </select>
+          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
+            <input
+              checked={invoked}
+              className="accent-[var(--brand)]"
+              onChange={(event) => setInvoked(event.target.checked)}
+              type="checkbox"
+            />
+            🛡️ Invocado
           </label>
           <label className="text-xs text-[var(--muted)]">
             Puntos
@@ -1004,7 +1002,7 @@ function ScoreManager({
                       "Histórico"}
                 </small>
                 {replacement.mode === "invoked" ? (
-                  <ReplacementStatus emoji="🪽" label="Invocado" />
+                  <ReplacementStatus emoji="🛡️" label="Invocado" />
                 ) : null}
                 {replacement.superhero ? (
                   <ReplacementStatus emoji="🦸" label="Superhéroe" />

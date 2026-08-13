@@ -194,7 +194,7 @@ export function ReplacementsView({
                   </span>
                   <span className="flex items-center justify-start gap-0.5 sm:justify-end">
                     {replacement.mode === "invoked" ? (
-                      <ReplacementStatus emoji="🪽" label="Invocado" />
+                      <ReplacementStatus emoji="🛡️" label="Invocado" />
                     ) : null}
                     {replacement.superhero ? (
                       <ReplacementStatus emoji="🦸" label="Superhéroe" />
