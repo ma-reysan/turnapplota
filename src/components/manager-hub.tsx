@@ -755,6 +755,7 @@ function ScheduleManager({
                           slot={slot}
                         />
                       ))}
+                      <div aria-hidden className="mx-1 my-1 h-px bg-[var(--shift-divider)]" />
                       {([1, 2] as const).map((slot) => (
                         <EditableShiftCard
                           assignment={slots.get(`${dateKey}-NIGHT-${slot}`)}

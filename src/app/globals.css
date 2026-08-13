@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f2;
-  --surface: #ffffff;
-  --surface-soft: #eef1eb;
-  --foreground: #18211b;
-  --muted: #68746d;
-  --line: #d9dfda;
-  --brand: #1e6a4f;
-  --brand-strong: #134b39;
-  --shift-normal: #dbe9e6;
-  --shift-normal-text: #143532;
+  --background: #d8e1df;
+  --surface: #e8efed;
+  --surface-soft: #c8d7d3;
+  --foreground: #192725;
+  --muted: #546966;
+  --line: #b9cbc6;
+  --brand: #1d6b62;
+  --brand-strong: #164d47;
+  --shift-normal: #bdd4d0;
+  --shift-normal-text: #123a36;
+  --shift-border: #729b92;
+  --shift-divider: #76978f;
   --day: var(--shift-normal);
   --day-border: #8a5a08;
   --night: var(--shift-normal);
@@ -49,6 +51,8 @@
   --brand-strong: #7ad1aa;
   --shift-normal: #163b3a;
   --shift-normal-text: #f0faf8;
+  --shift-border: #41685c;
+  --shift-divider: #52776c;
   --day: var(--shift-normal);
   --day-border: #e2b44f;
   --night: var(--shift-normal);
@@ -115,6 +119,27 @@ a {
 .scrollbar-subtle {
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
+}
+
+.agenda-activity {
+  color: var(--activity-color);
+  background: var(--activity-bg);
+  border-color: var(--activity-border);
+}
+
+.agenda-activity-time {
+  color: inherit;
+  background: var(--activity-time-bg);
+}
+
+.dark .agenda-activity {
+  color: var(--activity-dark-color);
+  background: var(--activity-dark-bg);
+  border-color: var(--activity-dark-border);
+}
+
+.dark .agenda-activity-time {
+  background: var(--activity-dark-time-bg);
 }
 
 @media print {

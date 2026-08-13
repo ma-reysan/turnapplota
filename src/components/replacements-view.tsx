@@ -79,7 +79,7 @@ export function ReplacementsView({
         .reduce((sum, replacement) => sum + replacement.points, 0),
     }))
     .filter(({ hasEntries }) => hasEntries)
-    .sort((a, b) => a.points - b.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
+    .sort((a, b) => b.points - a.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
 
   useEffect(() => {
     if (mode !== "table" || !tableScrollRef.current) return;
