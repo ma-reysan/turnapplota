@@ -1,39 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f2;
-  --surface: #ffffff;
-  --surface-soft: #eef1eb;
-  --foreground: #18211b;
-  --muted: #68746d;
-  --line: #d9dfda;
-  --brand: #1e6a4f;
-  --brand-strong: #134b39;
-  --shift-normal: #dbe9e6;
-  --shift-normal-text: #143532;
+  --background: #d8e1df;
+  --surface: #e8efed;
+  --surface-soft: #c8d7d3;
+  --foreground: #192725;
+  --muted: #546966;
+  --line: #b9cbc6;
+  --brand: #1d6b62;
+  --brand-strong: #164d47;
+  --shift-normal: #bdd4d0;
+  --shift-normal-text: #123a36;
+  --shift-border: #729b92;
+  --shift-divider: #76978f;
   --day: var(--shift-normal);
   --day-border: #8a5a08;
   --night: var(--shift-normal);
   --night-border: #164f83;
-  --shift-mark-yellow: #f5d85f;
-  --shift-mark-yellow-text: #332900;
-  --shift-mark-sky: #8ed7ee;
-  --shift-mark-sky-text: #062d3a;
-  --shift-mark-orange: #ed9b4a;
-  --shift-mark-orange-text: #3a1c00;
-  --shift-mark-coral: #ef8877;
-  --shift-mark-coral-text: #3b1510;
-  --shift-mark-rose: #e99ab1;
-  --shift-mark-rose-text: #3a1420;
-  --shift-mark-violet: #b7a2e8;
-  --shift-mark-violet-text: #24163d;
-  --shift-mark-indigo: #8299df;
-  --shift-mark-indigo-text: #101d43;
-  --shift-mark-teal: #56bfb0;
-  --shift-mark-teal-text: #07352f;
-  --shift-mark-lime: #b7d96a;
-  --shift-mark-lime-text: #263507;
-  --shift-mark-slate: #68777b;
+  --shift-mark-yellow: #d8b85b;
+  --shift-mark-yellow-text: #3f3419;
+  --shift-mark-sky: #87b8c4;
+  --shift-mark-sky-text: #173a43;
+  --shift-mark-orange: #d28a63;
+  --shift-mark-orange-text: #422616;
+  --shift-mark-coral: #ce8075;
+  --shift-mark-coral-text: #441e1a;
+  --shift-mark-rose: #c98c9d;
+  --shift-mark-rose-text: #45232e;
+  --shift-mark-violet: #a291bb;
+  --shift-mark-violet-text: #2e2940;
+  --shift-mark-indigo: #778caa;
+  --shift-mark-indigo-text: #1d2940;
+  --shift-mark-teal: #69a99f;
+  --shift-mark-teal-text: #173b35;
+  --shift-mark-lime: #9db66c;
+  --shift-mark-lime-text: #303b19;
+  --shift-mark-slate: #687a76;
   --shift-mark-slate-text: #ffffff;
   --danger: #bd3c43;
 }
@@ -49,30 +51,32 @@
   --brand-strong: #7ad1aa;
   --shift-normal: #163b3a;
   --shift-normal-text: #f0faf8;
+  --shift-border: #41685c;
+  --shift-divider: #52776c;
   --day: var(--shift-normal);
   --day-border: #e2b44f;
   --night: var(--shift-normal);
   --night-border: #75b5ee;
-  --shift-mark-yellow: #a98518;
-  --shift-mark-yellow-text: #fff8d8;
-  --shift-mark-sky: #247b98;
-  --shift-mark-sky-text: #eefbff;
-  --shift-mark-orange: #ad5815;
-  --shift-mark-orange-text: #fff5eb;
-  --shift-mark-coral: #9d4437;
-  --shift-mark-coral-text: #fff1ef;
-  --shift-mark-rose: #91415f;
-  --shift-mark-rose-text: #fff0f5;
-  --shift-mark-violet: #664d9e;
-  --shift-mark-violet-text: #f7f1ff;
-  --shift-mark-indigo: #405994;
-  --shift-mark-indigo-text: #f1f4ff;
-  --shift-mark-teal: #24796f;
-  --shift-mark-teal-text: #eafffb;
-  --shift-mark-lime: #5e842b;
-  --shift-mark-lime-text: #f5ffe4;
-  --shift-mark-slate: #53636a;
-  --shift-mark-slate-text: #f5fafb;
+  --shift-mark-yellow: #8e752b;
+  --shift-mark-yellow-text: #f4efe8;
+  --shift-mark-sky: #316f82;
+  --shift-mark-sky-text: #f4efe8;
+  --shift-mark-orange: #98552f;
+  --shift-mark-orange-text: #f4efe8;
+  --shift-mark-coral: #8e4d43;
+  --shift-mark-coral-text: #f4efe8;
+  --shift-mark-rose: #82485b;
+  --shift-mark-rose-text: #f4efe8;
+  --shift-mark-violet: #655184;
+  --shift-mark-violet-text: #f4efe8;
+  --shift-mark-indigo: #4f628a;
+  --shift-mark-indigo-text: #f4efe8;
+  --shift-mark-teal: #347b72;
+  --shift-mark-teal-text: #f4efe8;
+  --shift-mark-lime: #647d39;
+  --shift-mark-lime-text: #f4efe8;
+  --shift-mark-slate: #536460;
+  --shift-mark-slate-text: #f4efe8;
   --danger: #f07178;
 }
 
@@ -115,6 +119,27 @@ a {
 .scrollbar-subtle {
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
+}
+
+.agenda-activity {
+  color: var(--activity-color);
+  background: var(--activity-bg);
+  border-color: var(--activity-border);
+}
+
+.agenda-activity-time {
+  color: inherit;
+  background: var(--activity-time-bg);
+}
+
+.dark .agenda-activity {
+  color: var(--activity-dark-color);
+  background: var(--activity-dark-bg);
+  border-color: var(--activity-dark-border);
+}
+
+.dark .agenda-activity-time {
+  background: var(--activity-dark-time-bg);
 }
 
 @media print {
