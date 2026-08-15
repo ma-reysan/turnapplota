@@ -20,6 +20,16 @@ export async function POST(request: Request) {
   }
   const db = getDb();
   const before = await db.select().from(doctors).where(eq(doctors.id, parsed.data.id));
+  const sameShortName = await db
+    .select({ id: doctors.id })
+    .from(doctors)
+    .where(eq(doctors.shortName, parsed.data.shortName));
+  if (sameShortName.some((doctor) => doctor.id !== parsed.data.id)) {
+    return Response.json(
+      { error: "Ese nombre corto ya pertenece a otro médico." },
+      { status: 409 },
+    );
+  }
   await db
     .insert(doctors)
     .values(parsed.data)

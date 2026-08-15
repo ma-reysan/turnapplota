@@ -12,7 +12,11 @@ import {
   shiftMarkers,
 } from "../src/db/schema";
 
-const SOURCE_FILE = "/Users/ma.reyessantana/Downloads/Turnos MEDICOS.xlsx";
+const args = process.argv.slice(2);
+const DRY_RUN = args.includes("--dry-run");
+const SOURCE_FILE =
+  args.find((argument) => argument !== "--dry-run") ??
+  "/Users/ma.reyessantana/Downloads/Turnos MEDICOS.xlsx";
 
 const MONTHS = [
   { sheetName: "AGOSTO 2026", scheduleId: "2026-08", year: 2026, month: 8 },
@@ -188,16 +192,32 @@ async function main() {
     existingDoctors.map((doctor) => [normalizeName(doctor.shortName), doctor.id]),
   );
 
-  // FIERRO aparece en septiembre, pero no forma parte de la nómina activa actual.
-  if (!doctorsByShortName.has("FIERRO")) {
+  const existingFierro = existingDoctors.find(
+    (doctor) => normalizeName(doctor.shortName) === "FIERRO",
+  );
+  if (existingFierro && !DRY_RUN) {
+    await db
+      .update(doctors)
+      .set({
+        shortName: "FIERRO",
+        longName: "Esteban Fierro",
+        active: true,
+        deletedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(doctors.id, existingFierro.id));
+    doctorsByShortName.set("FIERRO", existingFierro.id);
+  } else if (!existingFierro && !DRY_RUN) {
     await db.insert(doctors).values({
       id: "fierro",
       shortName: "FIERRO",
-      longName: "Fierro",
-      active: false,
-      sortOrder: 999,
+      longName: "Esteban Fierro",
+      active: true,
+      sortOrder: existingDoctors.length,
     });
     doctorsByShortName.set("FIERRO", "fierro");
+  } else {
+    doctorsByShortName.set("FIERRO", existingFierro?.id ?? "fierro");
   }
 
   const parsed = MONTHS.map((month) => {
@@ -212,6 +232,46 @@ async function main() {
   const unknownNames = [...new Set(parsed.flatMap((item) => [...item.unknownNames]))];
   if (unknownNames.length) {
     throw new Error(`Médicos sin equivalencia: ${unknownNames.join(", ")}`);
+  }
+
+  if (DRY_RUN) {
+    const verifiedFierro = await db
+      .select()
+      .from(doctors)
+      .where(eq(doctors.shortName, "FIERRO"));
+    console.log(
+      verifiedFierro.length === 1
+        ? `Médico FIERRO: ${verifiedFierro[0].longName} · ${verifiedFierro[0].active ? "activo" : "inactivo"}.`
+        : `Advertencia: se encontraron ${verifiedFierro.length} registros FIERRO.`,
+    );
+    const existingAssignments = await db
+      .select()
+      .from(shiftAssignments)
+      .where(inArray(shiftAssignments.scheduleId, MONTHS.map((month) => month.scheduleId)));
+    const existingMarkers = await db
+      .select()
+      .from(shiftMarkers)
+      .where(inArray(shiftMarkers.scheduleId, MONTHS.map((month) => month.scheduleId)));
+    for (const item of parsed) {
+      const currentAssignments = existingAssignments.filter(
+        (assignment) => assignment.scheduleId === item.month.scheduleId,
+      );
+      const currentMarkers = existingMarkers.filter(
+        (marker) => marker.scheduleId === item.month.scheduleId,
+      );
+      const assignmentSignature = (assignment: ParsedAssignment | (typeof existingAssignments)[number]) =>
+        `${assignment.shiftDate}|${assignment.kind}|${assignment.slot}|${assignment.doctorId}`;
+      const markerSignature = (marker: ParsedMarker | (typeof existingMarkers)[number]) =>
+        `${marker.shiftDate}|${marker.kind}|${marker.slot}|${marker.colorKey}`;
+      const currentAssignmentSet = new Set(currentAssignments.map(assignmentSignature));
+      const nextAssignmentSet = new Set(item.assignments.map(assignmentSignature));
+      const currentMarkerSet = new Set(currentMarkers.map(markerSignature));
+      const nextMarkerSet = new Set(item.markers.map(markerSignature));
+      console.log(
+        `${item.month.scheduleId}: ${item.assignments.length} turnos (${[...nextAssignmentSet].filter((value) => !currentAssignmentSet.has(value)).length} nuevos/cambiados, ${[...currentAssignmentSet].filter((value) => !nextAssignmentSet.has(value)).length} retirados/cambiados) · ${item.markers.length} colores (${[...nextMarkerSet].filter((value) => !currentMarkerSet.has(value)).length} nuevos/cambiados, ${[...currentMarkerSet].filter((value) => !nextMarkerSet.has(value)).length} retirados/cambiados).`,
+      );
+    }
+    return;
   }
 
   const schedules = await db
@@ -238,7 +298,7 @@ async function main() {
       entityId: item.month.scheduleId,
       actor: "importación Excel",
       after: {
-        source: "Turnos MEDICOS.xlsx",
+        source: SOURCE_FILE.split("/").at(-1) ?? SOURCE_FILE,
         sheet: item.month.sheetName,
         assignments: item.assignments.length,
         markers: item.markers.length,

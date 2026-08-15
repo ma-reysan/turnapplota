@@ -298,15 +298,35 @@ function RosterEditor({
 
   async function addDoctor() {
     if (!newLongName.trim() || !newShortName.trim()) return;
-    const id = normalizeDoctorSearch(newShortName).toLowerCase().replace(/[^a-z0-9]+/g, "-");
-    if (doctors.some((doctor) => doctor.id === id)) {
+    const normalizedShortName = normalizeDoctorSearch(newShortName);
+    const existingDoctor = doctors.find(
+      (doctor) => normalizeDoctorSearch(doctor.shortName) === normalizedShortName,
+    );
+    if (existingDoctor?.active) {
       toast.error("Ese nombre corto ya existe");
       return;
     }
+    if (existingDoctor) {
+      const reactivated = await persist(
+        {
+          ...existingDoctor,
+          longName: newLongName.trim(),
+          shortName: normalizedShortName,
+          active: true,
+        },
+        "Médico reactivado",
+      );
+      if (reactivated) {
+        setNewLongName("");
+        setNewShortName("");
+      }
+      return;
+    }
+    const id = normalizedShortName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const doctor: Doctor = {
       id,
       longName: newLongName.trim(),
-      shortName: normalizeDoctorSearch(newShortName),
+      shortName: normalizedShortName,
       active: true,
       sortOrder: doctors.length,
     };
