@@ -34,7 +34,7 @@ export default function DisclaimerPage() {
 
       <div className="glass rounded-2xl p-5 text-sm leading-6 text-[var(--muted)]">
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-[var(--brand)]">
-          Código abierto
+          Open Source
         </h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>Esta es una app basada en React y Node.js, alojada en GitHub y desplegada en Vercel.</li>
