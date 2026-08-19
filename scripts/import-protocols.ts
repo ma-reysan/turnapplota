@@ -1,21 +1,11 @@
 import "dotenv/config";
 import { getDb } from "../src/db";
 import { auditEvents, protocols } from "../src/db/schema";
-import type { ProtocolCategory } from "../src/lib/types";
-
-type ImportRow = {
-  title: string;
-  url: string;
-  category: ProtocolCategory;
-};
+import { DRIVE_PROTOCOL_CATALOG } from "../src/lib/drive-protocol-catalog";
 
 const DRIVE_IMPORTER = "Importación inicial desde Drive";
 const drive = (id: string) => `https://drive.google.com/file/d/${id}/view`;
-
-// Fuente: carpeta personal de Protocolos indicada por el equipo. Las entradas
-// pediátricas antiguas se conservan con su origen explícito para no confundirlas
-// con las versiones 2026.
-const rows: ImportRow[] = [
+const legacyRows = [
   { title: "Cirugía · Colecistectomía", url: drive("1GBLnog-nDcjQajgnm2SskViw8AbrQ1L9"), category: "surgery" },
   { title: "Cirugía · Hernioplastía", url: drive("1jYpCcPmXX8MeeWeUCckdIy7RssJwtzVt"), category: "surgery" },
   { title: "Neurología · Dolor neuropático", url: drive("1J5ahTiUGt0e66MY9LUqPfOgqkOecC6E9"), category: "neurology" },
@@ -70,13 +60,27 @@ const rows: ImportRow[] = [
   { title: "Pediatría (archivo anterior) · Fiebre sin foco", url: drive("1FjxITbEBdd57UthAbTlDcotU8NwltYyb"), category: "pediatrics" },
   { title: "Pediatría (archivo anterior) · Bronquiolitis", url: drive("1E96ZVpNB8ScH6BsR3pR4CcgPBtMgL4J1"), category: "pediatrics" },
   { title: "APS · Mapas de derivación GES", url: drive("12wfUkC3YjT_efJ1iC93QqzbAgHtG9Fdw"), category: "aps_network" },
+] as const;
+
+// El catálogo se obtiene desde la carpeta de Drive compartida por el equipo.
+// Se conservan los enlaces históricos que no pertenecen a esa carpeta.
+const rows = [
+  ...DRIVE_PROTOCOL_CATALOG,
+  ...legacyRows.filter((legacy) => !DRIVE_PROTOCOL_CATALOG.some((item) => protocolKey(item.url) === protocolKey(legacy.url))),
 ];
+
+// Drive puede devolver el mismo archivo con parámetros distintos (por ejemplo,
+// /view y /view?usp=drivesdk). Para importar sin duplicar, se compara el ID.
+function protocolKey(url: string) {
+  const driveId = url.match(/\/d\/([^/?]+)/)?.[1] ?? url.match(/[?&]id=([^&]+)/)?.[1];
+  return driveId ? `drive:${driveId}` : url;
+}
 
 async function main() {
   const db = getDb();
   const existing = await db.select({ url: protocols.url }).from(protocols);
-  const existingUrls = new Set(existing.map((item) => item.url));
-  const missing = rows.filter((item) => !existingUrls.has(item.url));
+  const existingKeys = new Set(existing.map((item) => protocolKey(item.url)));
+  const missing = rows.filter((item) => !existingKeys.has(protocolKey(item.url)));
   if (!missing.length) {
     console.log("No hay protocolos nuevos para importar.");
     return;

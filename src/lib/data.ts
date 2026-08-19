@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import type { SeedData, ShiftColorKey } from "@/lib/types";
 import { DEFAULT_SHIFT_COLOR_LEGEND } from "@/lib/shift-colors";
+import { DRIVE_PROTOCOL_CATALOG } from "@/lib/drive-protocol-catalog";
 
 const seed = seedJson as SeedData;
 
@@ -28,7 +29,15 @@ export async function getAppData(): Promise<SeedData> {
       shiftColorLegend: seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND,
       vacations: seed.vacations ?? [],
       holidays: seed.holidays ?? [],
-      protocols: seed.protocols ?? [],
+      protocols: [
+        ...(seed.protocols ?? []).filter((item) => !DRIVE_PROTOCOL_CATALOG.some((catalog) => catalog.url === item.url)),
+        ...DRIVE_PROTOCOL_CATALOG.map((item, index) => ({
+          ...item,
+          id: `drive-${index}`,
+          updatedBy: "Biblioteca de Drive",
+          updatedAt: "2026-08-19T00:00:00.000Z",
+        })),
+      ],
       apsAgenda: seed.apsAgenda,
     };
   }

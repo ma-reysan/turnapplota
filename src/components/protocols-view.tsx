@@ -12,6 +12,7 @@ const categories: Array<{ id: ProtocolCategory; label: string }> = [
   { id: "ophthalmology", label: "Oftalmología" },
   { id: "ent", label: "Otorrinolaringología" },
   { id: "aps_network", label: "Red APS" },
+  { id: "quality", label: "Calidad y seguridad" },
   { id: "clinical", label: "Otros clínicos" },
 ];
 
