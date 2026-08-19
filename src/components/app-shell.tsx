@@ -99,9 +99,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="text-xs text-[var(--muted)]">Apariencia</span>
             <ThemeToggle />
           </div>
-          <p className="px-2 text-center text-[8px] leading-3 text-[var(--muted)] opacity-35">
-            Made by Dr. Mauricio Reyes using Codex
-          </p>
+          <Link
+            className="block px-2 text-center text-[8px] leading-3 text-[var(--muted)] opacity-35 transition hover:opacity-70"
+            href="/disclaimer"
+          >
+            Design by Dr. Mauricio Reyes
+            <br />
+            Made with Codex
+          </Link>
         </div>
       </aside>
 
