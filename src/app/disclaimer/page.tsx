@@ -11,23 +11,19 @@ export default function DisclaimerPage() {
 
       <div className="glass rounded-2xl p-5 text-sm leading-6 text-[var(--muted)]">
         <ul className="list-disc space-y-2 pl-5">
-          <li>App diseñada por el Dr. Mauricio Reyes. Creada con ayuda de Codex y Claude Code.</li>
+          <li>Aplicación diseñada por el Dr. Mauricio Reyes, con apoyo de Codex y Claude Code.</li>
           <li>
-            Creé esta aplicación para ayudar a la organización de mis colegas médicos del
+            Creé esta aplicación para apoyar la organización del trabajo de mis colegas en el
             hospital.
           </li>
+          <li>Esta aplicación no tiene asociación oficial con el Hospital de Lota ni con su personal.</li>
           <li>
-            Esta aplicación no tiene ninguna asociación oficial con el Hospital de Lota ni con su
-            personal.
+            Implementé sistemas que permiten mantener, actualizar y modificar la aplicación de
+            forma autónoma, tanto por los colegas como por la jefatura de urgencia.
           </li>
           <li>
-            Implementé sistemas para que la app sea actualizable, autosostenible y modificable
-            por los mismos colegas y el jefe de urgencia.
-          </li>
-          <li>
-            No soy responsable de errores de información o agenda que ocurran al utilizar la app
-            o la información que aparece en ella. Recordar mantener las bases de datos
-            actualizadas.
+            No me responsabilizo por errores en la información o agenda que puedan producirse al
+            utilizar la aplicación. Es importante mantener las bases de datos actualizadas.
           </li>
         </ul>
       </div>
@@ -37,10 +33,10 @@ export default function DisclaimerPage() {
           Open Source
         </h2>
         <ul className="list-disc space-y-2 pl-5">
-          <li>Esta es una app basada en React y Node.js, alojada en GitHub y desplegada en Vercel.</li>
-          <li>El objetivo de este proyecto es que pueda ser mantenido por otros colegas si lo encuentran necesario.</li>
+          <li>Esta aplicación está desarrollada con React y Node.js, alojada en GitHub y desplegada en Vercel.</li>
+          <li>El proyecto fue diseñado para que otros colegas puedan mantenerlo si fuera necesario.</li>
           <li>
-            El código de la app está de forma pública en mi GitHub:{" "}
+            El código fuente está disponible públicamente en GitHub:{" "}
             <a
               className="font-medium text-[var(--brand)] underline underline-offset-2"
               href="https://github.com/ma-reysan/turnapplota"
@@ -51,7 +47,7 @@ export default function DisclaimerPage() {
             </a>
             .
           </li>
-          <li>Se puede sacar de ahí y recrear o modificar. Una IA puede hacerlo sin problemas.</li>
+          <li>Puede descargarse, reutilizarse y modificarse según sea necesario.</li>
         </ul>
       </div>
     </div>
