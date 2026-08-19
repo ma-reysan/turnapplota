@@ -153,6 +153,7 @@ export const protocolCategory = pgEnum("protocol_category", [
   "ophthalmology",
   "ent",
   "aps_network",
+  "quality",
 ]);
 
 export const protocols = pgTable("protocols", {

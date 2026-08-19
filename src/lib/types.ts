@@ -83,7 +83,7 @@ export interface Holiday {
   label?: string;
 }
 
-export type ProtocolCategory = "clinical" | "surgery" | "neurology" | "pediatrics" | "ophthalmology" | "ent" | "aps_network";
+export type ProtocolCategory = "clinical" | "surgery" | "neurology" | "pediatrics" | "ophthalmology" | "ent" | "aps_network" | "quality";
 
 export interface Protocol {
   id: string;
