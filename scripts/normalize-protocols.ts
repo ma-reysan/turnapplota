@@ -1,9 +1,17 @@
 import "dotenv/config";
-import { and, eq, like } from "drizzle-orm";
+import { and, eq, like, ne } from "drizzle-orm";
 import { getDb } from "../src/db";
 import { auditEvents, protocols } from "../src/db/schema";
+import type { ProtocolCategory } from "../src/lib/types";
 
 const ACTOR = "Mauri · organización de protocolos";
+
+const CATEGORY_FIXES: Array<{ prefix: string; category: ProtocolCategory }> = [
+  { prefix: "Cirugía ·", category: "surgery" },
+  { prefix: "Neurología ·", category: "neurology" },
+  { prefix: "Oftalmología ·", category: "ophthalmology" },
+  { prefix: "ORL ·", category: "ent" },
+];
 
 async function main() {
   const db = getDb();
@@ -25,7 +33,26 @@ async function main() {
     const [updated] = await db.update(protocols).set({ title, category: "pediatrics", updatedBy: ACTOR, updatedAt: new Date() }).where(and(eq(protocols.id, item.id), like(protocols.title, "Pediatría 2026 ·%"))).returning();
     if (updated) await db.insert(auditEvents).values({ action: "protocol.updated", entityType: "protocol", entityId: updated.id, before: item, after: updated, actor: ACTOR });
   }
-  console.log(`Eliminados ${outdated.length} archivos pediátricos anteriores y renombrados ${current.length} protocolos vigentes.`);
+  let recategorized = 0;
+  for (const { prefix, category } of CATEGORY_FIXES) {
+    const mismatched = await db
+      .select()
+      .from(protocols)
+      .where(and(like(protocols.title, `${prefix}%`), ne(protocols.category, category)));
+    for (const item of mismatched) {
+      const [updated] = await db
+        .update(protocols)
+        .set({ category, updatedBy: ACTOR, updatedAt: new Date() })
+        .where(eq(protocols.id, item.id))
+        .returning();
+      if (updated) {
+        await db.insert(auditEvents).values({ action: "protocol.updated", entityType: "protocol", entityId: updated.id, before: item, after: updated, actor: ACTOR });
+        recategorized += 1;
+      }
+    }
+  }
+
+  console.log(`Eliminados ${outdated.length} archivos pediátricos anteriores, renombrados ${current.length} protocolos vigentes y recategorizados ${recategorized} protocolos.`);
 }
 
 main().catch((error) => {
