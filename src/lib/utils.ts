@@ -28,12 +28,36 @@ export function calendarDays(year: number, month: number) {
   return days;
 }
 
+// Los títulos llevan tildes pero nadie las escribe al buscar, así que
+// comparamos sin diacríticos ni mayúsculas.
+export function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("es")
+    .trim();
+}
+
 export function normalizeDoctorSearch(value: string) {
   return value
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLocaleUpperCase("es-CL")
     .trim();
+}
+
+// El servidor y el navegador usan versiones distintas de ICU: una emite espacio
+// normal antes de "p. m." y la otra un espacio fino (U+202F). Fijamos la zona
+// horaria y unificamos los espacios para que ambos rendericen igual y React no
+// reporte un error de hidratación.
+export function formatDateTime(value: string | Date) {
+  return new Intl.DateTimeFormat("es-CL", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "America/Santiago",
+  })
+    .format(new Date(value))
+    .replace(/[  ]/g, " ");
 }
 
 export function isActiveReplacement(date: string, today = new Date()) {

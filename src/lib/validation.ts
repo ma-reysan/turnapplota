@@ -115,7 +115,7 @@ export const protocolInputSchema = z.object({
   url: z.url().refine((value) => /^https?:\/\//i.test(value), {
     message: "El enlace debe comenzar con http:// o https://",
   }),
-  category: z.enum(["clinical", "surgery", "neurology", "pediatrics", "ophthalmology", "ent", "aps_network", "quality"]),
+  category: z.enum(["clinical", "surgery", "neurology", "pediatrics", "ophthalmology", "ent", "aps_network", "quality", "quality_dp", "quality_cal", "quality_gcl", "quality_aoc", "quality_rh", "quality_reg", "quality_eq", "quality_ins", "quality_apl", "quality_apf", "quality_ape", "quality_apt", "quality_apa", "quality_api", "quality_apk", "quality_aptr", "quality_gd"]),
   updatedBy: z.string().trim().min(2).max(80),
 });
 

@@ -7,6 +7,7 @@ import * as XLSX from "xlsx";
 import { agendaDate, mergeAgendaActivities, parseAgendaWorkbook, type AgendaResult } from "@/lib/agenda-analyzer";
 import { exportAgendaPdf } from "@/lib/agenda-pdf";
 import type { ApsAgenda } from "@/lib/types";
+import { formatDateTime } from "@/lib/utils";
 
 const MONTH_NAMES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
@@ -163,7 +164,7 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)] lg:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Agenda APS</h1>
-          <p className="mt-1.5 text-xs text-emerald-100">{agenda ? `${agenda.filename} · Actualizado el ${new Intl.DateTimeFormat("es-CL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(agenda.updatedAt))} por ${agenda.updatedBy}` : "Aún no hay Agenda APS vigente."}</p>
+          <p className="mt-1.5 text-xs text-emerald-100">{agenda ? `${agenda.filename} · Actualizado el ${formatDateTime(agenda.updatedAt)} por ${agenda.updatedBy}` : "Aún no hay Agenda APS vigente."}</p>
           {agenda ? <a className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-100 underline-offset-2 hover:text-white hover:underline" href="/api/agenda-aps?download=1"><Download size={13} /> Descargar Excel</a> : null}
         </div>
         <form className="rounded-xl border border-white/20 bg-white/10 p-3 backdrop-blur-sm" onSubmit={upload}>

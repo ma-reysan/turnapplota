@@ -4,6 +4,7 @@ import {
   isActiveReplacement,
   monthKey,
   normalizeDoctorSearch,
+  normalizeSearch,
 } from "@/lib/utils";
 
 describe("calendar and replacement helpers", () => {
@@ -18,6 +19,13 @@ describe("calendar and replacement helpers", () => {
   it("keeps replacements active for 120 days", () => {
     expect(isActiveReplacement("2026-04-01", new Date("2026-07-29"))).toBe(true);
     expect(isActiveReplacement("2026-03-01", new Date("2026-07-29"))).toBe(false);
+  });
+
+  it("matches protocol titles ignoring accents and case", () => {
+    const title = normalizeSearch("GCL 2.2.2 · Prevención de caídas (V6)");
+    expect(title.includes(normalizeSearch("caidas"))).toBe(true);
+    expect(title.includes(normalizeSearch("PREVENCION"))).toBe(true);
+    expect(title.includes(normalizeSearch("neumonia"))).toBe(false);
   });
 
   it("formats month keys", () => {

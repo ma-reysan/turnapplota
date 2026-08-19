@@ -50,6 +50,13 @@
       "when": 1787169600000,
       "tag": "0006_add_quality_protocol_category",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787256000000,
+      "tag": "0007_split_quality_protocol_categories",
+      "breakpoints": true
     }
   ]
 }
