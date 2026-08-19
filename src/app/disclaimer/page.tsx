@@ -36,15 +36,23 @@ export default function DisclaimerPage() {
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-[var(--brand)]">
           Código abierto
         </h2>
-        <p>
-          Este proyecto es de código abierto: voy a dejar el repositorio de GitHub público, para
-          que cualquier colega interesado pueda ver cómo está hecha la aplicación por dentro. No
-          hace falta saber de informática para mirarlo. Si en el futuro algún colega tiene
-          conocimientos de programación, o simplemente ganas de aprender, puede entrar al
-          repositorio, revisar el código y hacer sus propios cambios o mejoras. La idea es que la
-          app no dependa de una sola persona: cualquiera con los conocimientos necesarios puede
-          tomar la posta, corregir errores o agregar funciones nuevas cuando haga falta.
-        </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>Esta es una app basada en React y Node.js, alojada en GitHub y desplegada en Vercel.</li>
+          <li>El objetivo de este proyecto es que pueda ser mantenido por otros colegas si lo encuentran necesario.</li>
+          <li>
+            El código de la app está de forma pública en mi GitHub:{" "}
+            <a
+              className="font-medium text-[var(--brand)] underline underline-offset-2"
+              href="https://github.com/ma-reysan/turnapplota"
+              rel="noreferrer"
+              target="_blank"
+            >
+              github.com/ma-reysan/turnapplota
+            </a>
+            .
+          </li>
+          <li>Se puede sacar de ahí y recrear o modificar. Una IA puede hacerlo sin problemas.</li>
+        </ul>
       </div>
     </div>
   );
