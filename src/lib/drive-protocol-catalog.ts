@@ -34,7 +34,7 @@ export type DriveProtocolCatalogEntry = {
 export const DRIVE_PROTOCOL_CATALOG: DriveProtocolCatalogEntry[] = [
   {
     "category": "pediatrics",
-    "title": "Pediatría · Alimentación del RN (archivo anterior)",
+    "title": "Pediatría · Alimentación del RN",
     "url": "https://drive.google.com/file/d/16dm85K-xq5hcO7vGlWnG0fDiKKZFxzOa/view?usp=drivesdk"
   },
   {
@@ -44,22 +44,22 @@ export const DRIVE_PROTOCOL_CATALOG: DriveProtocolCatalogEntry[] = [
   },
   {
     "category": "pediatrics",
-    "title": "Pediatría · Celulitis (archivo anterior)",
+    "title": "Pediatría · Celulitis",
     "url": "https://drive.google.com/file/d/1R7C95k_V7ZcAf1DYeiNN5OVd-NBbFJW3/view?usp=drivesdk"
   },
   {
     "category": "pediatrics",
-    "title": "Pediatría · Convulsión febril (archivo anterior)",
+    "title": "Pediatría · Convulsión febril",
     "url": "https://drive.google.com/file/d/1e2A8_tZlazKjrV_3OCiBIwA_pOSBIUHx/view?usp=drivesdk"
   },
   {
     "category": "pediatrics",
-    "title": "Pediatría · Derivación total (archivo anterior)",
+    "title": "Pediatría · Derivación total",
     "url": "https://drive.google.com/file/d/199V8PMgLxBq1AqJaQUAVp_0OanXyX7Lb/view?usp=drivesdk"
   },
   {
     "category": "pediatrics",
-    "title": "Pediatría · Erisipela (archivo anterior)",
+    "title": "Pediatría · Erisipela",
     "url": "https://drive.google.com/file/d/1_QNI2wh5rqu_6PhNitWeYdHjPOfOWhMz/view?usp=drivesdk"
   },
   {
@@ -89,7 +89,7 @@ export const DRIVE_PROTOCOL_CATALOG: DriveProtocolCatalogEntry[] = [
   },
   {
     "category": "pediatrics",
-    "title": "Pediatría · Impétigo (archivo anterior)",
+    "title": "Pediatría · Impétigo",
     "url": "https://drive.google.com/file/d/19V_IRBpKdW1R7YUo-LLKOx8pWBBQ1_i7/view?usp=drivesdk"
   },
   {

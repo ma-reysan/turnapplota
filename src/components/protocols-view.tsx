@@ -58,8 +58,8 @@ export function ProtocolsView({ initialProtocols }: { initialProtocols: Protocol
           category,
           rows: filtered.filter((item) => item.category === category.id),
         }))
-        .filter((section) => !filtering || section.rows.length > 0),
-    [filtered, filtering],
+        .filter((section) => section.rows.length > 0),
+    [filtered],
   );
 
   function openForm(item?: Protocol) {
