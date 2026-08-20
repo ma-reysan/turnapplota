@@ -26,7 +26,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
-import { VacationManager } from "@/components/vacation-manager";
+import { OtrosManager } from "@/components/otros-manager";
 import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
 import type {
   Doctor,
@@ -39,7 +39,6 @@ import type {
   ShiftColorLegendItem,
   ShiftKind,
   ShiftMarker,
-  Vacation,
 } from "@/lib/types";
 import {
   calendarDays,
@@ -481,12 +480,10 @@ function ColorLegendEditor({
 function ScheduleManager({
   initialDoctors,
   schedules,
-  vacations,
   initialColorLegend,
 }: {
   initialDoctors: Doctor[];
   schedules: ScheduleMonth[];
-  vacations: Vacation[];
   initialColorLegend: ShiftColorLegendItem[];
 }) {
   const sorted = useMemo(() => [...schedules].sort((a, b) => b.id.localeCompare(a.id)), [schedules]);
@@ -653,14 +650,6 @@ function ScheduleManager({
     const [, date, kind, slot] = overSlotId.split(":");
     laneDates(date).forEach((laneDate) => lanePreview.add(`${laneDate}-${kind}-${slot}`));
   }
-  const vacationPreview = new Set<string>();
-  if (draggedDoctorId) {
-    for (const vacation of vacations.filter((item) => item.doctorId === draggedDoctorId)) {
-      for (let cursor = new Date(`${vacation.startDate}T12:00:00`); cursor <= new Date(`${vacation.endDate}T12:00:00`); cursor = addDays(cursor, 1)) {
-        vacationPreview.add(`${monthKey(cursor.getFullYear(), cursor.getMonth() + 1)}-${String(cursor.getDate()).padStart(2, "0")}`);
-      }
-    }
-  }
 
   return (
     <DndContext
@@ -755,7 +744,7 @@ function ScheduleManager({
                     <span className="block text-right text-[9px] leading-3 text-[var(--muted)]">
                       {date.getDate()}
                     </span>
-                    {vacationPreview.has(dateKey) ? <span className="pointer-events-none absolute inset-[-2px] z-20 rounded-lg border-2 border-sky-400 bg-sky-400/5 shadow-[0_0_0_1px_rgba(56,189,248,.25)] transition-opacity duration-150" /> : null}
+
                     <div className="space-y-0.5">
                       {([1, 2, 3] as const).map((slot) => (
                         <EditableShiftCard
@@ -1050,7 +1039,6 @@ export function ManagerHub({
   schedules,
   types,
   replacements,
-  vacations,
   holidays,
   shiftColorLegend,
 }: {
@@ -1058,11 +1046,10 @@ export function ManagerHub({
   schedules: ScheduleMonth[];
   types: ReplacementType[];
   replacements: Replacement[];
-  vacations: Vacation[];
   holidays: Holiday[];
   shiftColorLegend: ShiftColorLegendItem[];
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "vacations">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "otros">("schedule");
   return (
     <div>
       <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
@@ -1096,12 +1083,12 @@ export function ManagerHub({
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
-              tab === "vacations" && "bg-[var(--surface)] shadow-sm",
+              tab === "otros" && "bg-[var(--surface)] shadow-sm",
             )}
-            onClick={() => setTab("vacations")}
+            onClick={() => setTab("otros")}
             type="button"
           >
-            <Star size={16} /> Vacaciones
+            <Star size={16} /> Otros
           </button>
         </div>
         <div className="hidden sm:block" />
@@ -1111,12 +1098,11 @@ export function ManagerHub({
           initialColorLegend={shiftColorLegend}
           initialDoctors={doctors}
           schedules={schedules}
-          vacations={vacations}
         />
       ) : tab === "scores" ? (
         <ScoreManager doctors={doctors} recent={replacements} types={types} />
       ) : (
-        <VacationManager doctors={doctors} initialHolidays={holidays} initialVacations={vacations} />
+        <OtrosManager initialHolidays={holidays} />
       )}
     </div>
   );

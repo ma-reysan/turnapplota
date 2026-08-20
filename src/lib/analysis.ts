@@ -1,11 +1,10 @@
 import { addDays, endOfMonth, startOfMonth } from "date-fns";
-import type { Doctor, Holiday, ScheduleMonth, Vacation } from "@/lib/types";
+import type { Doctor, Holiday, ScheduleMonth } from "@/lib/types";
 
 export type ShiftCategory = "total" | "day" | "night" | "daySpecial" | "nightSpecial";
 
 export interface DoctorAnalysis {
   doctor: Doctor;
-  vacationDays: number;
   availableDays: number;
   total: number;
   day: number;
@@ -48,14 +47,12 @@ function countStreak(dates: string[]) {
 export function buildPeriodAnalysis({
   doctors,
   schedules,
-  vacations,
   holidays,
   start,
   end,
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
-  vacations: Vacation[];
   holidays: Holiday[];
   start: Date;
   end: Date;
@@ -65,16 +62,6 @@ export function buildPeriodAnalysis({
   const holidayDates = new Set(holidays.map((holiday) => holiday.date));
   const activeDoctors = doctors.filter((doctor) => doctor.active);
   const assignments = schedules.flatMap((schedule) => schedule.assignments).filter((item) => inPeriod.has(item.date));
-  const vacationDatesByDoctor = new Map<string, Set<string>>();
-
-  for (const vacation of vacations) {
-    const rangeStart = new Date(`${vacation.startDate}T12:00:00`) > start ? new Date(`${vacation.startDate}T12:00:00`) : start;
-    const rangeEnd = new Date(`${vacation.endDate}T12:00:00`) < end ? new Date(`${vacation.endDate}T12:00:00`) : end;
-    if (rangeStart > rangeEnd) continue;
-    const set = vacationDatesByDoctor.get(vacation.doctorId) ?? new Set<string>();
-    daysInRange(rangeStart, rangeEnd).forEach((date) => set.add(date));
-    vacationDatesByDoctor.set(vacation.doctorId, set);
-  }
 
   const categoryDates: Record<ShiftCategory, string[]> = {
     total: dates,
@@ -92,13 +79,12 @@ export function buildPeriodAnalysis({
   };
   const availability = new Map<string, Record<ShiftCategory, number>>();
   for (const doctor of activeDoctors) {
-    const absent = vacationDatesByDoctor.get(doctor.id) ?? new Set<string>();
     availability.set(doctor.id, {
-      total: categoryDates.total.filter((date) => !absent.has(date)).length,
-      day: categoryDates.day.filter((date) => !absent.has(date)).length,
-      night: categoryDates.night.filter((date) => !absent.has(date)).length,
-      daySpecial: categoryDates.daySpecial.filter((date) => !absent.has(date)).length,
-      nightSpecial: categoryDates.nightSpecial.filter((date) => !absent.has(date)).length,
+      total: categoryDates.total.length,
+      day: categoryDates.day.length,
+      night: categoryDates.night.length,
+      daySpecial: categoryDates.daySpecial.length,
+      nightSpecial: categoryDates.nightSpecial.length,
     });
   }
   const availabilityTotals = (Object.keys(categoryTotals) as ShiftCategory[]).reduce(
@@ -111,7 +97,6 @@ export function buildPeriodAnalysis({
 
   const metrics: DoctorAnalysis[] = activeDoctors.map((doctor) => {
     const doctorAssignments = assignments.filter((item) => item.doctorId === doctor.id);
-    const absent = vacationDatesByDoctor.get(doctor.id) ?? new Set<string>();
     const available = availability.get(doctor.id)!;
     const total = doctorAssignments.length;
     const expected = (Object.keys(categoryTotals) as ShiftCategory[]).reduce(
@@ -125,7 +110,6 @@ export function buildPeriodAnalysis({
     );
     return {
       doctor,
-      vacationDays: absent.size,
       availableDays: available.total,
       total,
       day: doctorAssignments.filter((item) => item.kind === "DAY" && !isSpecialDay(item.date, holidayDates)).length,

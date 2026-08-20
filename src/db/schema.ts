@@ -129,6 +129,9 @@ export const replacements = pgTable("replacements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// La función de vacaciones se retiró de la aplicación, pero la tabla se mantiene
+// declarada a propósito: si se borra de aquí, `pnpm db:generate` produciría una
+// migración que hace DROP TABLE y perdería los registros históricos.
 export const vacations = pgTable("vacations", {
   id: uuid("id").defaultRandom().primaryKey(),
   doctorId: text("doctor_id")

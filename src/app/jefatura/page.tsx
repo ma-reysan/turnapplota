@@ -13,7 +13,6 @@ export default async function JefaturaPage() {
       replacements={data.replacements}
       schedules={data.schedules}
       types={data.replacementTypes}
-      vacations={data.vacations}
       holidays={data.holidays}
       shiftColorLegend={data.shiftColorLegend}
     />

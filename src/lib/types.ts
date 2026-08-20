@@ -71,13 +71,6 @@ export interface Replacement {
   note?: string;
 }
 
-export interface Vacation {
-  id: string;
-  doctorId: string;
-  startDate: string;
-  endDate: string;
-}
-
 export interface Holiday {
   date: string;
   label?: string;
@@ -132,7 +125,6 @@ export interface SeedData {
   shiftColorLegend: ShiftColorLegendItem[];
   replacements: Replacement[];
   replacementTypes: ReplacementType[];
-  vacations: Vacation[];
   holidays: Holiday[];
   protocols: Protocol[];
   apsAgenda?: ApsAgenda;

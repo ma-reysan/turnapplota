@@ -3,5 +3,5 @@ import { getAppData } from "@/lib/data";
 
 export default async function AnalisisPage() {
   const data = await getAppData();
-  return <AnalysisDashboard doctors={data.doctors} holidays={data.holidays} replacements={data.replacements} schedules={data.schedules} vacations={data.vacations} />;
+  return <AnalysisDashboard doctors={data.doctors} holidays={data.holidays} schedules={data.schedules} />;
 }

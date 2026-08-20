@@ -10,7 +10,6 @@ import {
   shiftAssignments,
   shiftColorLegend,
   shiftMarkers,
-  vacations,
   holidays,
   apsAgendas,
   protocols,
@@ -27,7 +26,6 @@ export async function getAppData(): Promise<SeedData> {
       ...seed,
       schedules: seed.schedules.map((schedule) => ({ ...schedule, markers: schedule.markers ?? [] })),
       shiftColorLegend: seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND,
-      vacations: seed.vacations ?? [],
       holidays: seed.holidays ?? [],
       protocols: [
         ...(seed.protocols ?? []).filter((item) => !DRIVE_PROTOCOL_CATALOG.some((catalog) => catalog.url === item.url)),
@@ -44,7 +42,7 @@ export async function getAppData(): Promise<SeedData> {
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, replacementRows, typeRows, vacationRows, holidayRows, protocolRows, agendaRows] =
+  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
@@ -61,7 +59,6 @@ export async function getAppData(): Promise<SeedData> {
         .from(replacementTypes)
         .where(eq(replacementTypes.active, true))
         .orderBy(asc(replacementTypes.sortOrder)),
-      db.select().from(vacations).orderBy(asc(vacations.startDate)),
       db.select().from(holidays).orderBy(asc(holidays.holidayDate)),
       db.select().from(protocols).orderBy(asc(protocols.category), asc(protocols.title)),
       db
@@ -130,12 +127,6 @@ export async function getAppData(): Promise<SeedData> {
       code: row.code,
       label: row.label,
       defaultPoints: row.defaultPoints,
-    })),
-    vacations: vacationRows.map((row) => ({
-      id: row.id,
-      doctorId: row.doctorId,
-      startDate: row.startDate,
-      endDate: row.endDate,
     })),
     holidays: holidayRows.map((row) => ({
       date: row.holidayDate,

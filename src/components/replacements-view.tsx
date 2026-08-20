@@ -71,13 +71,22 @@ export function ReplacementsView({
     a.localeCompare(b),
   );
   const rankedDoctors = doctors
-    .map((doctor) => ({
-      doctor,
-      hasEntries: replacements.some((replacement) => replacement.doctorId === doctor.id),
-      points: active
-        .filter((replacement) => replacement.doctorId === doctor.id)
-        .reduce((sum, replacement) => sum + replacement.points, 0),
-    }))
+    .map((doctor) => {
+      const own = active.filter((replacement) => replacement.doctorId === doctor.id);
+      // Los puntos caducan por fecha: el primer vencimiento es el que resta antes.
+      const nextExpiry = [...new Set(own.map((replacement) => replacement.expiresAt))].sort()[0];
+      return {
+        doctor,
+        hasEntries: replacements.some((replacement) => replacement.doctorId === doctor.id),
+        points: own.reduce((sum, replacement) => sum + replacement.points, 0),
+        nextExpiry,
+        expiringPoints: nextExpiry
+          ? own
+              .filter((replacement) => replacement.expiresAt === nextExpiry)
+              .reduce((sum, replacement) => sum + replacement.points, 0)
+          : 0,
+      };
+    })
     .filter(({ hasEntries }) => hasEntries)
     .sort((a, b) => b.points - a.points || a.doctor.shortName.localeCompare(b.doctor.shortName));
 
@@ -141,10 +150,13 @@ export function ReplacementsView({
                       }).format(new Date(`${date}T12:00:00`))}
                     </th>
                   ))}
+                  <th className="sticky right-0 z-10 min-w-24 bg-[var(--surface-soft)] px-3 py-2 text-right font-medium">
+                    Vence
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {rankedDoctors.map(({ doctor, points }) => (
+                {rankedDoctors.map(({ doctor, points, nextExpiry, expiringPoints }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
                     <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface)] px-3 py-2 text-left">
                       <div className="flex items-center justify-between gap-2">
@@ -171,6 +183,18 @@ export function ReplacementsView({
                         </td>
                       );
                     })}
+                    <td className="sticky right-0 z-10 bg-[var(--surface)] px-3 py-1.5 text-right">
+                      {nextExpiry ? (
+                        <span className="flex flex-col items-end leading-tight">
+                          <strong className="text-[var(--danger)]">-{expiringPoints}</strong>
+                          <time className="text-[10px] text-[var(--muted)]">
+                            {new Intl.DateTimeFormat("es-CL", { day: "2-digit", month: "short" }).format(new Date(`${nextExpiry}T12:00:00`))}
+                          </time>
+                        </span>
+                      ) : (
+                        <span className="text-[var(--muted)] opacity-50">·</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
