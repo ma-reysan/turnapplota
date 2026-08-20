@@ -57,6 +57,13 @@
       "when": 1787256000000,
       "tag": "0007_split_quality_protocol_categories",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787187130832,
+      "tag": "0008_workable_black_knight",
+      "breakpoints": true
     }
   ]
 }
