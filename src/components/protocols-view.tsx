@@ -31,7 +31,7 @@ const categories: Array<{ id: ProtocolCategory; label: string }> = [
   { id: "quality_apk", label: "16 · APK · Apoyo · Kinesioterapia" },
   { id: "quality_aptr", label: "17 · APTr · Apoyo · Medicina transfusional" },
   { id: "quality_gd", label: "18 · GD · Gestión documental" },
-  { id: "quality", label: "Calidad y seguridad · sin clasificar" },
+  { id: "quality", label: "Calidad y seguridad" },
   { id: "clinical", label: "Otros clínicos" },
 ];
 
