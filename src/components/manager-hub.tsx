@@ -12,6 +12,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { addDays } from "date-fns";
 import {
   CalendarCheck,
+  CalendarPlus,
   GripVertical,
   Paintbrush,
   Palette,
@@ -486,8 +487,14 @@ function ScheduleManager({
   schedules: ScheduleMonth[];
   initialColorLegend: ShiftColorLegendItem[];
 }) {
-  const sorted = useMemo(() => [...schedules].sort((a, b) => b.id.localeCompare(a.id)), [schedules]);
+  const [extraMonths, setExtraMonths] = useState<ScheduleMonth[]>([]);
+  const sorted = useMemo(
+    () => [...schedules, ...extraMonths].sort((a, b) => b.id.localeCompare(a.id)),
+    [schedules, extraMonths],
+  );
   const [selectedId, setSelectedId] = useState(sorted[0]?.id ?? "");
+  const [creatingMonth, setCreatingMonth] = useState(false);
+  const [newMonthValue, setNewMonthValue] = useState("");
   const initialSchedule = sorted.find((schedule) => schedule.id === selectedId) ?? sorted[0];
   const [doctors, setDoctors] = useState(initialDoctors);
   const [assignmentsByMonth, setAssignmentsByMonth] = useState<Record<string, ShiftAssignment[]>>(
@@ -609,6 +616,27 @@ function ScheduleManager({
     setOverSlotId(null);
   }
 
+  function createMonth() {
+    if (!newMonthValue) return;
+    const [yearText, monthText] = newMonthValue.split("-");
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const id = `${yearText}-${monthText}`;
+    if (sorted.some((item) => item.id === id)) {
+      toast.error("Ese mes ya existe");
+      setSelectedId(id);
+      return;
+    }
+    setExtraMonths((current) => [...current, { id, year, month, status: "draft", version: 1, assignments: [], markers: [] }]);
+    setAssignmentsByMonth((current) => ({ ...current, [id]: [] }));
+    setMarkersByMonth((current) => ({ ...current, [id]: [] }));
+    setVersions((current) => ({ ...current, [id]: 1 }));
+    setSelectedId(id);
+    setCreatingMonth(false);
+    setNewMonthValue("");
+    toast.success("Mes creado como borrador. Asigna médicos y guarda para publicarlo.");
+  }
+
   async function save(publish: boolean) {
     const response = await fetch(`/api/schedules/${selectedId}`, {
       method: "PUT",
@@ -666,17 +694,51 @@ function ScheduleManager({
           )}
         >
           <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <select
-              className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium capitalize"
-              onChange={(event) => setSelectedId(event.target.value)}
-              value={selectedId}
-            >
-              {sorted.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {monthLabel(item.year, item.month)}
-                </option>
-              ))}
-            </select>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium capitalize"
+                onChange={(event) => setSelectedId(event.target.value)}
+                value={selectedId}
+              >
+                {sorted.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {monthLabel(item.year, item.month)}
+                  </option>
+                ))}
+              </select>
+              {creatingMonth ? (
+                <span className="flex items-center gap-1.5">
+                  <input
+                    className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs"
+                    onChange={(event) => setNewMonthValue(event.target.value)}
+                    type="month"
+                    value={newMonthValue}
+                  />
+                  <button
+                    className="rounded-lg bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-white"
+                    onClick={createMonth}
+                    type="button"
+                  >
+                    Crear
+                  </button>
+                  <button
+                    className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-xs"
+                    onClick={() => { setCreatingMonth(false); setNewMonthValue(""); }}
+                    type="button"
+                  >
+                    <X size={13} />
+                  </button>
+                </span>
+              ) : (
+                <button
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium"
+                  onClick={() => setCreatingMonth(true)}
+                  type="button"
+                >
+                  <CalendarPlus size={15} /> Nuevo mes
+                </button>
+              )}
+            </div>
             <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
               <button
                 aria-checked={laneMode}
@@ -950,16 +1012,14 @@ function ScoreManager({
               ))}
             </select>
           </label>
-          <label className="text-xs text-[var(--muted)]">
-            Modalidad
-            <select
-              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
-              onChange={(event) => setMode(event.target.value as "voluntary" | "invoked")}
-              value={mode}
-            >
-              <option value="voluntary">Voluntario</option>
-              <option value="invoked">Invocado</option>
-            </select>
+          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
+            <input
+              checked={mode === "invoked"}
+              className="accent-[var(--brand)]"
+              onChange={(event) => setMode(event.target.checked ? "invoked" : "voluntary")}
+              type="checkbox"
+            />
+            🛡️ Convocado
           </label>
           <label className="text-xs text-[var(--muted)]">
             Puntos
