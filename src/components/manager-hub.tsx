@@ -14,6 +14,7 @@ import {
   CalendarCheck,
   CalendarPlus,
   GripVertical,
+  LoaderCircle,
   Paintbrush,
   Palette,
   Plus,
@@ -508,6 +509,7 @@ function ScheduleManager({
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.version ?? 1])),
   );
   const [editingRoster, setEditingRoster] = useState(false);
+  const [saveMode, setSaveMode] = useState<"save" | "publish" | null>(null);
   const [laneMode, setLaneMode] = useState(false);
   const [draggedDoctorId, setDraggedDoctorId] = useState<string | null>(null);
   const [overSlotId, setOverSlotId] = useState<string | null>(null);
@@ -638,27 +640,35 @@ function ScheduleManager({
   }
 
   async function save(publish: boolean) {
-    const response = await fetch(`/api/schedules/${selectedId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: selectedId,
-        version: versions[selectedId] ?? 1,
-        publish,
-        assignments,
-        markers,
-      }),
-    });
-    const result = (await response.json()) as { error?: string; version?: number };
-    if (!response.ok) {
-      toast.error(result.error ?? "No fue posible guardar");
-      return;
+    if (saveMode) return;
+    setSaveMode(publish ? "publish" : "save");
+    try {
+      const response = await fetch(`/api/schedules/${selectedId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedId,
+          version: versions[selectedId] ?? 1,
+          publish,
+          assignments,
+          markers,
+        }),
+      });
+      const result = (await response.json()) as { error?: string; version?: number };
+      if (!response.ok) {
+        toast.error(result.error ?? "No fue posible guardar");
+        return;
+      }
+      setVersions((current) => ({
+        ...current,
+        [selectedId]: result.version ?? current[selectedId],
+      }));
+      toast.success(publish ? "Mes publicado" : "Borrador guardado");
+    } catch {
+      toast.error("No fue posible conectar con el servidor");
+    } finally {
+      setSaveMode(null);
     }
-    setVersions((current) => ({
-      ...current,
-      [selectedId]: result.version ?? current[selectedId],
-    }));
-    toast.success(publish ? "Mes publicado" : "Borrador guardado");
   }
 
   const slots = new Map(
@@ -770,18 +780,20 @@ function ScheduleManager({
                 <span>Carriles de Turno</span>
               </button>
               <button
-                className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium"
+                className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium transition-shadow disabled:cursor-wait disabled:shadow-inner disabled:opacity-70"
+                disabled={saveMode !== null}
                 onClick={() => save(false)}
                 type="button"
               >
-                <Save size={15} /> Guardar
+                {saveMode === "save" ? <LoaderCircle className="animate-spin" size={15} /> : <Save size={15} />} Guardar
               </button>
               <button
-                className="flex items-center gap-1.5 rounded-lg bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-white"
+                className="flex items-center gap-1.5 rounded-lg bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-white transition-shadow disabled:cursor-wait disabled:shadow-inner disabled:opacity-70"
+                disabled={saveMode !== null}
                 onClick={() => save(true)}
                 type="button"
               >
-                <CalendarCheck size={15} /> Publicar mes
+                {saveMode === "publish" ? <LoaderCircle className="animate-spin" size={15} /> : <CalendarCheck size={15} />} Publicar mes
               </button>
             </div>
           </div>
@@ -884,6 +896,7 @@ function ScheduleManager({
             </>
           )}
         </aside>
+        {saveMode ? <div aria-live="polite" className="absolute inset-0 z-40 grid place-items-center rounded-2xl bg-[var(--background)]/45 backdrop-blur-[1px]"><div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold shadow-2xl"><LoaderCircle className="animate-spin text-[var(--brand)]" size={19} />{saveMode === "publish" ? "Publicando mes…" : "Guardando cambios…"}</div></div> : null}
       </div>
     </DndContext>
   );
@@ -1019,7 +1032,7 @@ function ScoreManager({
               onChange={(event) => setMode(event.target.checked ? "invoked" : "voluntary")}
               type="checkbox"
             />
-            🛡️ Convocado
+            🪽 Convocado
           </label>
           <label className="text-xs text-[var(--muted)]">
             Puntos

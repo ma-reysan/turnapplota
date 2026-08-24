@@ -163,6 +163,8 @@ export const protocolCategory = pgEnum("protocol_category", [
   "quality_gd",
 ]);
 
+export const phoneEstablishment = pgEnum("phone_establishment", ["lota", "coronel", "regional"]);
+
 export const protocols = pgTable("protocols", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
@@ -172,6 +174,32 @@ export const protocols = pgTable("protocols", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const phoneContacts = pgTable(
+  "phone_contacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    establishment: phoneEstablishment("establishment").notNull(),
+    service: text("service").notNull(),
+    phones: jsonb("phones").$type<string[]>().notNull(),
+    sourceNeedsReview: boolean("source_needs_review").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("phone_contact_establishment_service_unique").on(table.establishment, table.service)],
+);
+
+export const lunchMenus = pgTable(
+  "lunch_menus",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    menuDate: date("menu_date").notNull(),
+    content: text("content").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("lunch_menu_date_unique").on(table.menuDate)],
+);
 
 export const apsAgendas = pgTable("aps_agendas", {
   id: uuid("id").defaultRandom().primaryKey(),

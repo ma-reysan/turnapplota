@@ -13,8 +13,10 @@ import {
   holidays,
   apsAgendas,
   protocols,
+  phoneContacts,
 } from "@/db/schema";
-import type { SeedData, ShiftColorKey } from "@/lib/types";
+import type { PhoneContact, SeedData, ShiftColorKey } from "@/lib/types";
+import { defaultPhoneContacts } from "@/lib/phone-directory";
 import { DEFAULT_SHIFT_COLOR_LEGEND } from "@/lib/shift-colors";
 import { DRIVE_PROTOCOL_CATALOG } from "@/lib/drive-protocol-catalog";
 
@@ -149,4 +151,19 @@ export async function getAppData(): Promise<SeedData> {
         }
       : undefined,
   };
+}
+
+export async function getPhoneContacts(): Promise<PhoneContact[]> {
+  if (!isDatabaseConfigured()) return defaultPhoneContacts;
+  await connection();
+  const rows = await getDb().select().from(phoneContacts).orderBy(asc(phoneContacts.establishment), asc(phoneContacts.service));
+  if (!rows.length) return defaultPhoneContacts;
+  return rows.map((row) => ({
+    id: row.id,
+    establishment: row.establishment,
+    service: row.service,
+    phones: row.phones,
+    sourceNeedsReview: row.sourceNeedsReview,
+    updatedAt: row.updatedAt.toISOString(),
+  }));
 }

@@ -8,8 +8,10 @@ import {
   FileText,
   LockKeyhole,
   MoreHorizontal,
+  Phone,
   Stethoscope,
   TableProperties,
+  Utensils,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,7 +25,17 @@ const navigation = [
   { href: "/analisis", label: "Análisis", icon: BarChart3 },
   { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
   { href: "/protocolos", label: "Protocolos", icon: BookOpen },
+  { href: "/telefonos", label: "Teléfonos", icon: Phone },
+  { href: "/almuerzo", label: "Almuerzo", icon: Utensils },
   { href: "/jefatura", label: "Jefatura", icon: LockKeyhole },
+];
+
+const mobileNavigation = [
+  { href: "/turnos", label: "Turnos", icon: CalendarDays },
+  { href: "/reemplazos", label: "Puntajes", icon: TableProperties },
+  { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
+  { href: "/protocolos", label: "Protocolos", icon: BookOpen },
+  { href: "/telefonos", label: "Teléfonos", icon: Phone },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -118,14 +130,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <nav
         aria-label="Navegación móvil"
-        className="no-print fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-2xl lg:hidden"
+        className="no-print fixed inset-x-2 bottom-3 z-40 grid grid-cols-6 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-2xl sm:inset-x-3 lg:hidden"
       >
-        {navigation.slice(0, 4).map(({ href, label, icon: Icon }) => {
+        {mobileNavigation.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
             <Link
               className={cn(
-                "flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[10px]",
+                "flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-2 text-[9px] leading-3 sm:text-[10px]",
                 active ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]",
               )}
               href={href}
@@ -136,9 +148,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
-        <button className={cn("flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[10px]", moreOpen || pathname.startsWith("/protocolos") || pathname.startsWith("/jefatura") ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]")} onClick={() => setMoreOpen((value) => !value)} type="button"><MoreHorizontal size={18} />Más +</button>
+        <button aria-label="Más opciones" className={cn("flex min-w-0 flex-col items-center justify-center rounded-2xl px-0.5 py-2", moreOpen || pathname.startsWith("/analisis") || pathname.startsWith("/jefatura") ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]")} onClick={() => setMoreOpen((value) => !value)} type="button"><MoreHorizontal size={20} /></button>
       </nav>
-      {moreOpen ? <div className="no-print fixed bottom-[88px] right-3 z-50 grid w-44 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-2xl lg:hidden"><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/protocolos" onClick={() => setMoreOpen(false)}><BookOpen size={16} /> Protocolos</Link><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/jefatura" onClick={() => setMoreOpen(false)}><LockKeyhole size={16} /> Jefatura</Link>{showingAgenda ? <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => window.dispatchEvent(new Event("turnapp:export-agenda-pdf"))} type="button"><FileText size={16} /> Exportar PDF</button> : null}<div className="flex items-center justify-between rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-xs"><span>Apariencia</span><ThemeToggle /></div></div> : null}
+      {moreOpen ? <div className="no-print fixed bottom-[84px] right-2 z-50 grid w-44 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-2xl sm:right-3 lg:hidden"><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/analisis" onClick={() => setMoreOpen(false)}><BarChart3 size={16} /> Análisis</Link><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/jefatura" onClick={() => setMoreOpen(false)}><LockKeyhole size={16} /> Jefatura</Link><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/almuerzo" onClick={() => setMoreOpen(false)}><Utensils size={16} /> Almuerzo</Link>{showingAgenda ? <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => window.dispatchEvent(new Event("turnapp:export-agenda-pdf"))} type="button"><FileText size={16} /> Exportar PDF</button> : null}<div className="flex items-center justify-between rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-xs"><span>Apariencia</span><ThemeToggle /></div></div> : null}
     </div>
   );
 }

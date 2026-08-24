@@ -16,7 +16,8 @@
     "db:import-protocols": "dotenv -e .env.local -- tsx scripts/import-protocols.ts",
     "db:normalize-protocols": "dotenv -e .env.local -- tsx scripts/normalize-protocols.ts",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
-    "db:check-protocols": "dotenv -e .env.local -- tsx scripts/check-protocols.ts"
+    "db:check-protocols": "dotenv -e .env.local -- tsx scripts/check-protocols.ts",
+    "db:import-phone-directory": "dotenv -e .env.local -- tsx scripts/import-phone-directory.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

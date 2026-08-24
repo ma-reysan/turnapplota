@@ -112,6 +112,25 @@ export interface Protocol {
   updatedAt: string;
 }
 
+export type PhoneEstablishment = "lota" | "coronel" | "regional";
+
+export interface PhoneContact {
+  id: string;
+  establishment: PhoneEstablishment;
+  service: string;
+  phones: string[];
+  sourceNeedsReview: boolean;
+  updatedAt: string;
+}
+
+export interface LunchMenu {
+  id: string;
+  menuDate: string;
+  content: string;
+  sourceUrl: string;
+  fetchedAt: string;
+}
+
 export interface ApsAgenda {
   id: string;
   filename: string;

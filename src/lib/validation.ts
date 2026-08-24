@@ -113,6 +113,19 @@ export const protocolDeleteSchema = z.object({
   updatedBy: z.string().trim().min(2).max(80),
 });
 
+const phoneEstablishmentSchema = z.enum(["lota", "coronel", "regional"]);
+
+export const phoneContactInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  establishment: phoneEstablishmentSchema,
+  service: z.string().trim().min(2).max(160),
+  phones: z.array(z.string().trim().regex(/^[0-9+() -]{3,30}$/, "Cada número debe contener solo dígitos y símbolos telefónicos")).min(1, "Agrega al menos un número").max(12),
+});
+
+export const phoneContactDeleteSchema = z.object({
+  id: z.string().uuid(),
+});
+
 export const agendaContributorSchema = z.object({
   updatedBy: z.string().trim().min(2).max(80),
 });

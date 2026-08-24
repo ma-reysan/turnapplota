@@ -1,0 +1,2259 @@
+[
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Adquisiciones 1",
+    "phones": [
+      "411258"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Adquisiciones 2",
+    "phones": [
+      "411300"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Auditoría",
+    "phones": [
+      "411264"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Bodega Central",
+    "phones": [
+      "411224"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Bodega fármacos",
+    "phones": [
+      "411328"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Bodega Insumos",
+    "phones": [
+      "411321"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Calidad De Vida",
+    "phones": [
+      "411346"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Calidad IAAS",
+    "phones": [
+      "411314"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Capacitación RRHH",
+    "phones": [
+      "411205"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Central alimentación",
+    "phones": [
+      "411326"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Central alimentación jefe",
+    "phones": [
+      "411247"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Central Traumatológico",
+    "phones": [
+      "410311",
+      "410312"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Cirugía hombres (sala)",
+    "phones": [
+      "411248"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Cirugía mujeres clínica",
+    "phones": [
+      "411310"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Cirugía secretaría",
+    "phones": [
+      "411221"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Contabilidad",
+    "phones": [
+      "411226"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Contabilidad secretaría",
+    "phones": [
+      "411206"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Cosam 1",
+    "phones": [
+      "44-3055665"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Cosam 2",
+    "phones": [
+      "416285"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "CR SAMU",
+    "phones": [
+      "415550",
+      "416661",
+      "416651",
+      "416652",
+      "416653"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Dirección secretaría",
+    "phones": [
+      "411229"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Director",
+    "phones": [
+      "411249"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ecografías",
+    "phones": [
+      "411208"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Encefalograma",
+    "phones": [
+      "411333"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Enfermera prequirúrgico",
+    "phones": [
+      "411271"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Enfermero casos oncológicos",
+    "phones": [
+      "981271341"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Enfermero endoscopías",
+    "phones": [
+      "981896805"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Enfermero gestión del cuidado",
+    "phones": [
+      "411207"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Estadística",
+    "phones": [
+      "411339"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Esterilización jefe",
+    "phones": [
+      "411217"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Esterilización N°1",
+    "phones": [
+      "411270"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Exámenes prequirúrgicos",
+    "phones": [
+      "411215"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Farmacia jefe",
+    "phones": [
+      "411322"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Fenats Base",
+    "phones": [
+      "411297"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ges 1",
+    "phones": [
+      "411236"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ges 2",
+    "phones": [
+      "411315"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "GES encargado",
+    "phones": [
+      "411257"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Gestión cama (Traumatológico)",
+    "phones": [
+      "410012"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Gestión del cuidado secretaría",
+    "phones": [
+      "411213"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología admisión",
+    "phones": [
+      "411231"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología ARO",
+    "phones": [
+      "411274"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología ecógrafo",
+    "phones": [
+      "411294"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología matrona turno",
+    "phones": [
+      "411293"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología parto",
+    "phones": [
+      "411283"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología puerperio",
+    "phones": [
+      "411284"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Ginecología U.P.C.",
+    "phones": [
+      "411309"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Grd",
+    "phones": [
+      "411845"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Informática",
+    "phones": [
+      "411276"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Jardín infantil",
+    "phones": [
+      "44-2887940"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Jefe Finanzas Y Contabilidad",
+    "phones": [
+      "411227"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Jefe Personal (Rrhh)",
+    "phones": [
+      "411211"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Jefe Recursos Fisicos",
+    "phones": [
+      "411301"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Kinesiología",
+    "phones": [
+      "411222"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Kinesiología (Traumatológico)",
+    "phones": [
+      "410054",
+      "410049"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Kinesiología CCR",
+    "phones": [
+      "44-2892862"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Kinesiología sala ERA",
+    "phones": [
+      "411291"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Laboratorio banco de sangre",
+    "phones": [
+      "411282"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Laboratorio recepción",
+    "phones": [
+      "411272"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Laboratorio secretaría",
+    "phones": [
+      "411292"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Matrona Jefe",
+    "phones": [
+      "411210"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Matrona secretaría",
+    "phones": [
+      "411273"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Medicina hombres (clínica)",
+    "phones": [
+      "411307"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Medicina Mujeres (Sala)",
+    "phones": [
+      "411303"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Oficina De Partes",
+    "phones": [
+      "411251"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Oirs 1",
+    "phones": [
+      "411317"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Oirs 2",
+    "phones": [
+      "411349"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Pabellón",
+    "phones": [
+      "411220"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Pabellon Oficina",
+    "phones": [
+      "411329"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Pediatría preescolar",
+    "phones": [
+      "411239"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Personal 1",
+    "phones": [
+      "411330"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Personal 2",
+    "phones": [
+      "411218"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli Adulto Box 7",
+    "phones": [
+      "411296"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli fonoaudiología",
+    "phones": [
+      "411337"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli ginecología",
+    "phones": [
+      "411335"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli Maternal",
+    "phones": [
+      "411312"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli Morbilidad",
+    "phones": [
+      "411302"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli neurólogo",
+    "phones": [
+      "411201"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli oftalmología secretaría",
+    "phones": [
+      "411319"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli oftalmología tecnólogo",
+    "phones": [
+      "411289"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli otorrino",
+    "phones": [
+      "411348"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Poli Traumatológico",
+    "phones": [
+      "410299",
+      "410044"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Policlínico ETS",
+    "phones": [
+      "411219"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Policlínico infantil",
+    "phones": [
+      "411203"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Policlínico infantil (control sano)",
+    "phones": [
+      "411216"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Policlinico Matronas",
+    "phones": [
+      "411305"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "PROSAM",
+    "phones": [
+      "44-3551074"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Rayos",
+    "phones": [
+      "411256"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Salud Ocupacional",
+    "phones": [
+      "411320"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SAR Lota",
+    "phones": [
+      "443208397",
+      "443208395",
+      "443208396",
+      "443208394"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Sedile",
+    "phones": [
+      "411277"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Servicio Social",
+    "phones": [
+      "411308"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Servicios Generales",
+    "phones": [
+      "411214"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME admisión",
+    "phones": [
+      "411288"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Archivo",
+    "phones": [
+      "411311"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME cardiología",
+    "phones": [
+      "411217"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME coordinación",
+    "phones": [
+      "411306"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Dental/ Ecografias",
+    "phones": [
+      "411347"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Ginecologia/ Neurologo",
+    "phones": [
+      "411268"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Jefe",
+    "phones": [
+      "411281"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME línea 800",
+    "phones": [
+      "419951"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Prequirurgico Uro/Otorrino",
+    "phones": [
+      "411331"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME recaudación",
+    "phones": [
+      "411287"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME satélite",
+    "phones": [
+      "411332"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Some Satelite Control Tens",
+    "phones": [
+      "411302"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "SOME secretaría",
+    "phones": [
+      "411260"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Subdirección atención abierta",
+    "phones": [
+      "411204"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Subdirección atención cerrada",
+    "phones": [
+      "411335"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Subdirección secretaría",
+    "phones": [
+      "411237"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Toma de muestras (consulta externa)",
+    "phones": [
+      "411241"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Unidad de funcionarios",
+    "phones": [
+      "411320"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Urgencia admisión TX",
+    "phones": [
+      "411318"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Urgencia estabilización",
+    "phones": [
+      "411843"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Urgencia estación enfermería",
+    "phones": [
+      "411316"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital de Lota",
+    "service": "Vacunatorio",
+    "phones": [
+      "411234"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Anatomía patológica",
+    "phones": [
+      "410435"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP cirugía",
+    "phones": [
+      "417901"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP ginecología",
+    "phones": [
+      "412579",
+      "412723"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP infantil",
+    "phones": [
+      "412764",
+      "417573"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP medicina",
+    "phones": [
+      "417894",
+      "412612"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP medicina box",
+    "phones": [
+      "417894"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP medicina reanimación",
+    "phones": [
+      "417556"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "AP pediátrica",
+    "phones": [
+      "412762"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Becados traumatología",
+    "phones": [
+      "412965"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Cardiología HGGB",
+    "phones": [
+      "417602"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Centro regulador SAMU",
+    "phones": [
+      "416650"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Cirugía",
+    "phones": [
+      "417901"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Cirugía infantil",
+    "phones": [
+      "412970"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "CITUC / Toxicología",
+    "phones": [
+      "9226353800"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Diálisis",
+    "phones": [
+      "413030"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Eco Doppler",
+    "phones": [
+      "417855"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Emergencia química",
+    "phones": [
+      "9222473600"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Extra urgencia Higueras",
+    "phones": [
+      "417231"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Fiscal de turno",
+    "phones": [
+      "992207823"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Gastroenterología",
+    "phones": [
+      "417605"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "GES sala",
+    "phones": [
+      "417888"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Hemodinamia",
+    "phones": [
+      "412639",
+      "412640"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Hospital Traumatológico",
+    "phones": [
+      "410308"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Instituto Médico Legal",
+    "phones": [
+      "412290600",
+      "412290602"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Laboratorio",
+    "phones": [
+      "417601"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Maxilofacial",
+    "phones": [
+      "410493"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Medicina interna",
+    "phones": [
+      "417894"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Mesa central",
+    "phones": [
+      "412500"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Neonatología",
+    "phones": [
+      "413048",
+      "412698"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Neurocirugía (anotación manuscrita)",
+    "phones": [
+      "412511"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Neurocirujano",
+    "phones": [
+      "417901"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Neurología",
+    "phones": [
+      "413111"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Oncopediatría",
+    "phones": [
+      "412721"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Parto",
+    "phones": [
+      "412715"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Pediatría HGGB",
+    "phones": [
+      "417563"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Poli cardiología",
+    "phones": [
+      "417602"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Poli oftalmología",
+    "phones": [
+      "412826"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Poli quemados",
+    "phones": [
+      "417477"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Polichoque oftalmología",
+    "phones": [
+      "412826"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Policlínico traumatológico",
+    "phones": [
+      "410299"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Radiólogo de turno",
+    "phones": [
+      "410803"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Residente pediatría",
+    "phones": [
+      "412770"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Sanguez AP (anotación manuscrita)",
+    "phones": [
+      "412754"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Scanner",
+    "phones": [
+      "412646",
+      "410811"
+    ],
+    "needsReview": true
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "SOME urgencia HGGB",
+    "phones": [
+      "417905"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Tecnólogo médico",
+    "phones": [
+      "413098"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Traumatología infantil",
+    "phones": [
+      "417573"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Traumatología sala de estar",
+    "phones": [
+      "417519"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Traumatológico - horas",
+    "phones": [
+      "410045"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "Unidad coronaria (UCO)",
+    "phones": [
+      "417659"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital Regional",
+    "service": "UTI cardio",
+    "phones": [
+      "410430"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "A.r.o.",
+    "phones": [
+      "413328"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Adquisiciones",
+    "phones": [
+      "413323"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Alimentacion Central",
+    "phones": [
+      "413251"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Archivo",
+    "phones": [
+      "413252"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Archivo Ninos",
+    "phones": [
+      "413334"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Auditoría",
+    "phones": [
+      "413325"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Banco De Sangre",
+    "phones": [
+      "413253"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Bodega Economato",
+    "phones": [
+      "413254"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Calidad - Secretaria",
+    "phones": [
+      "413327"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Calificadora De Derechos",
+    "phones": [
+      "413255"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Capacitacion",
+    "phones": [
+      "413315"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Cardiovascular enfermera",
+    "phones": [
+      "413348"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Cardiovascular secretaría",
+    "phones": [
+      "413256"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Central telefónica",
+    "phones": [
+      "413250"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Central térmica",
+    "phones": [
+      "413257"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Chile Crece",
+    "phones": [
+      "413294"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Cirugia Clinica",
+    "phones": [
+      "413258"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Cirugía secretaría",
+    "phones": [
+      "413259"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Contabilidad Jefe",
+    "phones": [
+      "413260"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Contabilidad secretaría",
+    "phones": [
+      "413261"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Contabilidad Sueldos",
+    "phones": [
+      "413317"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Control Sano Meson",
+    "phones": [
+      "413269"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Damas De Rojo",
+    "phones": [
+      "413330"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Dental clínica",
+    "phones": [
+      "413265"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Dental Jefe",
+    "phones": [
+      "413266"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Director",
+    "phones": [
+      "413264"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "E.t.s",
+    "phones": [
+      "413267"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Ecografías",
+    "phones": [
+      "413343"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Ecotomografía",
+    "phones": [
+      "413737"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Enfermera Gestion Del Cuidado",
+    "phones": [
+      "413341"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Enfermera Jefe Cr Ambulatorio",
+    "phones": [
+      "413268"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Estadística",
+    "phones": [
+      "413326"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Estadística jefe",
+    "phones": [
+      "413316"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Esterilización",
+    "phones": [
+      "413271"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Farmacia",
+    "phones": [
+      "413990"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Farmacia Bodega",
+    "phones": [
+      "413272"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Farmacia Central",
+    "phones": [
+      "413273"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Farmacia Hospitalizados",
+    "phones": [
+      "413321"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Farmacia jefe",
+    "phones": [
+      "413274"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Fenats",
+    "phones": [
+      "413275"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Grd",
+    "phones": [
+      "413263"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Informática",
+    "phones": [
+      "413335"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Jardín infantil",
+    "phones": [
+      "413333"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Jefe Servicios Generales",
+    "phones": [
+      "413270"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Kinesiología",
+    "phones": [
+      "413278"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Laboratorio central",
+    "phones": [
+      "413279"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Laboratorio Jefe",
+    "phones": [
+      "413308"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Laboratorio microbiología",
+    "phones": [
+      "413329"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Lavandería",
+    "phones": [
+      "413280"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Maternidad clínica",
+    "phones": [
+      "413282"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Maternidad Ingreso",
+    "phones": [
+      "413283"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Maternidad secretaría",
+    "phones": [
+      "413284"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Matrona Jefe",
+    "phones": [
+      "413993"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Medicina clínica",
+    "phones": [
+      "413285"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Medicina secretaría",
+    "phones": [
+      "413286"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Neonatología",
+    "phones": [
+      "413287"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Pediatría estar médicos",
+    "phones": [
+      "413331"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Pediatría jefe",
+    "phones": [
+      "413293"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Pediatría lactantes",
+    "phones": [
+      "413291"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Pediatría preescolar",
+    "phones": [
+      "413292"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Pediatría secretaría",
+    "phones": [
+      "413347"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Personal Jefe",
+    "phones": [
+      "413295"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Personal Oficina",
+    "phones": [
+      "413296"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Personal Paola Roca",
+    "phones": [
+      "413346"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Adulto Clinica",
+    "phones": [
+      "413300"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Adulto Enfermera",
+    "phones": [
+      "413299"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Adulto Morbilidad",
+    "phones": [
+      "413297"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Maternal",
+    "phones": [
+      "413298"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Niño Clinica",
+    "phones": [
+      "413302"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Poli Niño Morbilidad",
+    "phones": [
+      "413324"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Portería",
+    "phones": [
+      "413301"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Prevención de riesgos",
+    "phones": [
+      "413305"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Químico farmacéutico",
+    "phones": [
+      "413277"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Rayos X",
+    "phones": [
+      "413322"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Recaudación jefe",
+    "phones": [
+      "413303"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Recaudación urgencia",
+    "phones": [
+      "413992"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Reparto De Leche",
+    "phones": [
+      "413340"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia médica 1 (cirujano)",
+    "phones": [
+      "413732"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia médica 2 (medicina)",
+    "phones": [
+      "413731"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia médica 3 (anestesista)",
+    "phones": [
+      "413730"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia médica 4 (pediatría)",
+    "phones": [
+      "413999"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia obstetra",
+    "phones": [
+      "413344"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Residencia pediátrica (pensionado)",
+    "phones": [
+      "413304"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Sala Comando Scanner",
+    "phones": [
+      "413736"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Sala De Reuniones",
+    "phones": [
+      "413997"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Sala Ira (Mixta) Poli Niños",
+    "phones": [
+      "413281"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Sala scanner TAC",
+    "phones": [
+      "413991"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Salud Mental 1",
+    "phones": [
+      "413262"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Salud Mental 2",
+    "phones": [
+      "413320"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Secretaría dirección",
+    "phones": [
+      "413306"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Secretaría subdirección",
+    "phones": [
+      "413307"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Sedile",
+    "phones": [
+      "413345"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Servicio Social Jefe",
+    "phones": [
+      "413310"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Servicio Social Policlinico",
+    "phones": [
+      "413309"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Servicios Generales",
+    "phones": [
+      "413311"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "SOME admisión",
+    "phones": [
+      "413312"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Some Enfermera Jefe",
+    "phones": [
+      "413313"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Subdirección administrativa",
+    "phones": [
+      "413314"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Subdirección médica",
+    "phones": [
+      "413332"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Adultos",
+    "phones": [
+      "413944"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Box Dental",
+    "phones": [
+      "413949"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia box ginecológico",
+    "phones": [
+      "413942"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia box reanimación",
+    "phones": [
+      "413945"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Caseta Guardia",
+    "phones": [
+      "413948"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Coronel",
+    "phones": [
+      "41-2723944"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Enfermera Jefe",
+    "phones": [
+      "413996"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Estar Matronas",
+    "phones": [
+      "414733"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia estar médicos",
+    "phones": [
+      "414734"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia estar paramédicos",
+    "phones": [
+      "413940"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia médico jefe",
+    "phones": [
+      "413995"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia niños",
+    "phones": [
+      "413943"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Sala Era",
+    "phones": [
+      "413946"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Sala Ira",
+    "phones": [
+      "413947"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "Urgencia Samu",
+    "phones": [
+      "413941"
+    ],
+    "needsReview": false
+  },
+  {
+    "establishment": "Hospital San José de Coronel",
+    "service": "UTI enfermería",
+    "phones": [
+      "413998"
+    ],
+    "needsReview": false
+  }
+]
