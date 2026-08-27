@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileSpreadsheet, LoaderCircle } from "lucide-react";
+import { Download, FileSpreadsheet, LoaderCircle, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -10,6 +10,18 @@ import type { ApsAgenda } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 const MONTH_NAMES = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+type AgendaTaskAssignment = {
+  activity: { time: string; activity: string };
+  dateKey: string;
+  day: { label: string; date: string };
+  doctorName: string;
+};
+
+function dateKeyFromAgendaDate(value: string) {
+  const date = agendaDate(value);
+  return date ? [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-") : "";
+}
 
 function preferredSheet(workbook: XLSX.WorkBook) {
   const currentMonth = MONTH_NAMES[new Date().getMonth()];
@@ -66,6 +78,9 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
   const [loading, setLoading] = useState(Boolean(initialAgenda));
   const [uploading, setUploading] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
+  const [showTaskSearch, setShowTaskSearch] = useState(false);
+  const [taskDate, setTaskDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [taskActivity, setTaskActivity] = useState("");
   const [exporting, setExporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -99,6 +114,36 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
     const label = activity.activity.toUpperCase();
     return label.includes("TURNO") && !label.includes("ENTREGA");
   }).map((activity) => ({ ...activity, day }))) ?? [], [result]);
+  const taskIndex = useMemo<AgendaTaskAssignment[]>(() => {
+    if (!workbook) return [];
+    return workbook.SheetNames.flatMap((sheet) => {
+      const overview = parseAgendaWorkbook(workbook, sheet);
+      if (!overview) return [];
+      return overview.doctors.flatMap((doctor) => {
+        const doctorAgenda = parseAgendaWorkbook(workbook, sheet, doctor.rowIdx);
+        if (!doctorAgenda) return [];
+        return doctorAgenda.days.flatMap((day) => {
+          const dateKey = dateKeyFromAgendaDate(day.date);
+          if (!dateKey) return [];
+          return mergeAgendaActivities(doctorAgenda.schedule[day.col] ?? []).map((activity) => ({
+            activity,
+            dateKey,
+            day: { label: day.label, date: day.date },
+            doctorName: doctor.name,
+          }));
+        });
+      });
+    });
+  }, [workbook]);
+  const taskOptions = useMemo(
+    () => [...new Set(taskIndex.filter((item) => item.dateKey === taskDate).map((item) => item.activity.activity))].sort((a, b) => a.localeCompare(b, "es")),
+    [taskDate, taskIndex],
+  );
+  const selectedTaskActivity = taskOptions.includes(taskActivity) ? taskActivity : taskOptions[0] ?? "";
+  const taskMatches = useMemo(
+    () => taskIndex.filter((item) => item.dateKey === taskDate && item.activity.activity === selectedTaskActivity),
+    [selectedTaskActivity, taskDate, taskIndex],
+  );
   const warnings = useMemo(() => {
     if (!result) return [];
     return result.days.flatMap((day, index) => {
@@ -175,7 +220,7 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
         </form>
       </div>
     </section>
-    {!agenda ? <div className="grid min-h-56 place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-center"><FileSpreadsheet size={30} className="text-[var(--muted)]" /><p className="text-sm text-[var(--muted)]">Sube la primera agenda semanal para activar el analizador.</p></div> : loading ? <div className="grid min-h-56 place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)]"><LoaderCircle className="animate-spin text-[var(--brand)]" /><p className="text-sm text-[var(--muted)]">Leyendo la agenda vigente…</p></div> : result ? <><section className="mb-3 grid gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 md:grid-cols-[minmax(180px,1.2fr)_minmax(150px,1fr)_auto] md:items-end"><label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Médico<select className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" onChange={(event) => workbook && analyze(workbook, activeSheet, Number(event.target.value))} value={doctorRow}>{result.doctors.map((doctor) => <option key={doctor.rowIdx} value={doctor.rowIdx}>{doctor.name}</option>)}</select></label>{workbook && workbook.SheetNames.length > 1 ? <label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Mes<select className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" onChange={(event) => workbook && analyze(workbook, event.target.value)} value={activeSheet}>{workbook.SheetNames.map((sheet) => <option key={sheet} value={sheet}>{sheet}</option>)}</select></label> : <div /> }<button className={`rounded-lg border px-3 py-2 text-xs font-semibold ${showOverview ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-[var(--line)]"}`} onClick={() => setShowOverview((value) => !value)} type="button">Mostrar turnos y hoy/mañana</button></section>{showOverview ? <AgendaOverview shifts={shifts} todayDay={todayDay} tomorrowDay={tomorrowDay} result={result} /> : null}{warnings.length ? <div className="mb-3 grid gap-1.5">{warnings.map((day) => <p className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-950/40 dark:text-red-200" key={day}>⚠️ Falta una entrega de turno el día <strong>{day}</strong>.</p>)}</div> : null}<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{result.days.map((day) => <article className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3" key={day.col}><h3 className="border-b border-[var(--line)] pb-1 text-xs font-bold uppercase">{day.label} <span className="font-normal text-[var(--muted)]">{day.date}</span></h3><div className="mt-2 grid gap-1">{mergeAgendaActivities(result.schedule[day.col] ?? []).length ? mergeAgendaActivities(result.schedule[day.col] ?? []).map((activity, index) => <ActivityCard activity={activity} key={index} compact />) : <p className="py-3 text-center text-xs italic text-[var(--muted)]">Libre / Sin actividades</p>}</div></article>)}</div></> : <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-700">No se detectaron médicos en la agenda vigente.</div>}
+    {!agenda ? <div className="grid min-h-56 place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)] text-center"><FileSpreadsheet size={30} className="text-[var(--muted)]" /><p className="text-sm text-[var(--muted)]">Sube la primera agenda semanal para activar el analizador.</p></div> : loading ? <div className="grid min-h-56 place-items-center rounded-2xl border border-[var(--line)] bg-[var(--surface)]"><LoaderCircle className="animate-spin text-[var(--brand)]" /><p className="text-sm text-[var(--muted)]">Leyendo la agenda vigente…</p></div> : result ? <><section className="mb-3 grid gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 md:grid-cols-[minmax(180px,1.2fr)_minmax(150px,1fr)_auto] md:items-end"><label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Médico<select className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" onChange={(event) => workbook && analyze(workbook, activeSheet, Number(event.target.value))} value={doctorRow}>{result.doctors.map((doctor) => <option key={doctor.rowIdx} value={doctor.rowIdx}>{doctor.name}</option>)}</select></label>{workbook && workbook.SheetNames.length > 1 ? <label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Mes<select className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" onChange={(event) => workbook && analyze(workbook, event.target.value)} value={activeSheet}>{workbook.SheetNames.map((sheet) => <option key={sheet} value={sheet}>{sheet}</option>)}</select></label> : <div /> }<div className="flex flex-wrap gap-2"><button className={`rounded-lg border px-3 py-2 text-xs font-semibold ${showOverview ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-[var(--line)]"}`} onClick={() => setShowOverview((value) => !value)} type="button">Mostrar turnos y hoy/mañana</button><button className={`inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold ${showTaskSearch ? "border-[var(--brand)] bg-[var(--brand)] text-white" : "border-[var(--line)]"}`} onClick={() => setShowTaskSearch((value) => !value)} type="button"><Search size={14} /> Buscador</button></div></section>{showTaskSearch ? <TaskFinder activity={selectedTaskActivity} matches={taskMatches} onActivityChange={setTaskActivity} onDateChange={setTaskDate} options={taskOptions} selectedDate={taskDate} /> : null}{showOverview ? <AgendaOverview shifts={shifts} todayDay={todayDay} tomorrowDay={tomorrowDay} result={result} /> : null}{warnings.length ? <div className="mb-3 grid gap-1.5">{warnings.map((day) => <p className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-950/40 dark:text-red-200" key={day}>⚠️ Falta una entrega de turno el día <strong>{day}</strong>.</p>)}</div> : null}<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{result.days.map((day) => <article className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3" key={day.col}><h3 className="border-b border-[var(--line)] pb-1 text-xs font-bold uppercase">{day.label} <span className="font-normal text-[var(--muted)]">{day.date}</span></h3><div className="mt-2 grid gap-1">{mergeAgendaActivities(result.schedule[day.col] ?? []).length ? mergeAgendaActivities(result.schedule[day.col] ?? []).map((activity, index) => <ActivityCard activity={activity} key={index} compact />) : <p className="py-3 text-center text-xs italic text-[var(--muted)]">Libre / Sin actividades</p>}</div></article>)}</div></> : <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-700">No se detectaron médicos en la agenda vigente.</div>}
   </div>;
 }
 
@@ -224,4 +269,30 @@ function OverviewDay({
       {activities.length ? activities.map((activity, index) => <ActivityChip activity={activity} key={index} />) : <p className="text-xs text-[var(--muted)]">Sin actividades programadas.</p>}
     </div>
   </div>;
+}
+
+
+function TaskFinder({
+  activity,
+  matches,
+  onActivityChange,
+  onDateChange,
+  options,
+  selectedDate,
+}: {
+  activity: string;
+  matches: AgendaTaskAssignment[];
+  onActivityChange: (value: string) => void;
+  onDateChange: (value: string) => void;
+  options: string[];
+  selectedDate: string;
+}) {
+  return <section className="mb-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+    <div className="mb-2 flex items-center gap-2"><Search className="text-[var(--brand)]" size={16} /><div><h2 className="text-xs font-semibold uppercase tracking-wider">Buscador de tareas</h2><p className="text-[11px] text-[var(--muted)]">¿Quién tiene asignada esta labor?</p></div></div>
+    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_170px]">
+      <label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Tarea<select className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" disabled={!options.length} onChange={(event) => onActivityChange(event.target.value)} value={activity}>{options.length ? options.map((option) => <option key={option} value={option}>{option}</option>) : <option>No hay tareas para esta fecha</option>}</select></label>
+      <label className="grid gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">Día<input className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-sm font-semibold normal-case tracking-normal text-[var(--foreground)]" onChange={(event) => onDateChange(event.target.value)} type="date" value={selectedDate} /></label>
+    </div>
+    <div className="mt-3 rounded-lg bg-[var(--surface-soft)] px-3 py-2.5">{activity && matches.length ? <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">{matches.map((match, index) => <span className="text-sm" key={match.doctorName + match.activity.time + index}><strong>{match.doctorName}</strong><span className="ml-1.5 text-xs text-[var(--muted)]">{match.activity.time}</span></span>)}</div> : <p className="text-xs text-[var(--muted)]">{options.length ? "No se encontró un médico asignado a esa tarea." : "No hay actividades registradas para ese día."}</p>}</div>
+  </section>;
 }

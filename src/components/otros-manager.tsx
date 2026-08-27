@@ -1,10 +1,26 @@
 "use client";
 
-import { CalendarOff, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CalendarOff, Palette, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { Holiday } from "@/lib/types";
+
+const themeOptions = [
+  { value: "green", label: "Verde (original)" },
+  { value: "red", label: "Rojo" },
+  { value: "blue", label: "Azul" },
+  { value: "gold", label: "Dorado" },
+  { value: "dieciocho", label: "Dieciocho" },
+] as const;
+
+type AccentTheme = (typeof themeOptions)[number]["value"];
+
+function applyAccentTheme(theme: AccentTheme) {
+  const root = document.documentElement;
+  if (theme === "green") root.removeAttribute("data-color-theme");
+  else root.dataset.colorTheme = theme;
+}
 
 function chileDateKey(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -32,6 +48,26 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
   );
   const [holidayDate, setHolidayDate] = useState(chileDateKey());
   const [holidayLabel, setHolidayLabel] = useState("");
+  const [accentTheme, setAccentTheme] = useState<AccentTheme>("green");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("turnapp:accent-theme");
+    const theme = themeOptions.some((option) => option.value === savedTheme)
+      ? (savedTheme as AccentTheme)
+      : "green";
+    const timer = window.setTimeout(() => {
+      setAccentTheme(theme);
+      applyAccentTheme(theme);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  function changeAccentTheme(theme: AccentTheme) {
+    setAccentTheme(theme);
+    window.localStorage.setItem("turnapp:accent-theme", theme);
+    applyAccentTheme(theme);
+    toast.success(`Tema ${themeOptions.find((option) => option.value === theme)?.label ?? theme} aplicado`);
+  }
   const { nextHolidays, yearHolidays } = useMemo(() => {
     const today = chileDateKey();
     const horizon = new Date(`${today}T12:00:00`);
@@ -87,6 +123,32 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
 
   return (
     <div className="mx-auto max-w-3xl">
+      <section className="mb-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <div className="flex items-center gap-2">
+          <Palette size={17} className="text-[var(--brand)]" />
+          <div>
+            <h2 className="text-sm font-semibold">Temática</h2>
+            <p className="text-[11px] text-[var(--muted)]">
+              Se aplica a toda la aplicación y mantiene el modo claro u oscuro.
+            </p>
+          </div>
+        </div>
+        <label className="mt-3 block text-xs font-medium" htmlFor="accent-theme">
+          Color principal
+        </label>
+        <select
+          className="mt-1.5 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-xs"
+          id="accent-theme"
+          onChange={(event) => changeAccentTheme(event.target.value as AccentTheme)}
+          value={accentTheme}
+        >
+          {themeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </section>
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <div className="flex items-center gap-2">
           <CalendarOff size={17} className="text-amber-600" />

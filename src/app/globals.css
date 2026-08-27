@@ -80,6 +80,70 @@
   --danger: #f07178;
 }
 
+:root[data-color-theme="red"] {
+  --brand: #c52d32;
+  --brand-strong: #8e1e26;
+  --shift-border: #a85157;
+  --shift-divider: #a46569;
+  --danger: #a61d2a;
+}
+
+:root.dark[data-color-theme="red"] {
+  --brand: #ef6b70;
+  --brand-strong: #ff9da0;
+  --shift-border: #91424a;
+  --shift-divider: #794047;
+  --danger: #ff858a;
+}
+
+:root[data-color-theme="blue"] {
+  --brand: #1765ad;
+  --brand-strong: #104a84;
+  --shift-border: #709bc1;
+  --shift-divider: #7194b4;
+  --danger: #bd3c43;
+}
+
+:root.dark[data-color-theme="blue"] {
+  --brand: #64a6e4;
+  --brand-strong: #9bcafa;
+  --shift-border: #3d6f9d;
+  --shift-divider: #416987;
+  --danger: #f07178;
+}
+
+:root[data-color-theme="gold"] {
+  --brand: #a66c05;
+  --brand-strong: #784c00;
+  --shift-border: #a48750;
+  --shift-divider: #927d54;
+  --danger: #b3313c;
+}
+
+:root.dark[data-color-theme="gold"] {
+  --brand: #e2ae48;
+  --brand-strong: #f7cd73;
+  --shift-border: #8d7345;
+  --shift-divider: #756441;
+  --danger: #f07178;
+}
+
+:root[data-color-theme="dieciocho"] {
+  --brand: #0039a6;
+  --brand-strong: #00276f;
+  --shift-border: #a75258;
+  --shift-divider: #6c86b2;
+  --danger: #d52b1e;
+}
+
+:root.dark[data-color-theme="dieciocho"] {
+  --brand: #5d94ef;
+  --brand-strong: #a9c9ff;
+  --shift-border: #8f414a;
+  --shift-divider: #466897;
+  --danger: #ff756a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -95,6 +159,20 @@ body {
     radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 30rem),
     var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+html[data-color-theme="dieciocho"] body {
+  background:
+    linear-gradient(90deg, transparent 0 46%, rgb(213 43 30 / 11%) 46% 54%, transparent 54%),
+    radial-gradient(circle at 10% 0%, rgb(0 57 166 / 12%), transparent 30rem),
+    var(--background);
+}
+
+html.dark[data-color-theme="dieciocho"] body {
+  background:
+    linear-gradient(90deg, transparent 0 46%, rgb(213 43 30 / 9%) 46% 54%, transparent 54%),
+    radial-gradient(circle at 10% 0%, rgb(93 148 239 / 13%), transparent 30rem),
+    var(--background);
 }
 
 button,

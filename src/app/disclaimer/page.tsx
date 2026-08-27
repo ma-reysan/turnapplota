@@ -30,6 +30,17 @@ export default function DisclaimerPage() {
 
       <div className="glass rounded-2xl p-5 text-sm leading-6 text-[var(--muted)]">
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-[var(--brand)]">
+          Changelog
+        </h2>
+        <ul className="space-y-1.5">
+          <li><strong className="text-[var(--foreground)]">v1.03</strong> · Añadido Buscador en Agenda APS</li>
+          <li><strong className="text-[var(--foreground)]">v1.02</strong> · Añadido Almuerzo</li>
+          <li><strong className="text-[var(--foreground)]">v1.01</strong> · Añadido Teléfono</li>
+        </ul>
+      </div>
+
+      <div className="glass rounded-2xl p-5 text-sm leading-6 text-[var(--muted)]">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-[.16em] text-[var(--brand)]">
           Open Source
         </h2>
         <ul className="list-disc space-y-2 pl-5">
