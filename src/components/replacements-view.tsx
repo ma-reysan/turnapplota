@@ -1,7 +1,7 @@
 "use client";
 
-import { BookOpen, FileImage, List, LoaderCircle, Sparkles, Table2 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
@@ -57,7 +57,6 @@ export function ReplacementsView({
 }) {
   const [mode, setMode] = useState<"table" | "list">("table");
   const tableScrollRef = useRef<HTMLDivElement>(null);
-  const scoreImageRef = useRef<HTMLDivElement>(null);
   const [exportingImage, setExportingImage] = useState(false);
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
@@ -98,12 +97,48 @@ export function ReplacementsView({
     tableScrollRef.current.scrollLeft = tableScrollRef.current.scrollWidth;
   }, [dates.length, mode]);
 
-  async function exportScoresImage() {
-    if (!scoreImageRef.current || exportingImage) return;
+  const exportScoresImage = useCallback(async () => {
+    if (exportingImage || !rankedDoctors.length) return;
     setExportingImage(true);
     try {
-      const { toBlob } = await import("html-to-image");
-      const blob = await toBlob(scoreImageRef.current, { backgroundColor: "#f5f8f6", pixelRatio: 2 });
+      const columns = 2;
+      const width = 920;
+      const margin = 40;
+      const gutter = 32;
+      const rowHeight = 58;
+      const columnWidth = (width - margin * 2 - gutter) / columns;
+      const rows = Math.ceil(rankedDoctors.length / columns);
+      const height = Math.max(140, margin * 2 + rows * rowHeight);
+      const scale = 2;
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("No fue posible preparar la imagen");
+      context.scale(scale, scale);
+      context.fillStyle = "#f5f8f6";
+      context.fillRect(0, 0, width, height);
+      rankedDoctors.forEach(({ doctor, points }, index) => {
+        const column = index % columns;
+        const row = Math.floor(index / columns);
+        const x = margin + column * (columnWidth + gutter);
+        const y = margin + row * rowHeight;
+        context.strokeStyle = "#bfd0ca";
+        context.lineWidth = 1;
+        context.beginPath();
+        context.moveTo(x, y + 44);
+        context.lineTo(x + columnWidth, y + 44);
+        context.stroke();
+        context.fillStyle = "#16372f";
+        context.font = "600 19px Arial, sans-serif";
+        context.textAlign = "left";
+        context.textBaseline = "middle";
+        context.fillText(doctor.shortName, x, y + 23);
+        context.font = "700 23px Arial, sans-serif";
+        context.textAlign = "right";
+        context.fillText(String(points), x + columnWidth, y + 23);
+      });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) throw new Error("No fue posible preparar la imagen");
       try {
         await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
@@ -122,7 +157,13 @@ export function ReplacementsView({
     } finally {
       setExportingImage(false);
     }
-  }
+  }, [exportingImage, rankedDoctors]);
+
+  useEffect(() => {
+    const handler = () => void exportScoresImage();
+    window.addEventListener("turnapp:export-replacements-image", handler);
+    return () => window.removeEventListener("turnapp:export-replacements-image", handler);
+  }, [exportScoresImage]);
 
   return (
     <div className="space-y-3">
@@ -135,7 +176,6 @@ export function ReplacementsView({
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <button className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-xs font-semibold hover:bg-[var(--surface-soft)] disabled:cursor-wait disabled:opacity-65 sm:w-auto" disabled={exportingImage} onClick={exportScoresImage} type="button">{exportingImage ? <LoaderCircle className="animate-spin" size={14} /> : <FileImage size={14} />} Exportar imagen</button>
             <span className="flex h-8 w-full items-center justify-center rounded-lg border border-amber-200 bg-[#fff8e8] px-2 text-[10px] font-semibold text-[#5d4822] sm:w-[190px]">
               🪽 Último Convocado/a: {lastInvokedDoctor?.shortName ?? "—"}
             </span>
@@ -263,11 +303,6 @@ export function ReplacementsView({
         )}
       </section>
 
-      <div aria-hidden className="pointer-events-none fixed left-[-9999px] top-0 w-[720px] bg-[#f5f8f6] p-8 text-[#16372f]" ref={scoreImageRef}>
-        <div className="grid grid-cols-2 gap-x-5 gap-y-2">
-          {rankedDoctors.map(({ doctor, points }) => <div className="flex items-center justify-between border-b border-[#bfd0ca] px-1 py-2" key={doctor.id}><span className="text-lg font-semibold">{doctor.shortName}</span><strong className="text-xl">{points}</strong></div>)}
-        </div>
-      </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-[1.5fr_1fr]">
         <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">

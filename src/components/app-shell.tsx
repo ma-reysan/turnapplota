@@ -42,6 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const showingSchedule = pathname.startsWith("/turnos");
   const showingAgenda = pathname.startsWith("/agenda-aps");
+  const showingReplacements = pathname.startsWith("/reemplazos");
   const [moreOpen, setMoreOpen] = useState(false);
 
   return (
@@ -97,6 +98,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <FileText size={15} /> Exportar PDF
               </button>
             </div>
+          ) : null}
+          {showingReplacements ? (
+            <button
+              className="flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
+              onClick={() => window.dispatchEvent(new Event("turnapp:export-replacements-image"))}
+              type="button"
+            >
+              <FileImage size={15} /> Exportar imagen
+            </button>
           ) : null}
           {showingAgenda ? (
             <button
