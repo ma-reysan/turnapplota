@@ -1,7 +1,8 @@
 "use client";
 
-import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
+import { BookOpen, FileImage, List, LoaderCircle, Sparkles, Table2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
@@ -56,6 +57,8 @@ export function ReplacementsView({
 }) {
   const [mode, setMode] = useState<"table" | "list">("table");
   const tableScrollRef = useRef<HTMLDivElement>(null);
+  const scoreImageRef = useRef<HTMLDivElement>(null);
+  const [exportingImage, setExportingImage] = useState(false);
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
     [doctors],
@@ -95,6 +98,32 @@ export function ReplacementsView({
     tableScrollRef.current.scrollLeft = tableScrollRef.current.scrollWidth;
   }, [dates.length, mode]);
 
+  async function exportScoresImage() {
+    if (!scoreImageRef.current || exportingImage) return;
+    setExportingImage(true);
+    try {
+      const { toBlob } = await import("html-to-image");
+      const blob = await toBlob(scoreImageRef.current, { backgroundColor: "#f5f8f6", pixelRatio: 2 });
+      if (!blob) throw new Error("No fue posible preparar la imagen");
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        toast.success("Puntajes vigentes copiados al portapapeles");
+      } catch {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "puntajes-vigentes.png";
+        link.click();
+        URL.revokeObjectURL(url);
+        toast.success("No fue posible copiar la imagen: se descargó el archivo");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible exportar la imagen");
+    } finally {
+      setExportingImage(false);
+    }
+  }
+
   return (
     <div className="space-y-3">
       <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
@@ -106,6 +135,7 @@ export function ReplacementsView({
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <button className="inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--line)] px-2.5 text-xs font-semibold hover:bg-[var(--surface-soft)] disabled:cursor-wait disabled:opacity-65 sm:w-auto" disabled={exportingImage} onClick={exportScoresImage} type="button">{exportingImage ? <LoaderCircle className="animate-spin" size={14} /> : <FileImage size={14} />} Exportar imagen</button>
             <span className="flex h-8 w-full items-center justify-center rounded-lg border border-amber-200 bg-[#fff8e8] px-2 text-[10px] font-semibold text-[#5d4822] sm:w-[190px]">
               🪽 Último Convocado/a: {lastInvokedDoctor?.shortName ?? "—"}
             </span>
@@ -232,6 +262,12 @@ export function ReplacementsView({
           </div>
         )}
       </section>
+
+      <div aria-hidden className="pointer-events-none fixed left-[-9999px] top-0 w-[720px] bg-[#f5f8f6] p-8 text-[#16372f]" ref={scoreImageRef}>
+        <div className="grid grid-cols-2 gap-x-5 gap-y-2">
+          {rankedDoctors.map(({ doctor, points }) => <div className="flex items-center justify-between border-b border-[#bfd0ca] px-1 py-2" key={doctor.id}><span className="text-lg font-semibold">{doctor.shortName}</span><strong className="text-xl">{points}</strong></div>)}
+        </div>
+      </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-[1.5fr_1fr]">
         <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
