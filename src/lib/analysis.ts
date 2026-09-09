@@ -141,6 +141,7 @@ export interface ScheduleManagerAnalysis {
     trailingThreeMonths: number;
     difference: number;
     weekend: number;
+    trailingWeekend: number;
   }>;
 }
 
@@ -195,6 +196,9 @@ export function buildScheduleManagerAnalysis({
         difference: monthAssignments.length - expectedMonthlyShifts,
         weekend: monthAssignments.filter((assignment) =>
           isWeekendShift(assignment.date, assignment.kind),
+        ).length,
+        trailingWeekend: trailingAssignments.filter(
+          (assignment) => assignment.doctorId === doctor.id && isWeekendShift(assignment.date, assignment.kind),
         ).length,
       };
     }),

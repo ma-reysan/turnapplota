@@ -48,6 +48,7 @@ describe("schedule manager analysis", () => {
     const a = result.rows.find((item) => item.doctor.id === "a")!;
     expect(a.month).toBe(2);
     expect(a.weekend).toBe(2);
+    expect(a.trailingWeekend).toBe(2);
     expect(a.difference).toBeCloseTo(0.5);
   });
 });

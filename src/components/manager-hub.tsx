@@ -937,6 +937,17 @@ function ScheduleManager({
 }
 
 
+type ManagerAnalysisSortKey = "doctor" | "month" | "trailingThreeMonths" | "difference" | "weekend" | "trailingWeekend";
+
+const managerAnalysisHeaders: Array<{ label: string; field: ManagerAnalysisSortKey; className?: string }> = [
+  { label: "Médico", field: "doctor", className: "px-3 text-left" },
+  { label: "Mes", field: "month" },
+  { label: "Últ. 3 meses", field: "trailingThreeMonths" },
+  { label: "Dif.", field: "difference" },
+  { label: "FDS", field: "weekend" },
+  { label: "FDS 3 meses", field: "trailingWeekend", className: "px-3" },
+];
+
 function ScheduleManagerMiniAnalysis({
   doctors,
   schedules,
@@ -948,19 +959,34 @@ function ScheduleManagerMiniAnalysis({
   year: number;
   month: number;
 }) {
+  const [sort, setSort] = useState<{ key: ManagerAnalysisSortKey; direction: "asc" | "desc" }>({
+    key: "month",
+    direction: "asc",
+  });
   const summary = useMemo(
     () => buildScheduleManagerAnalysis({ doctors, schedules, year, month }),
     [doctors, schedules, year, month],
   );
-  const rows = [...summary.rows].sort(
-    (a, b) => a.month - b.month || a.doctor.shortName.localeCompare(b.doctor.shortName, "es-CL"),
-  );
+  const rows = [...summary.rows].sort((a, b) => {
+    const first = sort.key === "doctor" ? a.doctor.shortName : a[sort.key];
+    const second = sort.key === "doctor" ? b.doctor.shortName : b[sort.key];
+    const comparison = typeof first === "string"
+      ? first.localeCompare(String(second), "es-CL")
+      : Number(first) - Number(second);
+    return sort.direction === "asc" ? comparison : -comparison;
+  });
+
+  function toggleSort(key: ManagerAnalysisSortKey) {
+    setSort((current) => current.key === key
+      ? { key, direction: current.direction === "asc" ? "desc" : "asc" }
+      : { key, direction: key === "doctor" ? "asc" : "desc" });
+  }
 
   return (
     <section className="mt-3 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
       <div className="flex flex-wrap items-baseline justify-between gap-1 border-b border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2">
         <div>
-          <h3 className="text-xs font-semibold">Resumen para ordenar el mes</h3>
+          <h3 className="text-xs font-semibold">Análisis Mensual</h3>
           <p className="text-[10px] text-[var(--muted)]">FDS incluye sábado, domingo y noche de viernes.</p>
         </div>
         <span className="text-[10px] text-[var(--muted)]">Promedio actual: {summary.expectedMonthlyShifts.toFixed(1)}</span>
@@ -969,11 +995,16 @@ function ScheduleManagerMiniAnalysis({
         <table className="min-w-full text-[11px]">
           <thead className="text-[var(--muted)]">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Médico</th>
-              <th className="px-2 py-2 text-center font-medium">Mes</th>
-              <th className="px-2 py-2 text-center font-medium">Últ. 3 meses</th>
-              <th className="px-2 py-2 text-center font-medium">Dif.</th>
-              <th className="px-3 py-2 text-center font-medium">FDS</th>
+              {managerAnalysisHeaders.map(({ label, field, className }) => {
+                const active = sort.key === field;
+                return (
+                  <th className={cn("px-2 py-2 text-center font-medium", className)} key={field}>
+                    <button className="inline-flex items-center gap-1 hover:text-[var(--foreground)]" onClick={() => toggleSort(field)} type="button">
+                      {label}<span className={active ? "text-[var(--brand)]" : "opacity-45"}>{active ? (sort.direction === "asc" ? "↑" : "↓") : "↕"}</span>
+                    </button>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -985,7 +1016,8 @@ function ScheduleManagerMiniAnalysis({
                 <td className={cn("px-2 py-1.5 text-center font-semibold", row.difference > 0.5 ? "text-amber-600" : row.difference < -0.5 ? "text-sky-600" : "text-[var(--brand)]")}>
                   {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}
                 </td>
-                <td className="px-3 py-1.5 text-center">{row.weekend}</td>
+                <td className="px-2 py-1.5 text-center">{row.weekend}</td>
+                <td className="px-3 py-1.5 text-center">{row.trailingWeekend}</td>
               </tr>
             ))}
           </tbody>
