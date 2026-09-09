@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPeriodAnalysis, monthRange } from "@/lib/analysis";
+import { buildPeriodAnalysis, buildScheduleManagerAnalysis, monthRange } from "@/lib/analysis";
 import type { Doctor, ScheduleMonth } from "@/lib/types";
 
 const doctors: Doctor[] = [
@@ -23,5 +23,31 @@ describe("period analysis", () => {
   it("classifies marked holidays as special days", () => {
     const result = buildPeriodAnalysis({ doctors, schedules, holidays: [{ date: "2026-01-05", label: "Feriado" }], ...monthRange(2026, 1) });
     expect(result.metrics.find((item) => item.doctor.id === "a")?.daySpecial).toBe(1);
+  });
+});
+
+
+describe("schedule manager analysis", () => {
+  it("counts Friday nights as weekend shifts and compares the current month with the team average", () => {
+    const result = buildScheduleManagerAnalysis({
+      doctors,
+      year: 2026,
+      month: 1,
+      schedules: [{
+        id: "2026-01",
+        year: 2026,
+        month: 1,
+        status: "draft",
+        assignments: [
+          { id: "fri-night", date: "2026-01-02", kind: "NIGHT", slot: 1, doctorId: "a" },
+          { id: "sat-day", date: "2026-01-03", kind: "DAY", slot: 1, doctorId: "a" },
+          { id: "weekday", date: "2026-01-05", kind: "DAY", slot: 1, doctorId: "b" },
+        ],
+      }],
+    });
+    const a = result.rows.find((item) => item.doctor.id === "a")!;
+    expect(a.month).toBe(2);
+    expect(a.weekend).toBe(2);
+    expect(a.difference).toBeCloseTo(0.5);
   });
 });

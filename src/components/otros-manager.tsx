@@ -4,23 +4,8 @@ import { CalendarOff, Palette, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ACCENT_THEME_OPTIONS, isAccentTheme, type AccentTheme } from "@/lib/accent-theme";
 import type { Holiday } from "@/lib/types";
-
-const themeOptions = [
-  { value: "green", label: "Verde (original)" },
-  { value: "red", label: "Rojo" },
-  { value: "blue", label: "Azul" },
-  { value: "gold", label: "Dorado" },
-  { value: "dieciocho", label: "Dieciocho" },
-] as const;
-
-type AccentTheme = (typeof themeOptions)[number]["value"];
-
-function applyAccentTheme(theme: AccentTheme) {
-  const root = document.documentElement;
-  if (theme === "green") root.removeAttribute("data-color-theme");
-  else root.dataset.colorTheme = theme;
-}
 
 function chileDateKey(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -52,12 +37,9 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("turnapp:accent-theme");
-    const theme = themeOptions.some((option) => option.value === savedTheme)
-      ? (savedTheme as AccentTheme)
-      : "green";
+    const theme = isAccentTheme(savedTheme) ? savedTheme : "green";
     const timer = window.setTimeout(() => {
       setAccentTheme(theme);
-      applyAccentTheme(theme);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -65,8 +47,8 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
   function changeAccentTheme(theme: AccentTheme) {
     setAccentTheme(theme);
     window.localStorage.setItem("turnapp:accent-theme", theme);
-    applyAccentTheme(theme);
-    toast.success(`Tema ${themeOptions.find((option) => option.value === theme)?.label ?? theme} aplicado`);
+    window.dispatchEvent(new Event("turnapp:accent-theme-change"));
+    toast.success(`Tema ${ACCENT_THEME_OPTIONS.find((option) => option.value === theme)?.label ?? theme} guardado`);
   }
   const { nextHolidays, yearHolidays } = useMemo(() => {
     const today = chileDateKey();
@@ -142,7 +124,7 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
           onChange={(event) => changeAccentTheme(event.target.value as AccentTheme)}
           value={accentTheme}
         >
-          {themeOptions.map((option) => (
+          {ACCENT_THEME_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

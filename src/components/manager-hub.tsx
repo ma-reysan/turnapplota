@@ -29,6 +29,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { OtrosManager } from "@/components/otros-manager";
+import { buildScheduleManagerAnalysis } from "@/lib/analysis";
 import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
 import type {
   Doctor,
@@ -84,6 +85,7 @@ function EditableShiftCard({
   doctors,
   colorLegend,
   laneHighlighted,
+  editable = true,
   onAssign,
   onColor,
 }: {
@@ -95,6 +97,7 @@ function EditableShiftCard({
   doctors: Doctor[];
   colorLegend: ShiftColorLegendItem[];
   laneHighlighted: boolean;
+  editable?: boolean;
   onAssign: (doctorId: string | null) => void;
   onColor: (colorKey: ShiftColorKey | null) => void;
 }) {
@@ -152,6 +155,7 @@ function EditableShiftCard({
           isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
           laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
+        disabled={!editable}
         onBlur={() => window.setTimeout(validate, 120)}
         onChange={(event) => {
           setQuery(event.target.value);
@@ -169,11 +173,11 @@ function EditableShiftCard({
             setOpen(false);
           }
         }}
-        placeholder="Escribir…"
+        placeholder="-"
         style={shiftColorStyle(marker?.colorKey)}
         value={query}
       />
-      <button
+      {editable ? <button
         aria-expanded={paletteOpen}
         aria-label="Pintar turno"
         className={cn(
@@ -186,8 +190,8 @@ function EditableShiftCard({
         type="button"
       >
         <Paintbrush size={10} strokeWidth={2.4} />
-      </button>
-      {assignedDoctor ? (
+      </button> : null}
+      {assignedDoctor && editable ? (
         <button
           aria-label={`Quitar a ${assignedDoctor.shortName} del turno`}
           className="absolute right-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-r text-white/75 drop-shadow-[0_1px_1px_rgba(0,0,0,.8)] transition hover:bg-black/15 hover:text-red-200"
@@ -203,7 +207,7 @@ function EditableShiftCard({
           <X size={11} strokeWidth={2.5} />
         </button>
       ) : null}
-      {paletteOpen ? (
+      {paletteOpen && editable ? (
         <div className="absolute left-0 top-5 z-[70] grid w-[104px] grid-cols-4 gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-xl">
           <button
             aria-label="Dejar turno con color normal"
@@ -238,7 +242,7 @@ function EditableShiftCard({
           ))}
         </div>
       ) : null}
-      {open && suggestions.length ? (
+      {open && editable && suggestions.length ? (
         <div className="absolute left-0 top-6 z-50 min-w-44 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
           {suggestions.map((doctor) => (
             <button
@@ -606,6 +610,7 @@ function ScheduleManager({
     setOverSlotId(null);
     if (!target.startsWith("slot:")) return;
     const [, date, kind, slot] = target.split(":");
+    if (!date.startsWith(`${selectedId}-`)) return;
     if (laneMode) {
       assignToDates(laneDates(date), kind as ShiftKind, Number(slot), doctorId);
     } else {
@@ -682,6 +687,27 @@ function ScheduleManager({
       `${marker.date}-${marker.kind}-${marker.slot}`,
       marker,
     ]),
+  );
+  const scheduleSnapshots = sorted.map((item) => ({
+    ...item,
+    assignments: assignmentsByMonth[item.id] ?? item.assignments,
+    markers: markersByMonth[item.id] ?? item.markers ?? [],
+  }));
+  const allSlots = new Map(
+    scheduleSnapshots.flatMap((item) =>
+      item.assignments.map((assignment) => [
+        `${assignment.date}-${assignment.kind}-${assignment.slot}`,
+        assignment,
+      ] as const),
+    ),
+  );
+  const allMarkerSlots = new Map(
+    scheduleSnapshots.flatMap((item) =>
+      (item.markers ?? []).map((marker) => [
+        `${marker.date}-${marker.kind}-${marker.slot}`,
+        marker,
+      ] as const),
+    ),
   );
   const lanePreview = new Set<string>();
   if (laneMode && draggedDoctorId && overSlotId) {
@@ -811,7 +837,7 @@ function ScheduleManager({
                   <div
                     className={cn(
                       "relative min-h-[105px] rounded-lg border border-[var(--line)] p-1",
-                      inMonth ? "bg-[var(--surface-soft)]" : "opacity-20",
+                      inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
                     key={dateKey}
                   >
@@ -822,32 +848,34 @@ function ScheduleManager({
                     <div className="space-y-0.5">
                       {([1, 2, 3] as const).map((slot) => (
                         <EditableShiftCard
-                          assignment={slots.get(`${dateKey}-DAY-${slot}`)}
+                          assignment={(inMonth ? slots : allSlots).get(`${dateKey}-DAY-${slot}`)}
                           colorLegend={colorLegend}
                           date={dateKey}
                           doctors={doctors}
-                          key={`day-${slot}-${slots.get(`${dateKey}-DAY-${slot}`)?.doctorId ?? "empty"}`}
+                          key={`day-${slot}-${(inMonth ? slots : allSlots).get(`${dateKey}-DAY-${slot}`)?.doctorId ?? "empty"}`}
                           kind="DAY"
                           laneHighlighted={lanePreview.has(`${dateKey}-DAY-${slot}`)}
-                          marker={markerSlots.get(`${dateKey}-DAY-${slot}`)}
-                          onAssign={(doctorId) => assign(dateKey, "DAY", slot, doctorId)}
-                          onColor={(colorKey) => paint(dateKey, "DAY", slot, colorKey)}
+                          marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-DAY-${slot}`)}
+                          editable={inMonth}
+                          onAssign={(doctorId) => { if (inMonth) assign(dateKey, "DAY", slot, doctorId); }}
+                          onColor={(colorKey) => { if (inMonth) paint(dateKey, "DAY", slot, colorKey); }}
                           slot={slot}
                         />
                       ))}
                       <div aria-hidden className="mx-1 my-1 h-px bg-[var(--shift-divider)]" />
                       {([1, 2] as const).map((slot) => (
                         <EditableShiftCard
-                          assignment={slots.get(`${dateKey}-NIGHT-${slot}`)}
+                          assignment={(inMonth ? slots : allSlots).get(`${dateKey}-NIGHT-${slot}`)}
                           colorLegend={colorLegend}
                           date={dateKey}
                           doctors={doctors}
-                          key={`night-${slot}-${slots.get(`${dateKey}-NIGHT-${slot}`)?.doctorId ?? "empty"}`}
+                          key={`night-${slot}-${(inMonth ? slots : allSlots).get(`${dateKey}-NIGHT-${slot}`)?.doctorId ?? "empty"}`}
                           kind="NIGHT"
                           laneHighlighted={lanePreview.has(`${dateKey}-NIGHT-${slot}`)}
-                          marker={markerSlots.get(`${dateKey}-NIGHT-${slot}`)}
-                          onAssign={(doctorId) => assign(dateKey, "NIGHT", slot, doctorId)}
-                          onColor={(colorKey) => paint(dateKey, "NIGHT", slot, colorKey)}
+                          marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-NIGHT-${slot}`)}
+                          editable={inMonth}
+                          onAssign={(doctorId) => { if (inMonth) assign(dateKey, "NIGHT", slot, doctorId); }}
+                          onColor={(colorKey) => { if (inMonth) paint(dateKey, "NIGHT", slot, colorKey); }}
                           slot={slot}
                         />
                       ))}
@@ -857,6 +885,12 @@ function ScheduleManager({
               })}
             </div>
           </div>
+          <ScheduleManagerMiniAnalysis
+            doctors={doctors}
+            month={schedule.month}
+            schedules={scheduleSnapshots}
+            year={schedule.year}
+          />
         </section>
         <aside
           className={cn(
@@ -899,6 +933,65 @@ function ScheduleManager({
         {saveMode ? <div aria-live="polite" className="absolute inset-0 z-40 grid place-items-center rounded-2xl bg-[var(--background)]/45 backdrop-blur-[1px]"><div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold shadow-2xl"><LoaderCircle className="animate-spin text-[var(--brand)]" size={19} />{saveMode === "publish" ? "Publicando mes…" : "Guardando cambios…"}</div></div> : null}
       </div>
     </DndContext>
+  );
+}
+
+
+function ScheduleManagerMiniAnalysis({
+  doctors,
+  schedules,
+  year,
+  month,
+}: {
+  doctors: Doctor[];
+  schedules: ScheduleMonth[];
+  year: number;
+  month: number;
+}) {
+  const summary = useMemo(
+    () => buildScheduleManagerAnalysis({ doctors, schedules, year, month }),
+    [doctors, schedules, year, month],
+  );
+  const rows = [...summary.rows].sort(
+    (a, b) => a.month - b.month || a.doctor.shortName.localeCompare(b.doctor.shortName, "es-CL"),
+  );
+
+  return (
+    <section className="mt-3 overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+      <div className="flex flex-wrap items-baseline justify-between gap-1 border-b border-[var(--line)] bg-[var(--surface-soft)] px-3 py-2">
+        <div>
+          <h3 className="text-xs font-semibold">Resumen para ordenar el mes</h3>
+          <p className="text-[10px] text-[var(--muted)]">FDS incluye sábado, domingo y noche de viernes.</p>
+        </div>
+        <span className="text-[10px] text-[var(--muted)]">Promedio actual: {summary.expectedMonthlyShifts.toFixed(1)}</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-[11px]">
+          <thead className="text-[var(--muted)]">
+            <tr>
+              <th className="px-3 py-2 text-left font-medium">Médico</th>
+              <th className="px-2 py-2 text-center font-medium">Mes</th>
+              <th className="px-2 py-2 text-center font-medium">Últ. 3 meses</th>
+              <th className="px-2 py-2 text-center font-medium">Dif.</th>
+              <th className="px-3 py-2 text-center font-medium">FDS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr className="border-t border-[var(--line)]" key={row.doctor.id}>
+                <th className="px-3 py-1.5 text-left font-semibold">{row.doctor.shortName}</th>
+                <td className="px-2 py-1.5 text-center">{row.month}</td>
+                <td className="px-2 py-1.5 text-center">{row.trailingThreeMonths}</td>
+                <td className={cn("px-2 py-1.5 text-center font-semibold", row.difference > 0.5 ? "text-amber-600" : row.difference < -0.5 ? "text-sky-600" : "text-[var(--brand)]")}>
+                  {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}
+                </td>
+                <td className="px-3 py-1.5 text-center">{row.weekend}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

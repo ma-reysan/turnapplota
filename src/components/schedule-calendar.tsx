@@ -246,7 +246,7 @@ export function ScheduleCalendar({
                   <div
                     className={cn(
                       "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
-                      inMonth ? "bg-[var(--surface-soft)]" : "bg-transparent opacity-25",
+                      inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
                     key={dateKey}
                   >

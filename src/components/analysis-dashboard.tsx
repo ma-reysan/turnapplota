@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDownUp, BarChart3, CalendarDays, Moon, Sun } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildPeriodAnalysis, monthRange } from "@/lib/analysis";
 import type { DoctorAnalysis } from "@/lib/analysis";
 import type { Doctor, Holiday, ScheduleMonth } from "@/lib/types";
@@ -19,8 +19,18 @@ function SortHeader({ label, field, active, direction, onSort }: { label: string
 
 export function AnalysisDashboard({ doctors, schedules, holidays }: { doctors: Doctor[]; schedules: ScheduleMonth[]; holidays: Holiday[] }) {
   const months = useMemo(() => [...schedules].filter((item) => item.status === "published").sort((a, b) => b.id.localeCompare(a.id)), [schedules]);
-  const [selectedId, setSelectedId] = useState(months[0]?.id ?? "");
+  const latestPublishedId = months[0]?.id ?? "";
+  const [selectedId, setSelectedId] = useState(latestPublishedId);
+  const previousLatestId = useRef(latestPublishedId);
   const [sort, setSort] = useState<{ key: SortKey; direction: "asc" | "desc" }>({ key: "doctor", direction: "asc" });
+  useEffect(() => {
+    const hasSelectedMonth = months.some((month) => month.id === selectedId);
+    if (!hasSelectedMonth || (latestPublishedId && previousLatestId.current !== latestPublishedId)) {
+      setSelectedId(latestPublishedId);
+    }
+    previousLatestId.current = latestPublishedId;
+  }, [latestPublishedId, months, selectedId]);
+
   const selected = months.find((month) => month.id === selectedId) ?? months[0];
   const monthly = useMemo(() => selected ? buildPeriodAnalysis({ doctors, schedules, holidays, ...monthRange(selected.year, selected.month) }) : null, [doctors, holidays, schedules, selected]);
   const sortedMetrics = useMemo(() => {

@@ -131,3 +131,72 @@ export function monthRange(year: number, month: number) {
   const reference = new Date(year, month - 1, 1, 12);
   return { start: startOfMonth(reference), end: endOfMonth(reference) };
 }
+
+
+export interface ScheduleManagerAnalysis {
+  expectedMonthlyShifts: number;
+  rows: Array<{
+    doctor: Doctor;
+    month: number;
+    trailingThreeMonths: number;
+    difference: number;
+    weekend: number;
+  }>;
+}
+
+/**
+ * Compact planning view used while building a month in Jefatura. Friday nights
+ * are grouped with Saturday and Sunday shifts because they consume the same
+ * weekend availability in practice.
+ */
+export function buildScheduleManagerAnalysis({
+  doctors,
+  schedules,
+  year,
+  month,
+}: {
+  doctors: Doctor[];
+  schedules: ScheduleMonth[];
+  year: number;
+  month: number;
+}): ScheduleManagerAnalysis {
+  const activeDoctors = doctors.filter((doctor) => doctor.active);
+  const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+  const monthEnd = dateKey(endOfMonth(new Date(year, month - 1, 12)));
+  const trailingStart = dateKey(startOfMonth(new Date(year, month - 3, 12)));
+  const assignments = schedules.flatMap((schedule) => schedule.assignments);
+  const currentAssignments = assignments.filter(
+    (assignment) => assignment.date >= monthStart && assignment.date <= monthEnd,
+  );
+  const trailingAssignments = assignments.filter(
+    (assignment) => assignment.date >= trailingStart && assignment.date <= monthEnd,
+  );
+  const expectedMonthlyShifts = activeDoctors.length
+    ? currentAssignments.length / activeDoctors.length
+    : 0;
+
+  const isWeekendShift = (date: string, kind: "DAY" | "NIGHT") => {
+    const weekday = new Date(`${date}T12:00:00`).getDay();
+    return weekday === 0 || weekday === 6 || (weekday === 5 && kind === "NIGHT");
+  };
+
+  return {
+    expectedMonthlyShifts,
+    rows: activeDoctors.map((doctor) => {
+      const monthAssignments = currentAssignments.filter(
+        (assignment) => assignment.doctorId === doctor.id,
+      );
+      return {
+        doctor,
+        month: monthAssignments.length,
+        trailingThreeMonths: trailingAssignments.filter(
+          (assignment) => assignment.doctorId === doctor.id,
+        ).length,
+        difference: monthAssignments.length - expectedMonthlyShifts,
+        weekend: monthAssignments.filter((assignment) =>
+          isWeekendShift(assignment.date, assignment.kind),
+        ).length,
+      };
+    }),
+  };
+}

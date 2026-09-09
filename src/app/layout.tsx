@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
+import { AccentThemeProvider } from "@/components/accent-theme-provider";
 import { AppShell } from "@/components/app-shell";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -14,8 +15,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="es" suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AppShell>{children}</AppShell>
-          <Toaster richColors position="bottom-center" />
+          <AccentThemeProvider>
+            <AppShell>{children}</AppShell>
+            <Toaster richColors position="bottom-center" />
+          </AccentThemeProvider>
         </ThemeProvider>
       </body>
     </html>
