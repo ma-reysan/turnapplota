@@ -28,6 +28,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
+import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
 import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
 import {
@@ -35,6 +36,7 @@ import {
   type ReplacementShift,
 } from "@/lib/replacement-scoring";
 import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
+import { findNightToDayConflicts, incompatibleAssignmentIds } from "@/lib/schedule-conflicts";
 import type {
   Doctor,
   Holiday,
@@ -89,6 +91,7 @@ function EditableShiftCard({
   doctors,
   colorLegend,
   laneHighlighted,
+  hasIncompatibility,
   editable = true,
   onAssign,
   onColor,
@@ -101,6 +104,7 @@ function EditableShiftCard({
   doctors: Doctor[];
   colorLegend: ShiftColorLegendItem[];
   laneHighlighted: boolean;
+  hasIncompatibility: boolean;
   editable?: boolean;
   onAssign: (doctorId: string | null) => void;
   onColor: (colorKey: ShiftColorKey | null) => void;
@@ -156,6 +160,7 @@ function EditableShiftCard({
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
           "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          hasIncompatibility && "border-amber-500 ring-1 ring-amber-500",
           isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
           laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
@@ -797,6 +802,12 @@ function ScheduleManager({
     assignments: assignmentsByMonth[item.id] ?? item.assignments,
     markers: markersByMonth[item.id] ?? item.markers ?? [],
   }));
+  const allAssignments = scheduleSnapshots.flatMap((item) => item.assignments);
+  const conflicts = findNightToDayConflicts(allAssignments);
+  const conflictAssignmentIds = incompatibleAssignmentIds(allAssignments, conflicts);
+  const visibleDateKeys = new Set(calendarDays(schedule.year, schedule.month).map((date) =>
+    `${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`,
+  ));
   const allSlots = new Map(
     scheduleSnapshots.flatMap((item) =>
       item.assignments.map((assignment) => [
@@ -922,6 +933,7 @@ function ScheduleManager({
               </button>
             </div>
           </div>
+          <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
           <div className="scrollbar-subtle overflow-x-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
             <div className="grid min-w-[680px] grid-cols-7 gap-1">
               {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day) => (
@@ -954,6 +966,7 @@ function ScheduleManager({
                           key={`day-${slot}-${(inMonth ? slots : allSlots).get(`${dateKey}-DAY-${slot}`)?.doctorId ?? "empty"}`}
                           kind="DAY"
                           laneHighlighted={lanePreview.has(`${dateKey}-DAY-${slot}`)}
+                          hasIncompatibility={conflictAssignmentIds.has((inMonth ? slots : allSlots).get(`${dateKey}-DAY-${slot}`)?.id ?? "")}
                           marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-DAY-${slot}`)}
                           editable={inMonth}
                           onAssign={(doctorId) => { if (inMonth) assign(dateKey, "DAY", slot, doctorId); }}
@@ -971,6 +984,7 @@ function ScheduleManager({
                           key={`night-${slot}-${(inMonth ? slots : allSlots).get(`${dateKey}-NIGHT-${slot}`)?.doctorId ?? "empty"}`}
                           kind="NIGHT"
                           laneHighlighted={lanePreview.has(`${dateKey}-NIGHT-${slot}`)}
+                          hasIncompatibility={conflictAssignmentIds.has((inMonth ? slots : allSlots).get(`${dateKey}-NIGHT-${slot}`)?.id ?? "")}
                           marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-NIGHT-${slot}`)}
                           editable={inMonth}
                           onAssign={(doctorId) => { if (inMonth) assign(dateKey, "NIGHT", slot, doctorId); }}

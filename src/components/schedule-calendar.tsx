@@ -3,6 +3,8 @@
 import { Palette, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
+import { findNightToDayConflicts, incompatibleAssignmentIds } from "@/lib/schedule-conflicts";
 import { shiftColorStyle } from "@/lib/shift-colors";
 import type {
   Doctor,
@@ -20,12 +22,14 @@ function ShiftChip({
   marker,
   doctorsById,
   highlightedDoctor,
+  incompatible,
   onToggleHighlight,
 }: {
   assignment?: ShiftAssignment;
   marker?: ShiftMarker;
   doctorsById: Map<string, Doctor>;
   highlightedDoctor: string | null;
+  incompatible: boolean;
   onToggleHighlight: (doctorId: string) => void;
 }) {
   const doctor = assignment ? doctorsById.get(assignment.doctorId) : undefined;
@@ -37,6 +41,7 @@ function ShiftChip({
       className={cn(
         "flex h-5 w-full items-center justify-center truncate rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-1 text-center text-[10px] font-bold leading-none tracking-tight text-[var(--shift-normal-text)] transition sm:text-[11px]",
         dimmed && "opacity-[.32]",
+        incompatible && "border-amber-500 ring-1 ring-amber-500",
       )}
       disabled={!doctor}
       onClick={() => {
@@ -98,6 +103,20 @@ export function ScheduleCalendar({
   const usedColorKeys = useMemo(
     () => new Set(schedule?.markers?.map((marker) => marker.colorKey) ?? []),
     [schedule],
+  );
+  const conflicts = useMemo(
+    () => findNightToDayConflicts(schedules.flatMap((item) => item.assignments)),
+    [schedules],
+  );
+  const conflictAssignmentIds = useMemo(
+    () => incompatibleAssignmentIds(schedules.flatMap((item) => item.assignments), conflicts),
+    [conflicts, schedules],
+  );
+  const visibleDateKeys = useMemo(
+    () => new Set(calendarDays(schedule.year, schedule.month).map((date) =>
+      `${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`,
+    )),
+    [schedule.month, schedule.year],
   );
 
   const visibleDoctors = useMemo(() => {
@@ -212,6 +231,8 @@ export function ScheduleCalendar({
           </label>
         </div>
 
+        <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
+
         <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
           <div
             className="min-w-[680px] border border-[var(--line)] bg-[var(--surface)] p-3"
@@ -259,6 +280,7 @@ export function ScheduleCalendar({
                           assignment={assignmentsBySlot.get(`${dateKey}-DAY-${slot}`)}
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
+                          incompatible={conflictAssignmentIds.has(assignmentsBySlot.get(`${dateKey}-DAY-${slot}`)?.id ?? "")}
                           key={`day-${slot}`}
                           marker={markersBySlot.get(`${dateKey}-DAY-${slot}`)}
                           onToggleHighlight={toggleHighlightedDoctor}
@@ -270,6 +292,7 @@ export function ScheduleCalendar({
                           assignment={assignmentsBySlot.get(`${dateKey}-NIGHT-${slot}`)}
                           doctorsById={doctorsById}
                           highlightedDoctor={highlightedDoctor}
+                          incompatible={conflictAssignmentIds.has(assignmentsBySlot.get(`${dateKey}-NIGHT-${slot}`)?.id ?? "")}
                           key={`night-${slot}`}
                           marker={markersBySlot.get(`${dateKey}-NIGHT-${slot}`)}
                           onToggleHighlight={toggleHighlightedDoctor}
