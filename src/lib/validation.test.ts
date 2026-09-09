@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { replacementInputSchema, scheduleUpdateSchema } from "@/lib/validation";
+import { replacementInputSchema, schedulePatchSchema, scheduleUpdateSchema } from "@/lib/validation";
 
 const replacement = {
   id: "replacement-test",
@@ -61,5 +61,19 @@ describe("schedule color validation", () => {
         ],
       }),
     ).toThrow();
+  });
+});
+
+
+describe("schedule autosave validation", () => {
+  it("accepts a partial card update and an explicit empty card", () => {
+    const parsed = schedulePatchSchema.parse({
+      id: "2026-07",
+      assignments: [
+        { date: "2026-07-10", kind: "DAY", slot: 1, doctorId: "jreyes" },
+        { date: "2026-07-10", kind: "NIGHT", slot: 2, doctorId: null },
+      ],
+    });
+    expect(parsed.assignments[1]?.doctorId).toBeNull();
   });
 });

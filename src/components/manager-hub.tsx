@@ -18,14 +18,14 @@ import {
   Paintbrush,
   Palette,
   Plus,
-  Save,
   Settings2,
+  Save,
   Star,
   Trash2,
   UserRound,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { OtrosManager } from "@/components/otros-manager";
@@ -487,6 +487,15 @@ function ColorLegendEditor({
   );
 }
 
+type PendingScheduleChanges = {
+  assignments: Record<string, ShiftAssignment | null>;
+  markers: Record<string, ShiftMarker | null>;
+};
+
+function shiftSlotKey(date: string, kind: ShiftKind, slot: number) {
+  return `${date}-${kind}-${slot}`;
+}
+
 function ScheduleManager({
   initialDoctors,
   schedules,
@@ -517,13 +526,132 @@ function ScheduleManager({
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.version ?? 1])),
   );
   const [editingRoster, setEditingRoster] = useState(false);
-  const [saveMode, setSaveMode] = useState<"save" | "publish" | null>(null);
+  const [pendingChanges, setPendingChanges] = useState<Record<string, PendingScheduleChanges>>({});
+  const [savingMonths, setSavingMonths] = useState<Record<string, boolean>>({});
+  const [syncState, setSyncState] = useState<"synced" | "error">("synced");
+  const [publishing, setPublishing] = useState(false);
   const [laneMode, setLaneMode] = useState(false);
   const [draggedDoctorId, setDraggedDoctorId] = useState<string | null>(null);
   const [overSlotId, setOverSlotId] = useState<string | null>(null);
   const schedule = sorted.find((item) => item.id === selectedId) ?? initialSchedule;
   const assignments = assignmentsByMonth[selectedId] ?? [];
   const markers = markersByMonth[selectedId] ?? [];
+  const hasPendingChanges = Boolean(pendingChanges[selectedId]);
+  const isSavingSelected = Boolean(savingMonths[selectedId]);
+
+  function enqueueChanges(monthId: string, changes: Partial<PendingScheduleChanges>) {
+    setPendingChanges((current) => ({
+      ...current,
+      [monthId]: {
+        assignments: { ...(current[monthId]?.assignments ?? {}), ...(changes.assignments ?? {}) },
+        markers: { ...(current[monthId]?.markers ?? {}), ...(changes.markers ?? {}) },
+      },
+    }));
+  }
+
+  useEffect(() => {
+    const pendingIds = Object.keys(pendingChanges).filter((id) => !savingMonths[id]);
+    if (!pendingIds.length) return;
+    const timer = window.setTimeout(() => {
+      pendingIds.forEach((monthId) => {
+        const batch = pendingChanges[monthId];
+        if (!batch) return;
+        setSavingMonths((current) => ({ ...current, [monthId]: true }));
+        setPendingChanges((current) => {
+          const latest = current[monthId];
+          if (!latest) return current;
+          const assignments = { ...latest.assignments };
+          const markers = { ...latest.markers };
+          for (const [key, value] of Object.entries(batch.assignments)) {
+            if (assignments[key] === value) delete assignments[key];
+          }
+          for (const [key, value] of Object.entries(batch.markers)) {
+            if (markers[key] === value) delete markers[key];
+          }
+          const next = { ...current };
+          if (Object.keys(assignments).length || Object.keys(markers).length) next[monthId] = { assignments, markers };
+          else delete next[monthId];
+          return next;
+        });
+        void fetch(`/api/schedules/${monthId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: monthId,
+            assignments: Object.entries(batch.assignments).map(([key, assignment]) => {
+              if (assignment) return { date: assignment.date, kind: assignment.kind, slot: assignment.slot, doctorId: assignment.doctorId };
+              const [, date, kind, slot] = key.match(/^(.*)-(DAY|NIGHT)-(\d+)$/)!;
+              return { date, kind, slot: Number(slot), doctorId: null };
+            }),
+            markers: Object.entries(batch.markers).map(([key, marker]) => {
+              if (marker) return { date: marker.date, kind: marker.kind, slot: marker.slot, colorKey: marker.colorKey };
+              const [, date, kind, slot] = key.match(/^(.*)-(DAY|NIGHT)-(\d+)$/)!;
+              return { date, kind, slot: Number(slot), colorKey: null };
+            }),
+          }),
+        }).then(async (response) => {
+          const result = (await response.json()) as { error?: string; version?: number };
+          if (!response.ok) throw new Error(result.error ?? "No fue posible guardar");
+          setVersions((current) => ({ ...current, [monthId]: result.version ?? current[monthId] }));
+          setSyncState("synced");
+        }).catch((error: Error) => {
+          setSyncState("error");
+          setPendingChanges((current) => ({
+            ...current,
+            [monthId]: {
+              assignments: { ...batch.assignments, ...(current[monthId]?.assignments ?? {}) },
+              markers: { ...batch.markers, ...(current[monthId]?.markers ?? {}) },
+            },
+          }));
+          toast.error(error.message);
+        }).finally(() => {
+          setSavingMonths((current) => ({ ...current, [monthId]: false }));
+        });
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [pendingChanges, savingMonths]);
+
+  useEffect(() => {
+    if (!selectedId || pendingChanges[selectedId] || savingMonths[selectedId]) return;
+    let cancelled = false;
+    const syncFromServer = async () => {
+      const response = await fetch(`/api/schedules/${selectedId}`);
+      if (!response.ok || cancelled) return;
+      const remote = await response.json() as ScheduleMonth;
+      if ((remote.version ?? 0) <= (versions[selectedId] ?? 0) || cancelled) return;
+      setAssignmentsByMonth((current) => ({ ...current, [selectedId]: remote.assignments }));
+      setMarkersByMonth((current) => ({ ...current, [selectedId]: remote.markers ?? [] }));
+      setVersions((current) => ({ ...current, [selectedId]: remote.version ?? current[selectedId] }));
+      setSyncState("synced");
+    };
+    void syncFromServer();
+    const interval = window.setInterval(() => void syncFromServer(), 3500);
+    return () => { cancelled = true; window.clearInterval(interval); };
+  }, [pendingChanges, savingMonths, selectedId, versions]);
+
+  async function publishMonth() {
+    if (hasPendingChanges || isSavingSelected || publishing) {
+      toast.message("Esperando que los cambios se sincronicen antes de publicar.");
+      return;
+    }
+    setPublishing(true);
+    try {
+      const response = await fetch(`/api/schedules/${selectedId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedId, publish: true }),
+      });
+      const result = (await response.json()) as { error?: string; version?: number };
+      if (!response.ok) throw new Error(result.error ?? "No fue posible publicar");
+      setVersions((current) => ({ ...current, [selectedId]: result.version ?? current[selectedId] }));
+      toast.success("Mes publicado en Turnos");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible publicar");
+    } finally {
+      setPublishing(false);
+    }
+  }
 
   if (!schedule) return <p>No hay calendarios disponibles.</p>;
 
@@ -552,6 +680,7 @@ function ScheduleManager({
         : withoutSlot;
       return { ...current, [selectedId]: next };
     });
+    dates.forEach((date) => enqueueChanges(selectedId, { assignments: { [shiftSlotKey(date, kind, slot)]: doctorId ? { id: `${selectedId}-${date}-${kind.toLowerCase()}-${slot}`, date, kind, slot, doctorId } : null } }));
   }
 
   function assign(date: string, kind: ShiftKind, slot: number, doctorId: string | null) {
@@ -577,6 +706,7 @@ function ScheduleManager({
         : existing;
       return { ...current, [selectedId]: next };
     });
+    enqueueChanges(selectedId, { markers: { [shiftSlotKey(date, kind, slot)]: colorKey ? { id: `${selectedId}-${date}-${kind.toLowerCase()}-${slot}-color`, date, kind, slot, colorKey } : null } });
   }
 
   function laneDates(date: string) {
@@ -642,43 +772,13 @@ function ScheduleManager({
     setAssignmentsByMonth((current) => ({ ...current, [id]: [] }));
     setMarkersByMonth((current) => ({ ...current, [id]: [] }));
     setVersions((current) => ({ ...current, [id]: 1 }));
+    enqueueChanges(id, {});
     setSelectedId(id);
     setCreatingMonth(false);
     setNewMonthValue("");
-    toast.success("Mes creado como borrador. Asigna médicos y guarda para publicarlo.");
+    toast.success("Mes creado como borrador. Los cambios se guardan automáticamente.");
   }
 
-  async function save(publish: boolean) {
-    if (saveMode) return;
-    setSaveMode(publish ? "publish" : "save");
-    try {
-      const response = await fetch(`/api/schedules/${selectedId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: selectedId,
-          version: versions[selectedId] ?? 1,
-          publish,
-          assignments,
-          markers,
-        }),
-      });
-      const result = (await response.json()) as { error?: string; version?: number };
-      if (!response.ok) {
-        toast.error(result.error ?? "No fue posible guardar");
-        return;
-      }
-      setVersions((current) => ({
-        ...current,
-        [selectedId]: result.version ?? current[selectedId],
-      }));
-      toast.success(publish ? "Mes publicado" : "Borrador guardado");
-    } catch {
-      toast.error("No fue posible conectar con el servidor");
-    } finally {
-      setSaveMode(null);
-    }
-  }
 
   const slots = new Map(
     assignments.map((assignment) => [
@@ -809,21 +909,16 @@ function ScheduleManager({
                 </span>
                 <span>Carriles de Turno</span>
               </button>
-              <button
-                className="flex items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-xs font-medium transition-shadow disabled:cursor-wait disabled:shadow-inner disabled:opacity-70"
-                disabled={saveMode !== null}
-                onClick={() => save(false)}
-                type="button"
-              >
-                {saveMode === "save" ? <LoaderCircle className="animate-spin" size={15} /> : <Save size={15} />} Guardar
-              </button>
+              <span aria-live="polite" className={cn("self-center text-[10px]", syncState === "error" ? "text-red-600" : "text-[var(--muted)]")}>
+                {isSavingSelected || hasPendingChanges ? "Guardando…" : syncState === "error" ? "Sin conexión" : "Sincronizado"}
+              </span>
               <button
                 className="flex items-center gap-1.5 rounded-lg bg-[var(--brand)] px-2.5 py-1.5 text-xs font-medium text-white transition-shadow disabled:cursor-wait disabled:shadow-inner disabled:opacity-70"
-                disabled={saveMode !== null}
-                onClick={() => save(true)}
+                disabled={publishing || hasPendingChanges || isSavingSelected}
+                onClick={publishMonth}
                 type="button"
               >
-                {saveMode === "publish" ? <LoaderCircle className="animate-spin" size={15} /> : <CalendarCheck size={15} />} Publicar mes
+                {publishing ? <LoaderCircle className="animate-spin" size={15} /> : <CalendarCheck size={15} />} Publicar mes
               </button>
             </div>
           </div>
@@ -934,7 +1029,7 @@ function ScheduleManager({
             </>
           )}
         </aside>
-        {saveMode ? <div aria-live="polite" className="absolute inset-0 z-40 grid place-items-center rounded-2xl bg-[var(--background)]/45 backdrop-blur-[1px]"><div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold shadow-2xl"><LoaderCircle className="animate-spin text-[var(--brand)]" size={19} />{saveMode === "publish" ? "Publicando mes…" : "Guardando cambios…"}</div></div> : null}
+        {publishing ? <div aria-live="polite" className="absolute inset-0 z-40 grid place-items-center rounded-2xl bg-[var(--background)]/45 backdrop-blur-[1px]"><div className="flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm font-semibold shadow-2xl"><LoaderCircle className="animate-spin text-[var(--brand)]" size={19} />Publicando mes…</div></div> : null}
       </div>
     </DndContext>
   );

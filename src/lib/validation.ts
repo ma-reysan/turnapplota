@@ -65,6 +65,26 @@ export const scheduleUpdateSchema = z
     }
   });
 
+
+const scheduleSlotSchema = z.object({
+  date: z.iso.date(),
+  kind: z.enum(["DAY", "NIGHT"]),
+  slot: z.number().int().min(1).max(3),
+});
+
+export const schedulePatchSchema = z.object({
+  id: z.string().regex(/^\d{4}-\d{2}$/),
+  publish: z.boolean().optional(),
+  assignments: z.array(scheduleSlotSchema.extend({ doctorId: z.string().min(1).nullable() })).default([]),
+  markers: z.array(scheduleSlotSchema.extend({ colorKey: shiftColorKeySchema.nullable() })).default([]),
+}).superRefine((value, context) => {
+  for (const item of [...value.assignments, ...value.markers]) {
+    if (item.kind === "NIGHT" && item.slot > 2) {
+      context.addIssue({ code: "custom", message: "La noche admite solo dos médicos" });
+    }
+  }
+});
+
 export const shiftColorLegendSchema = z.object({
   items: z.array(
     z.object({
