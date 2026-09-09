@@ -30,6 +30,10 @@ import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
+import {
+  getAutomaticReplacementType,
+  type ReplacementShift,
+} from "@/lib/replacement-scoring";
 import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
 import type {
   Doctor,
@@ -1031,23 +1035,66 @@ function ScoreManager({
   doctors,
   types,
   recent,
+  holidays,
 }: {
   doctors: Doctor[];
   types: ReplacementType[];
   recent: Replacement[];
+  holidays: Holiday[];
 }) {
   const formTypes = types.filter((type) => type.code !== "HERO");
-  const firstType = formTypes[0];
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [doctorId, setDoctorId] = useState(doctors.find((doctor) => doctor.active)?.id ?? "");
-  const [typeCode, setTypeCode] = useState(firstType?.code ?? "");
-  const [points, setPoints] = useState(firstType?.defaultPoints ?? 0);
+  const [shift, setShift] = useState<ReplacementShift>("day");
   const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
   const [superhero, setSuperhero] = useState(false);
+  const holidayDates = useMemo(
+    () => new Set(holidays.map((holiday) => holiday.date)),
+    [holidays],
+  );
+  const automaticType = getAutomaticReplacementType({
+    date,
+    shift,
+    types: formTypes,
+    holidays: holidayDates,
+  });
+  const [points, setPoints] = useState(() =>
+    getAutomaticReplacementType({
+      date,
+      shift: "day",
+      types: formTypes,
+      holidays: holidayDates,
+    })?.defaultPoints ?? 0,
+  );
   const [history, setHistory] = useState(() =>
     [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
   );
   const doctorsById = new Map(doctors.map((doctor) => [doctor.id, doctor]));
+
+  function toggleShift(item: "day" | "night") {
+    const nextShift: ReplacementShift = shift === "both"
+      ? (item === "day" ? "night" : "day")
+      : shift === item
+        ? shift
+        : "both";
+    selectShift(nextShift);
+  }
+
+  function selectShift(nextShift: ReplacementShift, nextDate = date) {
+    setShift(nextShift);
+    const nextType = getAutomaticReplacementType({
+      date: nextDate,
+      shift: nextShift,
+      types: formTypes,
+      holidays: holidayDates,
+    });
+    setPoints((nextType?.defaultPoints ?? 0) + (superhero ? 1 : 0));
+  }
+
+  function selectDate(nextDate: string) {
+    setDate(nextDate);
+    selectShift(shift, nextDate);
+  }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -1055,7 +1102,7 @@ function ScoreManager({
       id: crypto.randomUUID(),
       date,
       doctorId,
-      typeCode,
+      typeCode: automaticType?.code ?? "LEGACY_UNKNOWN",
       points,
       mode,
       superhero,
@@ -1111,7 +1158,7 @@ function ScoreManager({
             Fecha
             <input
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
-              onChange={(event) => setDate(event.target.value)}
+              onChange={(event) => selectDate(event.target.value)}
               type="date"
               value={date}
             />
@@ -1132,24 +1179,29 @@ function ScoreManager({
                 ))}
             </select>
           </label>
-          <label className="text-xs text-[var(--muted)]">
-            Tipo
-            <select
-              className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
-              onChange={(event) => {
-                const next = formTypes.find((type) => type.code === event.target.value);
-                setTypeCode(event.target.value);
-                if (next) setPoints(next.defaultPoints + (superhero ? 1 : 0));
-              }}
-              value={typeCode}
-            >
-              {formTypes.map((type) => (
-                <option key={type.code} value={type.code}>
-                  {type.label}
-                </option>
+          <fieldset className="text-xs text-[var(--muted)]">
+            <legend>Turno</legend>
+            <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
+              {(["day", "night"] as const).map((item) => (
+                <label
+                  className={cn(
+                    "flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition",
+                    item === "night" && "border-l border-[var(--line)]",
+                    (shift === item || shift === "both") && "bg-[var(--brand)] text-white",
+                  )}
+                  key={item}
+                >
+                  <input
+                    checked={shift === item || shift === "both"}
+                    className="sr-only"
+                    onChange={() => toggleShift(item)}
+                    type="checkbox"
+                  />
+                  {item === "day" ? "Día" : "Noche"}
+                </label>
               ))}
-            </select>
-          </label>
+            </div>
+          </fieldset>
           <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
             <input
               checked={mode === "invoked"}
@@ -1298,7 +1350,12 @@ export function ManagerHub({
           schedules={schedules}
         />
       ) : tab === "scores" ? (
-        <ScoreManager doctors={doctors} recent={replacements} types={types} />
+        <ScoreManager
+          doctors={doctors}
+          holidays={holidays}
+          recent={replacements}
+          types={types}
+        />
       ) : (
         <OtrosManager initialHolidays={holidays} />
       )}
