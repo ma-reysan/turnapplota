@@ -1262,7 +1262,7 @@ function ScoreManager({
           <Star size={17} className="text-[var(--brand)]" />
           <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_105px_65px_118px_auto] xl:items-end">
+        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_118px_105px_65px_auto] xl:items-end">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -1313,6 +1313,18 @@ function ScoreManager({
           </fieldset>
           <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
             <input
+              checked={superhero}
+              className="accent-purple-600"
+              onChange={(event) => {
+                setSuperhero(event.target.checked);
+                setPoints((value) => Math.max(0, value + (event.target.checked ? 1 : -1)));
+              }}
+              type="checkbox"
+            />
+            🦸 Superhéroe
+          </label>
+          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
+            <input
               checked={mode === "invoked"}
               className="accent-[var(--brand)]"
               onChange={(event) => setMode(event.target.checked ? "invoked" : "voluntary")}
@@ -1330,18 +1342,6 @@ function ScoreManager({
               type="number"
               value={points}
             />
-          </label>
-          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
-            <input
-              checked={superhero}
-              className="accent-purple-600"
-              onChange={(event) => {
-                setSuperhero(event.target.checked);
-                setPoints((value) => Math.max(0, value + (event.target.checked ? 1 : -1)));
-              }}
-              type="checkbox"
-            />
-            🦸 Superhéroe
           </label>
           <button
             className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 xl:col-span-1"
