@@ -25,6 +25,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
@@ -56,6 +57,10 @@ import {
   monthLabel,
   normalizeDoctorSearch,
 } from "@/lib/utils";
+
+const ShiftGeneratorManager = dynamic(() =>
+  import("@/components/shift-generator-manager").then((module) => module.ShiftGeneratorManager),
+);
 
 function DoctorDragCard({ doctor }: { doctor: Doctor }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -1408,7 +1413,7 @@ export function ManagerHub({
   holidays: Holiday[];
   shiftColorLegend: ShiftColorLegendItem[];
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "otros">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "generator" | "otros">("schedule");
   return (
     <div>
       <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
@@ -1442,6 +1447,16 @@ export function ManagerHub({
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
+              tab === "generator" && "bg-[var(--surface)] shadow-sm",
+            )}
+            onClick={() => setTab("generator")}
+            type="button"
+          >
+            <CalendarPlus size={16} /> Generador <span className="text-[8px] font-bold text-purple-600">BETA</span>
+          </button>
+          <button
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
               tab === "otros" && "bg-[var(--surface)] shadow-sm",
             )}
             onClick={() => setTab("otros")}
@@ -1465,6 +1480,8 @@ export function ManagerHub({
           recent={replacements}
           types={types}
         />
+      ) : tab === "generator" ? (
+        <ShiftGeneratorManager holidays={holidays} />
       ) : (
         <OtrosManager initialHolidays={holidays} />
       )}

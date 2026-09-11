@@ -76,6 +76,99 @@ export interface Holiday {
   label?: string;
 }
 
+
+export type GeneratorLaneSpeed = "fast" | "medium" | "slow";
+export type GeneratorAbsenceKind = "DAY" | "NIGHT" | "BOTH";
+export type GeneratorAssignmentSource =
+  | "rotation"
+  | "replacement"
+  | "wildcard"
+  | "generated"
+  | "manual";
+
+export interface GeneratorParticipant {
+  id: string;
+  name: string;
+  speed: GeneratorLaneSpeed;
+  lane: number;
+}
+
+export interface GeneratorLane {
+  id: string;
+  label: string;
+  members: GeneratorParticipant[];
+}
+
+export interface GeneratorWildcard {
+  id: string;
+  name: string;
+  target: number;
+  max: number;
+}
+
+export interface GeneratorSettings {
+  id: "default";
+  lanes: GeneratorLane[];
+  wildcard: GeneratorWildcard;
+  version: number;
+}
+
+export interface GeneratorBalance {
+  participantId: string;
+  total: number;
+  night: number;
+  weekend: number;
+}
+
+export interface GeneratorAbsence {
+  id: string;
+  participantId: string;
+  startDate: string;
+  endDate: string;
+  kind: GeneratorAbsenceKind;
+  note?: string;
+}
+
+export interface GeneratorAssignment {
+  id: string;
+  date: string;
+  kind: ShiftKind;
+  slot: number;
+  participantId: string | null;
+  source: GeneratorAssignmentSource;
+}
+
+export interface GeneratorMetric {
+  participantId: string;
+  total: number;
+  night: number;
+  weekend: number;
+  projectedTotal: number;
+  projectedNight: number;
+  projectedWeekend: number;
+}
+
+export interface GeneratorWarning {
+  code: string;
+  message: string;
+  date?: string;
+  assignmentIds?: string[];
+}
+
+export interface GeneratorMonthDraft {
+  id: string;
+  year: number;
+  month: number;
+  startLane: number;
+  absences: GeneratorAbsence[];
+  balances: GeneratorBalance[];
+  assignments: GeneratorAssignment[];
+  generatedNotes: string;
+  manualNotes: string;
+  warnings: GeneratorWarning[];
+  version: number;
+}
+
 export type ProtocolCategory =
   | "clinical"
   | "surgery"

@@ -229,3 +229,29 @@ export const authAttempts = pgTable("auth_attempts", {
   successful: boolean("successful").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+
+export const shiftGeneratorSettings = pgTable("shift_generator_settings", {
+  id: text("id").primaryKey(),
+  lanes: jsonb("lanes").notNull(),
+  wildcard: jsonb("wildcard").notNull(),
+  version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const shiftGeneratorMonths = pgTable("shift_generator_months", {
+  id: text("id").primaryKey(),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(),
+  startLane: integer("start_lane").notNull().default(0),
+  absences: jsonb("absences").notNull().default([]),
+  balances: jsonb("balances").notNull().default([]),
+  assignments: jsonb("assignments").notNull().default([]),
+  generatedNotes: text("generated_notes").notNull().default(""),
+  manualNotes: text("manual_notes").notNull().default(""),
+  warnings: jsonb("warnings").notNull().default([]),
+  version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
