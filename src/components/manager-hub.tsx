@@ -166,7 +166,7 @@ function EditableShiftCard({
         className={cn(
           "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           hasIncompatibility && "border-amber-500 ring-1 ring-amber-500",
-          isOver && !laneHighlighted && "border-emerald-400 ring-2 ring-emerald-400",
+          isOver && !laneHighlighted && "border-[var(--brand)] ring-2 ring-[var(--brand)]",
           laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
         )}
         disabled={!editable}

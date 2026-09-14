@@ -38,6 +38,34 @@ const mobileNavigation = [
   { href: "/telefonos", label: "Teléfonos", icon: Phone },
 ];
 
+function DieciochoBunting() {
+  return (
+    <div aria-hidden="true" className="dieciocho-bunting no-print">
+      <svg fill="none" role="presentation" viewBox="0 0 420 96">
+        <path d="M5 5C105 39 245 49 415 18" stroke="white" strokeLinecap="round" strokeWidth="4" />
+        <path d="M5 5C105 39 245 49 415 18" stroke="#d52b1e" strokeLinecap="round" strokeWidth="2" />
+        <g transform="translate(148 30) rotate(7)">
+          <path d="M0 0L27 1L24 47L14 38L3 43Z" fill="#d52b1e" />
+        </g>
+        <g transform="translate(194 36) rotate(4)">
+          <path d="M0 0L28 0L25 48L14 39L3 44Z" fill="#0039a6" />
+          <polygon fill="white" points="14,9 16.5,16 24,16 18,20.5 20.5,28 14,23.5 7.5,28 10,20.5 4,16 11.5,16" />
+        </g>
+        <g transform="translate(242 38) rotate(0)">
+          <path d="M0 0L28 0L25 48L14 39L3 44Z" fill="white" />
+        </g>
+        <g transform="translate(290 36) rotate(-4)">
+          <path d="M0 0L28 0L25 48L14 39L3 44Z" fill="#d52b1e" />
+        </g>
+        <g transform="translate(338 30) rotate(-7)">
+          <path d="M0 0L28 0L25 48L14 39L3 44Z" fill="#0039a6" />
+          <polygon fill="white" points="14,9 16.5,16 24,16 18,20.5 20.5,28 14,23.5 7.5,28 10,20.5 4,16 11.5,16" />
+        </g>
+      </svg>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const showingSchedule = pathname.startsWith("/turnos");
@@ -47,6 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[216px_1fr]">
+      <DieciochoBunting />
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col border-r border-[var(--line)] bg-[var(--surface)] px-3 py-4 lg:flex">
         <Link className="flex items-center gap-2.5 px-2 py-1.5" href="/turnos">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--brand)] text-white">
@@ -65,7 +94,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition",
                   active
-                    ? "bg-[var(--brand)] text-white shadow-lg shadow-emerald-950/10"
+                    ? "bg-[var(--brand)] text-white shadow-lg shadow-black/10"
                     : "text-[var(--muted)] hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]",
                 )}
                 href={href}
