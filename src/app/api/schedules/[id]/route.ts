@@ -75,7 +75,7 @@ export async function PATCH(
       INSERT INTO schedule_months (id, year, month, status, version)
       VALUES (${id}, ${year}, ${month}, ${publish ? "published" : "draft"}, 1)
       ON CONFLICT (id) DO UPDATE SET
-        status = CASE WHEN ${publish} THEN 'published'::schedule_status ELSE 'draft'::schedule_status END,
+        status = CASE WHEN ${publish} THEN 'published'::schedule_status ELSE schedule_months.status END,
         version = schedule_months.version + 1,
         updated_at = now()
     `,
