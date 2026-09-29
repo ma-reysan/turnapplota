@@ -9,6 +9,7 @@ import {
   LockKeyhole,
   MoreHorizontal,
   Phone,
+  Settings2,
   Stethoscope,
   TableProperties,
   Utensils,
@@ -21,8 +22,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const navigation = [
   { href: "/turnos", label: "Turnos", icon: CalendarDays },
-  { href: "/reemplazos", label: "Reemplazos", icon: TableProperties },
+  { href: "/reemplazos", label: "Tabla de Reemplazos", icon: TableProperties },
   { href: "/analisis", label: "Análisis", icon: BarChart3 },
+  { href: "/edf", label: "EDF", icon: Stethoscope },
   { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
   { href: "/protocolos", label: "Protocolos", icon: BookOpen },
   { href: "/telefonos", label: "Teléfonos", icon: Phone },
@@ -32,10 +34,17 @@ const navigation = [
 
 const mobileNavigation = [
   { href: "/turnos", label: "Turnos", icon: CalendarDays },
-  { href: "/reemplazos", label: "Puntajes", icon: TableProperties },
+  { href: "/reemplazos", label: "Tabla", icon: TableProperties },
   { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
+];
+
+const moreNavigation = [
+  { href: "/analisis", label: "Análisis", icon: BarChart3 },
+  { href: "/edf", label: "EDF", icon: Stethoscope },
   { href: "/protocolos", label: "Protocolos", icon: BookOpen },
   { href: "/telefonos", label: "Teléfonos", icon: Phone },
+  { href: "/almuerzo", label: "Almuerzo", icon: Utensils },
+  { href: "/jefatura", label: "Jefatura", icon: LockKeyhole },
 ];
 
 function DieciochoBunting() {
@@ -71,6 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const showingSchedule = pathname.startsWith("/turnos");
   const showingAgenda = pathname.startsWith("/agenda-aps");
   const showingReplacements = pathname.startsWith("/reemplazos");
+  const activeMoreItem = moreNavigation.some(({ href }) => pathname.startsWith(href));
   const [moreOpen, setMoreOpen] = useState(false);
 
   return (
@@ -114,14 +124,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </p>
               <button
                 className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-                onClick={() => window.dispatchEvent(new Event("turnapp:export-image"))}
+                onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-image")); }}
                 type="button"
               >
                 <FileImage size={15} /> Exportar imagen
               </button>
               <button
                 className="mt-0.5 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-                onClick={() => window.dispatchEvent(new Event("turnapp:export-pdf"))}
+                onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-pdf")); }}
                 type="button"
               >
                 <FileText size={15} /> Exportar PDF
@@ -131,7 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {showingReplacements ? (
             <button
               className="flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-              onClick={() => window.dispatchEvent(new Event("turnapp:export-replacements-image"))}
+              onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-replacements-image")); }}
               type="button"
             >
               <FileImage size={15} /> Exportar imagen
@@ -140,7 +150,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {showingAgenda ? (
             <button
               className="flex w-full items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]"
-              onClick={() => window.dispatchEvent(new Event("turnapp:export-agenda-pdf"))}
+              onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-agenda-pdf")); }}
               type="button"
             >
               <FileText size={15} /> Exportar PDF
@@ -169,14 +179,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <nav
         aria-label="Navegación móvil"
-        className="no-print fixed inset-x-2 bottom-3 z-40 grid grid-cols-6 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-2xl sm:inset-x-3 lg:hidden"
+        className="no-print fixed inset-x-2 bottom-3 z-40 grid grid-cols-4 rounded-3xl border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-2xl sm:inset-x-3 lg:hidden"
       >
         {mobileNavigation.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
             <Link
               className={cn(
-                "flex min-w-0 flex-col items-center gap-1 rounded-2xl px-0.5 py-2 text-[9px] leading-3 sm:text-[10px]",
+                "flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[9px] leading-3 sm:text-[10px]",
                 active ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]",
               )}
               href={href}
@@ -187,9 +197,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
-        <button aria-label="Más opciones" className={cn("flex min-w-0 flex-col items-center justify-center rounded-2xl px-0.5 py-2", moreOpen || pathname.startsWith("/analisis") || pathname.startsWith("/jefatura") ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]")} onClick={() => setMoreOpen((value) => !value)} type="button"><MoreHorizontal size={20} /></button>
+        <button aria-label="Otros" aria-expanded={moreOpen} className={cn("flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[9px] leading-3 sm:text-[10px]", moreOpen || activeMoreItem ? "bg-[var(--brand)] text-white" : "text-[var(--muted)]")} onClick={() => setMoreOpen((value) => !value)} type="button"><MoreHorizontal size={20} />Otros</button>
       </nav>
-      {moreOpen ? <div className="no-print fixed bottom-[84px] right-2 z-50 grid w-44 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-2xl sm:right-3 lg:hidden"><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/analisis" onClick={() => setMoreOpen(false)}><BarChart3 size={16} /> Análisis</Link><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/jefatura" onClick={() => setMoreOpen(false)}><LockKeyhole size={16} /> Jefatura</Link><Link className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]" href="/almuerzo" onClick={() => setMoreOpen(false)}><Utensils size={16} /> Almuerzo</Link>{showingAgenda ? <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => window.dispatchEvent(new Event("turnapp:export-agenda-pdf"))} type="button"><FileText size={16} /> Exportar PDF</button> : null}<div className="flex items-center justify-between rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-xs"><span>Apariencia</span><ThemeToggle /></div></div> : null}
+      {moreOpen ? (
+        <div className="no-print fixed bottom-[84px] right-2 z-50 grid w-56 gap-1 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2 shadow-2xl sm:right-3 lg:hidden">
+          {moreNavigation.map(({ href, label, icon: Icon }) => (
+            <Link
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium hover:bg-[var(--surface-soft)]",
+                pathname.startsWith(href) && "bg-[var(--surface-soft)] text-[var(--brand)]",
+              )}
+              href={href}
+              key={href}
+              onClick={() => setMoreOpen(false)}
+            >
+              <Icon size={16} /> {label}
+            </Link>
+          ))}
+          {showingSchedule ? (
+            <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-image")); }} type="button"><FileImage size={16} /> Exportar imagen</button>
+          ) : null}
+          {showingSchedule ? (
+            <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-pdf")); }} type="button"><FileText size={16} /> Exportar PDF</button>
+          ) : null}
+          {showingReplacements ? (
+            <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-replacements-image")); }} type="button"><FileImage size={16} /> Exportar imagen</button>
+          ) : null}
+          {showingAgenda ? (
+            <button className="flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-medium hover:bg-[var(--surface-soft)]" onClick={() => { setMoreOpen(false); window.dispatchEvent(new Event("turnapp:export-agenda-pdf")); }} type="button"><FileText size={16} /> Exportar PDF</button>
+          ) : null}
+          <div className="flex items-center justify-between rounded-xl bg-[var(--surface-soft)] px-3 py-1 text-xs"><span className="flex items-center gap-2"><Settings2 size={15} /> Modo claro/oscuro</span><ThemeToggle /></div>
+        </div>
+      ) : null}
     </div>
   );
 }

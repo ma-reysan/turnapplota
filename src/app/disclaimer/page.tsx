@@ -33,6 +33,7 @@ export default function DisclaimerPage() {
           Changelog
         </h2>
         <ul className="space-y-1.5">
+          <li><strong className="text-[var(--foreground)]">v1.04</strong> · Añadido Modulo EDF</li>
           <li><strong className="text-[var(--foreground)]">v1.03</strong> · Añadido Buscador en Agenda APS</li>
           <li><strong className="text-[var(--foreground)]">v1.02</strong> · Añadido Almuerzo</li>
           <li><strong className="text-[var(--foreground)]">v1.01</strong> · Añadido Teléfono</li>
