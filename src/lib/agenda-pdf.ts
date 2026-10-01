@@ -1,7 +1,21 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import type { AgendaActivity } from "@/lib/agenda-analyzer";
 
 type Day = { label: string; date: string; activities: AgendaActivity[] };
+type Line = { text: string; bold: boolean };
+type Card = { day: Day; lines: Line[]; height: number };
+
+const GREEN = rgb(29 / 255, 107 / 255, 98 / 255);
+const DEEP_GREEN = rgb(22 / 255, 77 / 255, 71 / 255);
+const PALE_GREEN = rgb(232 / 255, 239 / 255, 237 / 255);
+const BORDER_GREEN = rgb(185 / 255, 203 / 255, 198 / 255);
+const TEXT = rgb(25 / 255, 39 / 255, 37 / 255);
+const COLUMNS = 3;
+const CARD_WIDTH = 237;
+const CARD_GAP = 8;
+const ROW_GAP = 5;
+const TOP = 530;
+const BOTTOM = 31;
 
 function download(bytes: Uint8Array, doctorName: string, fileSuffix?: string) {
   const safe = doctorName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "medico";
@@ -12,34 +26,80 @@ function download(bytes: Uint8Array, doctorName: string, fileSuffix?: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 500);
 }
 
+function wrap(text: string, font: PDFFont, size: number, maxWidth: number) {
+  const lines: string[] = [];
+  let line = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const next = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(next, size) <= maxWidth) {
+      line = next;
+      continue;
+    }
+    if (line) lines.push(line);
+    line = word;
+    while (font.widthOfTextAtSize(line, size) > maxWidth) {
+      let end = 1;
+      while (end < line.length && font.widthOfTextAtSize(line.slice(0, end + 1), size) <= maxWidth) end += 1;
+      lines.push(line.slice(0, end));
+      line = line.slice(end);
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [""];
+}
+
 export async function exportAgendaPdf(doctorName: string, days: Day[], options?: { periodLabel?: string; fileSuffix?: string; includeAllActivities?: boolean }) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const daysPerPage = options?.includeAllActivities ? 4 : 8;
-  const chunks = days.length ? Array.from({ length: Math.ceil(days.length / daysPerPage) }, (_, index) => days.slice(index * daysPerPage, (index + 1) * daysPerPage)) : [[]];
-  chunks.forEach((chunk, pageIndex) => {
-    const page = pdf.addPage([792, 612]);
-    page.drawRectangle({ x: 0, y: 542, width: 792, height: 70, color: rgb(.12, .24, .54) });
-    page.drawText("HOSPITAL DE LOTA · AGENDA MÉDICA", { x: 42, y: 585, size: 9, font: bold, color: rgb(.8, .87, 1) });
-    page.drawText(options?.periodLabel ? `Agenda APS · ${options.periodLabel}` : "Agenda mensual", { x: 42, y: 560, size: options?.periodLabel ? 16 : 19, font: bold, color: rgb(1, 1, 1), maxWidth: 420 });
-    page.drawText(doctorName, { x: 500, y: 561, size: 13, font: bold, color: rgb(1, 1, 1), maxWidth: 245 });
-    chunk.forEach((day, index) => {
-      const col = index % 2, row = Math.floor(index / 2), width = 347, height = options?.includeAllActivities ? 224 : 108;
-      const x = 42 + col * 361, top = 523 - row * (options?.includeAllActivities ? 240 : 117), y = top - height;
-      page.drawRectangle({ x, y, width, height, color: rgb(.985, .99, 1), borderColor: rgb(.72, .8, .94), borderWidth: 1 });
-      page.drawRectangle({ x, y: top - 23, width, height: 23, color: rgb(.91, .95, 1) });
-      page.drawText(`${day.label} ${day.date ? `· ${day.date}` : ""}`.toUpperCase(), { x: x + 8, y: top - 15, size: 8, font: bold, color: rgb(.09, .25, .56) });
-      let cursor = top - 37;
-      const activities = day.activities.length ? day.activities : [{ time: "", activity: "Libre / Sin actividades" }];
-      const visibleActivities = options?.includeAllActivities ? activities : activities.slice(0, 5);
-      visibleActivities.forEach((activity) => {
-        const text = `${activity.time ? `${activity.time}  ` : ""}${activity.activity}`;
-        page.drawText(text.slice(0, 72), { x: x + 9, y: cursor, size: options?.includeAllActivities ? 7.5 : 8.5, font: activity.activity.includes("TURNO") ? bold : regular, color: activity.activity.includes("TURNO NOCHE") ? rgb(.16, .22, .55) : rgb(.15, .2, .29) });
-        cursor -= options?.includeAllActivities ? 11 : 14;
-      });
+  const fontSize = 7.4;
+  const cards: Card[] = days.map((day) => {
+    const activities = day.activities.length ? day.activities : [{ time: "", activity: "Libre / Sin actividades" }];
+    const shown = options?.includeAllActivities ? activities : activities.slice(0, 5);
+    const lines = shown.flatMap((activity) => {
+      const isShift = activity.activity.includes("TURNO");
+      const font = isShift ? bold : regular;
+      const value = `${activity.time ? `${activity.time}  ` : ""}${activity.activity}`;
+      return wrap(value, font, fontSize, CARD_WIDTH - 14).map((text) => ({ text, bold: isShift }));
     });
-    page.drawText(`${pageIndex + 1} / ${chunks.length}`, { x: 720, y: 22, size: 8, font: regular, color: rgb(.42, .46, .55) });
+    return { day, lines, height: Math.max(34, 32 + (lines.length - 1) * 7.5) };
+  });
+  const rows = Array.from({ length: Math.ceil(cards.length / COLUMNS) }, (_, index) => cards.slice(index * COLUMNS, (index + 1) * COLUMNS));
+  const pages: Array<Array<{ cards: Card[]; height: number }>> = [[]];
+  let used = 0;
+  rows.forEach((row) => {
+    const height = Math.max(...row.map((card) => card.height));
+    const gap = pages.at(-1)!.length ? ROW_GAP : 0;
+    if (pages.at(-1)!.length >= 6 || used + gap + height > TOP - BOTTOM) {
+      pages.push([]);
+      used = 0;
+    }
+    const pageRows = pages.at(-1)!;
+    used += (pageRows.length ? ROW_GAP : 0) + height;
+    pageRows.push({ cards: row, height });
+  });
+
+  pages.forEach((pageRows, pageIndex) => {
+    const page = pdf.addPage([792, 612]);
+    page.drawRectangle({ x: 0, y: 548, width: 792, height: 64, color: GREEN });
+    page.drawText("HOSPITAL DE LOTA · AGENDA MÉDICA", { x: 32, y: 586, size: 9, font: bold, color: PALE_GREEN });
+    page.drawText(options?.periodLabel ? `Agenda APS · ${options.periodLabel}` : "Agenda mensual", { x: 32, y: 562, size: options?.periodLabel ? 16 : 18, font: bold, color: rgb(1, 1, 1), maxWidth: 430 });
+    page.drawText(doctorName, { x: 525, y: 564, size: 11, font: bold, color: rgb(1, 1, 1), maxWidth: 235 });
+    let top = TOP;
+    pageRows.forEach(({ cards: row, height }) => {
+      row.forEach(({ day, lines }, column) => {
+        const x = 32 + column * (CARD_WIDTH + CARD_GAP);
+        const y = top - height;
+        page.drawRectangle({ x, y, width: CARD_WIDTH, height, color: rgb(1, 1, 1), borderColor: BORDER_GREEN, borderWidth: .7 });
+        page.drawRectangle({ x, y: top - 16, width: CARD_WIDTH, height: 16, color: PALE_GREEN });
+        page.drawText(`${day.label} ${day.date ? `· ${day.date}` : ""}`.toUpperCase(), { x: x + 6, y: top - 11, size: 7.5, font: bold, color: DEEP_GREEN, maxWidth: CARD_WIDTH - 12 });
+        lines.forEach((line, index) => {
+          page.drawText(line.text, { x: x + 7, y: top - 26 - index * 7.5, size: fontSize, font: line.bold ? bold : regular, color: TEXT });
+        });
+      });
+      top -= height + ROW_GAP;
+    });
+    page.drawText(`${pageIndex + 1} / ${pages.length}`, { x: 735, y: 17, size: 8, font: regular, color: DEEP_GREEN });
   });
   download(await pdf.save(), doctorName, options?.fileSuffix);
 }

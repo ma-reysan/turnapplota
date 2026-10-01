@@ -43,16 +43,16 @@ export async function exportDoctorShiftsPdf({
 
   chunks.forEach((chunk, pageIndex) => {
     const page = pdf.addPage([595, 842]);
-    page.drawRectangle({ x: 0, y: 754, width: 595, height: 88, color: rgb(.12, .24, .54) });
-    page.drawText("HOSPITAL DE LOTA · EDF", { x: 42, y: 814, size: 9, font: bold, color: rgb(.8, .87, 1) });
+    page.drawRectangle({ x: 0, y: 754, width: 595, height: 88, color: rgb(29 / 255, 107 / 255, 98 / 255) });
+    page.drawText("HOSPITAL DE LOTA · EDF", { x: 42, y: 814, size: 9, font: bold, color: rgb(232 / 255, 239 / 255, 237 / 255) });
     page.drawText("Agenda mensual de turnos", { x: 42, y: 785, size: 19, font: bold, color: rgb(1, 1, 1) });
     page.drawText(doctorName, { x: 365, y: 785, size: 12, font: bold, color: rgb(1, 1, 1), maxWidth: 188 });
-    page.drawText(monthLabel(year, month).toLocaleUpperCase("es-CL"), { x: 42, y: 733, size: 11, font: bold, color: rgb(.12, .24, .54) });
+    page.drawText(monthLabel(year, month).toLocaleUpperCase("es-CL"), { x: 42, y: 733, size: 11, font: bold, color: rgb(29 / 255, 107 / 255, 98 / 255) });
     page.drawText("DÍA", { x: 52, y: 706, size: 8, font: bold, color: rgb(.35, .39, .46) });
     page.drawText("TURNOS", { x: 190, y: 706, size: 8, font: bold, color: rgb(.35, .39, .46) });
     let y = 683;
     chunk.forEach(([date, entry], index) => {
-      if (index % 2 === 0) page.drawRectangle({ x: 42, y: y - 8, width: 511, height: 25, color: rgb(.95, .97, .99) });
+      if (index % 2 === 0) page.drawRectangle({ x: 42, y: y - 8, width: 511, height: 25, color: rgb(232 / 255, 239 / 255, 237 / 255) });
       page.drawText(`${entry.day} · ${date.slice(8, 10)}/${date.slice(5, 7)}`, { x: 52, y, size: 9, font: bold, color: rgb(.15, .2, .29) });
       page.drawText(entry.shifts.join("     "), { x: 190, y, size: 9, font: regular, color: rgb(.15, .2, .29), maxWidth: 350 });
       y -= 25;
