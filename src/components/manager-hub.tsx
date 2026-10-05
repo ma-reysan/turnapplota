@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
@@ -62,19 +62,39 @@ const ShiftGeneratorManager = dynamic(() =>
   import("@/components/shift-generator-manager").then((module) => module.ShiftGeneratorManager),
 );
 
-function DoctorDragCard({ doctor }: { doctor: Doctor }) {
+function DoctorDragCard({
+  doctor,
+  highlightedDoctor,
+  onHighlight,
+  onToggleHighlight,
+}: {
+  doctor: Doctor;
+  highlightedDoctor: string | null;
+  onHighlight: (doctorId: string | null) => void;
+  onToggleHighlight: (doctorId: string) => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `doctor:${doctor.id}`,
   });
   return (
     <button
       className={cn(
-        "flex w-full items-center gap-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] px-2 py-1.5 text-left transition-colors",
+        "flex w-full items-center gap-1.5 rounded-lg border border-[var(--line)] px-2 py-1.5 text-left transition",
+        highlightedDoctor === doctor.id
+          ? "border-[var(--brand)] bg-[var(--brand)] text-white"
+          : highlightedDoctor
+            ? "opacity-[.32]"
+            : "bg-[var(--surface)] hover:bg-[var(--surface-soft)]",
         isDragging && "opacity-40",
       )}
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform) }}
       type="button"
+      onClick={() => {
+        if (window.matchMedia("(hover: none)").matches) onToggleHighlight(doctor.id);
+      }}
+      onMouseEnter={() => onHighlight(doctor.id)}
+      onMouseLeave={() => onHighlight(null)}
       {...listeners}
       {...attributes}
     >
@@ -97,6 +117,7 @@ function EditableShiftCard({
   colorLegend,
   laneHighlighted,
   hasIncompatibility,
+  highlightedDoctor,
   editable = true,
   onAssign,
   onColor,
@@ -110,6 +131,7 @@ function EditableShiftCard({
   colorLegend: ShiftColorLegendItem[];
   laneHighlighted: boolean;
   hasIncompatibility: boolean;
+  highlightedDoctor: string | null;
   editable?: boolean;
   onAssign: (doctorId: string | null) => void;
   onColor: (colorKey: ShiftColorKey | null) => void;
@@ -117,6 +139,7 @@ function EditableShiftCard({
   const dropId = `slot:${date}:${kind}:${slot}`;
   const { isOver, setNodeRef } = useDroppable({ id: dropId });
   const assignedDoctor = doctors.find((doctor) => doctor.id === assignment?.doctorId);
+  const dimmed = Boolean(highlightedDoctor && assignedDoctor?.id !== highlightedDoctor);
   const [query, setQuery] = useState(assignedDoctor?.shortName ?? "");
   const [open, setOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -164,10 +187,11 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-          "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+        "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow,opacity] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           hasIncompatibility && "border-amber-500 ring-1 ring-amber-500",
           isOver && !laneHighlighted && "border-[var(--brand)] ring-2 ring-[var(--brand)]",
-          laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
+        laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
+        dimmed && "opacity-[.32]",
         )}
         disabled={!editable}
         onBlur={() => window.setTimeout(validate, 120)}
@@ -541,6 +565,7 @@ function ScheduleManager({
   const [syncState, setSyncState] = useState<"synced" | "error">("synced");
   const [publishing, setPublishing] = useState(false);
   const [laneMode, setLaneMode] = useState(false);
+  const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const [draggedDoctorId, setDraggedDoctorId] = useState<string | null>(null);
   const [overSlotId, setOverSlotId] = useState<string | null>(null);
   const schedule = sorted.find((item) => item.id === selectedId) ?? initialSchedule;
@@ -548,6 +573,10 @@ function ScheduleManager({
   const markers = markersByMonth[selectedId] ?? [];
   const hasPendingChanges = Boolean(pendingChanges[selectedId]);
   const isSavingSelected = Boolean(savingMonths[selectedId]);
+
+  const toggleHighlightedDoctor = useCallback((doctorId: string) => {
+    setHighlightedDoctor((current) => current === doctorId ? null : doctorId);
+  }, []);
 
   function enqueueChanges(monthId: string, changes: Partial<PendingScheduleChanges>) {
     setPendingChanges((current) => ({
@@ -972,6 +1001,7 @@ function ScheduleManager({
                           kind="DAY"
                           laneHighlighted={lanePreview.has(`${dateKey}-DAY-${slot}`)}
                           hasIncompatibility={conflictAssignmentIds.has((inMonth ? slots : allSlots).get(`${dateKey}-DAY-${slot}`)?.id ?? "")}
+                          highlightedDoctor={highlightedDoctor}
                           marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-DAY-${slot}`)}
                           editable={inMonth}
                           onAssign={(doctorId) => { if (inMonth) assign(dateKey, "DAY", slot, doctorId); }}
@@ -990,6 +1020,7 @@ function ScheduleManager({
                           kind="NIGHT"
                           laneHighlighted={lanePreview.has(`${dateKey}-NIGHT-${slot}`)}
                           hasIncompatibility={conflictAssignmentIds.has((inMonth ? slots : allSlots).get(`${dateKey}-NIGHT-${slot}`)?.id ?? "")}
+                          highlightedDoctor={highlightedDoctor}
                           marker={(inMonth ? markerSlots : allMarkerSlots).get(`${dateKey}-NIGHT-${slot}`)}
                           editable={inMonth}
                           onAssign={(doctorId) => { if (inMonth) assign(dateKey, "NIGHT", slot, doctorId); }}
@@ -1040,7 +1071,13 @@ function ScheduleManager({
                     .filter((doctor) => doctor.active)
                     .sort((a, b) => a.sortOrder - b.sortOrder)
                     .map((doctor) => (
-                      <DoctorDragCard doctor={doctor} key={doctor.id} />
+                      <DoctorDragCard
+                        doctor={doctor}
+                        highlightedDoctor={highlightedDoctor}
+                        key={doctor.id}
+                        onHighlight={setHighlightedDoctor}
+                        onToggleHighlight={toggleHighlightedDoctor}
+                      />
                     ))}
                 </div>
               </div>
