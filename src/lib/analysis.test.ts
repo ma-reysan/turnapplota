@@ -41,14 +41,20 @@ describe("schedule manager analysis", () => {
         assignments: [
           { id: "fri-night", date: "2026-01-02", kind: "NIGHT", slot: 1, doctorId: "a" },
           { id: "sat-day", date: "2026-01-03", kind: "DAY", slot: 1, doctorId: "a" },
+          { id: "sun-night", date: "2026-01-04", kind: "NIGHT", slot: 1, doctorId: "b" },
           { id: "weekday", date: "2026-01-05", kind: "DAY", slot: 1, doctorId: "b" },
         ],
       }],
     });
     const a = result.rows.find((item) => item.doctor.id === "a")!;
+    const b = result.rows.find((item) => item.doctor.id === "b")!;
     expect(a.month).toBe(2);
+    expect(a.day).toBe(1);
+    expect(a.night).toBe(1);
     expect(a.weekend).toBe(2);
     expect(a.trailingWeekend).toBe(2);
-    expect(a.difference).toBeCloseTo(0.5);
+    expect(b.day).toBe(1);
+    expect(b.night).toBe(1);
+    expect(a.difference).toBeCloseTo(0);
   });
 });

@@ -1092,11 +1092,13 @@ function ScheduleManager({
 }
 
 
-type ManagerAnalysisSortKey = "doctor" | "month" | "trailingThreeMonths" | "difference" | "weekend" | "trailingWeekend";
+type ManagerAnalysisSortKey = "doctor" | "month" | "day" | "night" | "trailingThreeMonths" | "difference" | "weekend" | "trailingWeekend";
 
 const managerAnalysisHeaders: Array<{ label: string; field: ManagerAnalysisSortKey; className?: string }> = [
   { label: "Médico", field: "doctor", className: "px-3 text-left" },
   { label: "Mes", field: "month" },
+  { label: "Día", field: "day" },
+  { label: "Noche", field: "night" },
   { label: "Últ. 3 meses", field: "trailingThreeMonths" },
   { label: "Dif.", field: "difference" },
   { label: "FDS", field: "weekend" },
@@ -1167,6 +1169,8 @@ function ScheduleManagerMiniAnalysis({
               <tr className="border-t border-[var(--line)]" key={row.doctor.id}>
                 <th className="px-3 py-1.5 text-left font-semibold">{row.doctor.shortName}</th>
                 <td className="px-2 py-1.5 text-center">{row.month}</td>
+                <td className="px-2 py-1.5 text-center">{row.day}</td>
+                <td className="px-2 py-1.5 text-center">{row.night}</td>
                 <td className="px-2 py-1.5 text-center">{row.trailingThreeMonths}</td>
                 <td className={cn("px-2 py-1.5 text-center font-semibold", row.difference > 0.5 ? "text-amber-600" : row.difference < -0.5 ? "text-sky-600" : "text-[var(--brand)]")}>
                   {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}

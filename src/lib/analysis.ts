@@ -138,6 +138,8 @@ export interface ScheduleManagerAnalysis {
   rows: Array<{
     doctor: Doctor;
     month: number;
+    day: number;
+    night: number;
     trailingThreeMonths: number;
     difference: number;
     weekend: number;
@@ -190,6 +192,8 @@ export function buildScheduleManagerAnalysis({
       return {
         doctor,
         month: monthAssignments.length,
+        day: monthAssignments.filter((assignment) => assignment.kind === "DAY").length,
+        night: monthAssignments.filter((assignment) => assignment.kind === "NIGHT").length,
         trailingThreeMonths: trailingAssignments.filter(
           (assignment) => assignment.doctorId === doctor.id,
         ).length,
