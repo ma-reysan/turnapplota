@@ -230,6 +230,12 @@ export const authAttempts = pgTable("auth_attempts", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const authRateLimits = pgTable("auth_rate_limits", {
+  identityHash: text("identity_hash").primaryKey(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+});
+
 
 export const shiftGeneratorSettings = pgTable("shift_generator_settings", {
   id: text("id").primaryKey(),

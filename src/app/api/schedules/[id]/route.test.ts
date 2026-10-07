@@ -38,7 +38,7 @@ vi.mock("@/db", () => {
   };
 });
 
-import { PATCH } from "@/app/api/schedules/[id]/route";
+import { PATCH, PUT } from "@/app/api/schedules/[id]/route";
 
 describe("schedule autosave publication state", () => {
   beforeEach(() => {
@@ -72,5 +72,11 @@ describe("schedule autosave publication state", () => {
     expect(monthUpsert.strings.join("?")).not.toContain(
       "ELSE 'draft'::schedule_status END",
     );
+  });
+
+  it("rejects the legacy full-replacement endpoint without changing a published month", async () => {
+    const response = await PUT();
+    expect(response.status).toBe(410);
+    expect(mocks.transaction).not.toHaveBeenCalled();
   });
 });

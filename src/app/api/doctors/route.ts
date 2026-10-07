@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { getDb, isDatabaseConfigured } from "@/db";
-import { auditEvents, doctors } from "@/db/schema";
+import { getDb, getSql, isDatabaseConfigured } from "@/db";
+import { doctors } from "@/db/schema";
 import { hasJefaturaSession } from "@/lib/auth";
 import { doctorInputSchema } from "@/lib/validation";
 
@@ -30,25 +30,17 @@ export async function POST(request: Request) {
       { status: 409 },
     );
   }
-  await db
-    .insert(doctors)
-    .values(parsed.data)
-    .onConflictDoUpdate({
-      target: doctors.id,
-      set: {
-        shortName: parsed.data.shortName,
-        longName: parsed.data.longName,
-        active: parsed.data.active,
-        sortOrder: parsed.data.sortOrder,
-        updatedAt: new Date(),
-      },
-    });
-  await db.insert(auditEvents).values({
-    action: before.length ? "doctor.updated" : "doctor.created",
-    entityType: "doctor",
-    entityId: parsed.data.id,
-    before: before[0] ?? null,
-    after: parsed.data,
-  });
+  const input = parsed.data;
+  const sql = getSql();
+  await sql.transaction([
+    sql`INSERT INTO doctors (id, short_name, long_name, active, sort_order)
+      VALUES (${input.id}, ${input.shortName}, ${input.longName}, ${input.active}, ${input.sortOrder})
+      ON CONFLICT (id) DO UPDATE SET short_name = EXCLUDED.short_name,
+        long_name = EXCLUDED.long_name, active = EXCLUDED.active,
+        sort_order = EXCLUDED.sort_order, updated_at = now()`,
+    sql`INSERT INTO audit_events (action, entity_type, entity_id, before, after)
+      VALUES (${before.length ? "doctor.updated" : "doctor.created"}, 'doctor', ${input.id},
+        ${JSON.stringify(before[0] ?? null)}::jsonb, ${JSON.stringify(input)}::jsonb)`,
+  ]);
   return Response.json({ ok: true });
 }

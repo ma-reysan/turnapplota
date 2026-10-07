@@ -1,6 +1,6 @@
-import { asc, eq } from "drizzle-orm";
-import { getDb, isDatabaseConfigured } from "@/db";
-import { auditEvents, protocols } from "@/db/schema";
+import { asc } from "drizzle-orm";
+import { getDb, getSql, isDatabaseConfigured } from "@/db";
+import { protocols } from "@/db/schema";
 import { protocolDeleteSchema, protocolInputSchema } from "@/lib/validation";
 
 export async function GET() {
@@ -14,33 +14,41 @@ export async function POST(request: Request) {
   const parsed = protocolInputSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   const input = parsed.data;
-  const db = getDb();
-  const [row] = input.id
-    ? await db.update(protocols).set({ ...input, updatedAt: new Date() }).where(eq(protocols.id, input.id)).returning()
-    : await db.insert(protocols).values(input).returning();
+  const sql = getSql();
+  const savedRows = (input.id
+    ? await sql`WITH saved AS (
+        UPDATE protocols SET title = ${input.title}, url = ${input.url},
+          category = ${input.category}::protocol_category, updated_by = ${input.updatedBy}, updated_at = now()
+        WHERE id = ${input.id} RETURNING *
+      ), logged AS (
+        INSERT INTO audit_events (action, entity_type, entity_id, after, actor)
+        SELECT 'protocol.updated', 'protocol', id::text, to_jsonb(saved), ${input.updatedBy} FROM saved
+      ) SELECT * FROM saved`
+    : await sql`WITH saved AS (
+        INSERT INTO protocols (title, url, category, updated_by)
+        VALUES (${input.title}, ${input.url}, ${input.category}::protocol_category, ${input.updatedBy}) RETURNING *
+      ), logged AS (
+        INSERT INTO audit_events (action, entity_type, entity_id, after, actor)
+        SELECT 'protocol.created', 'protocol', id::text, to_jsonb(saved), ${input.updatedBy} FROM saved
+      ) SELECT * FROM saved`) as Record<string, unknown>[];
+  const [row] = savedRows;
   if (!row) return Response.json({ error: "Protocolo no encontrado" }, { status: 404 });
-  await db.insert(auditEvents).values({
-    action: input.id ? "protocol.updated" : "protocol.created",
-    entityType: "protocol",
-    entityId: row.id,
-    after: row,
-    actor: input.updatedBy,
-  });
-  return Response.json(row);
+  return Response.json({ id: row.id, title: row.title, url: row.url, category: row.category,
+    updatedBy: row.updated_by, createdAt: row.created_at, updatedAt: row.updated_at });
 }
 
 export async function DELETE(request: Request) {
   if (!isDatabaseConfigured()) return Response.json({ error: "Base de datos no configurada" }, { status: 503 });
   const parsed = protocolDeleteSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
-  const [removed] = await getDb().delete(protocols).where(eq(protocols.id, parsed.data.id)).returning();
+  const sql = getSql();
+  const removedRows = await sql`WITH removed AS (
+    DELETE FROM protocols WHERE id = ${parsed.data.id} RETURNING *
+  ), logged AS (
+    INSERT INTO audit_events (action, entity_type, entity_id, before, actor)
+    SELECT 'protocol.deleted', 'protocol', id::text, to_jsonb(removed), ${parsed.data.updatedBy} FROM removed
+  ) SELECT id FROM removed` as Record<string, unknown>[];
+  const [removed] = removedRows;
   if (!removed) return Response.json({ error: "Protocolo no encontrado" }, { status: 404 });
-  await getDb().insert(auditEvents).values({
-    action: "protocol.deleted",
-    entityType: "protocol",
-    entityId: removed.id,
-    before: removed,
-    actor: parsed.data.updatedBy,
-  });
   return Response.json({ ok: true });
 }

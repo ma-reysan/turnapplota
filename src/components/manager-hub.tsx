@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
@@ -526,6 +526,17 @@ type PendingScheduleChanges = {
   markers: Record<string, ShiftMarker | null>;
 };
 
+const PENDING_SCHEDULE_STORAGE_KEY = "turnapp:schedule-pending-v1";
+
+function storePendingSchedules(value: Record<string, PendingScheduleChanges>) {
+  try {
+    if (Object.keys(value).length) localStorage.setItem(PENDING_SCHEDULE_STORAGE_KEY, JSON.stringify(value));
+    else localStorage.removeItem(PENDING_SCHEDULE_STORAGE_KEY);
+  } catch {
+    // La cola sigue en memoria si el navegador no permite almacenamiento local.
+  }
+}
+
 function shiftSlotKey(date: string, kind: ShiftKind, slot: number) {
   return `${date}-${kind}-${slot}`;
 }
@@ -561,6 +572,7 @@ function ScheduleManager({
   );
   const [editingRoster, setEditingRoster] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<Record<string, PendingScheduleChanges>>({});
+  const pendingRef = useRef<Record<string, PendingScheduleChanges>>({});
   const [savingMonths, setSavingMonths] = useState<Record<string, boolean>>({});
   const [syncState, setSyncState] = useState<"synced" | "error">("synced");
   const [publishing, setPublishing] = useState(false);
@@ -578,14 +590,60 @@ function ScheduleManager({
     setHighlightedDoctor((current) => current === doctorId ? null : doctorId);
   }, []);
 
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(PENDING_SCHEDULE_STORAGE_KEY) ?? "{}") as Record<string, PendingScheduleChanges>;
+      if (!stored || typeof stored !== "object" || Array.isArray(stored)) return;
+      const valid = Object.fromEntries(Object.entries(stored).filter(([id, changes]) =>
+        /^\d{4}-\d{2}$/.test(id) && changes && typeof changes.assignments === "object" && typeof changes.markers === "object",
+      ));
+      if (!Object.keys(valid).length) return;
+      pendingRef.current = valid;
+      const timer = window.setTimeout(() => {
+        const restored = pendingRef.current;
+        setPendingChanges(restored);
+        setAssignmentsByMonth((current) => {
+          const next = { ...current };
+          for (const [monthId, changes] of Object.entries(restored)) {
+            const slots = new Map((next[monthId] ?? []).map((item) => [shiftSlotKey(item.date, item.kind, item.slot), item]));
+            for (const [key, item] of Object.entries(changes.assignments)) {
+              if (item) slots.set(key, item);
+              else slots.delete(key);
+            }
+            next[monthId] = [...slots.values()];
+          }
+          return next;
+        });
+        setMarkersByMonth((current) => {
+          const next = { ...current };
+          for (const [monthId, changes] of Object.entries(restored)) {
+            const slots = new Map((next[monthId] ?? []).map((item) => [shiftSlotKey(item.date, item.kind, item.slot), item]));
+            for (const [key, item] of Object.entries(changes.markers)) {
+              if (item) slots.set(key, item);
+              else slots.delete(key);
+            }
+            next[monthId] = [...slots.values()];
+          }
+          return next;
+        });
+      }, 0);
+      return () => window.clearTimeout(timer);
+    } catch {
+      // Los datos inválidos no deben impedir abrir Jefatura.
+    }
+  }, []);
+
   function enqueueChanges(monthId: string, changes: Partial<PendingScheduleChanges>) {
-    setPendingChanges((current) => ({
-      ...current,
+    const next = {
+      ...pendingRef.current,
       [monthId]: {
-        assignments: { ...(current[monthId]?.assignments ?? {}), ...(changes.assignments ?? {}) },
-        markers: { ...(current[monthId]?.markers ?? {}), ...(changes.markers ?? {}) },
+        assignments: { ...(pendingRef.current[monthId]?.assignments ?? {}), ...(changes.assignments ?? {}) },
+        markers: { ...(pendingRef.current[monthId]?.markers ?? {}), ...(changes.markers ?? {}) },
       },
-    }));
+    };
+    pendingRef.current = next;
+    storePendingSchedules(next);
+    setPendingChanges(next);
   }
 
   useEffect(() => {
@@ -595,23 +653,8 @@ function ScheduleManager({
       pendingIds.forEach((monthId) => {
         const batch = pendingChanges[monthId];
         if (!batch) return;
+        let failed = false;
         setSavingMonths((current) => ({ ...current, [monthId]: true }));
-        setPendingChanges((current) => {
-          const latest = current[monthId];
-          if (!latest) return current;
-          const assignments = { ...latest.assignments };
-          const markers = { ...latest.markers };
-          for (const [key, value] of Object.entries(batch.assignments)) {
-            if (assignments[key] === value) delete assignments[key];
-          }
-          for (const [key, value] of Object.entries(batch.markers)) {
-            if (markers[key] === value) delete markers[key];
-          }
-          const next = { ...current };
-          if (Object.keys(assignments).length || Object.keys(markers).length) next[monthId] = { assignments, markers };
-          else delete next[monthId];
-          return next;
-        });
         void fetch(`/api/schedules/${monthId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -631,20 +674,32 @@ function ScheduleManager({
         }).then(async (response) => {
           const result = (await response.json()) as { error?: string; version?: number };
           if (!response.ok) throw new Error(result.error ?? "No fue posible guardar");
-          setVersions((current) => ({ ...current, [monthId]: result.version ?? current[monthId] }));
-          setSyncState("synced");
+          const latest = pendingRef.current[monthId];
+          if (latest) {
+            const assignments = { ...latest.assignments };
+            const markers = { ...latest.markers };
+            for (const [key, value] of Object.entries(batch.assignments)) {
+              if (assignments[key] === value) delete assignments[key];
+            }
+            for (const [key, value] of Object.entries(batch.markers)) {
+              if (markers[key] === value) delete markers[key];
+            }
+            const next = { ...pendingRef.current };
+            if (Object.keys(assignments).length || Object.keys(markers).length) next[monthId] = { assignments, markers };
+            else delete next[monthId];
+            pendingRef.current = next;
+            storePendingSchedules(next);
+            setPendingChanges(next);
+          }
+          // Mantener la versión observada hasta leer el estado completo del servidor.
         }).catch((error: Error) => {
+          failed = true;
           setSyncState("error");
-          setPendingChanges((current) => ({
-            ...current,
-            [monthId]: {
-              assignments: { ...batch.assignments, ...(current[monthId]?.assignments ?? {}) },
-              markers: { ...batch.markers, ...(current[monthId]?.markers ?? {}) },
-            },
-          }));
           toast.error(error.message);
         }).finally(() => {
-          setSavingMonths((current) => ({ ...current, [monthId]: false }));
+          const release = () => setSavingMonths((current) => ({ ...current, [monthId]: false }));
+          if (failed) window.setTimeout(release, 5000);
+          else release();
         });
       });
     }, 450);
@@ -655,14 +710,18 @@ function ScheduleManager({
     if (!selectedId || pendingChanges[selectedId] || savingMonths[selectedId]) return;
     let cancelled = false;
     const syncFromServer = async () => {
-      const response = await fetch(`/api/schedules/${selectedId}`);
-      if (!response.ok || cancelled) return;
-      const remote = await response.json() as ScheduleMonth;
-      if ((remote.version ?? 0) <= (versions[selectedId] ?? 0) || cancelled) return;
-      setAssignmentsByMonth((current) => ({ ...current, [selectedId]: remote.assignments }));
-      setMarkersByMonth((current) => ({ ...current, [selectedId]: remote.markers ?? [] }));
-      setVersions((current) => ({ ...current, [selectedId]: remote.version ?? current[selectedId] }));
-      setSyncState("synced");
+      try {
+        const response = await fetch(`/api/schedules/${selectedId}`);
+        if (!response.ok || cancelled) return;
+        const remote = await response.json() as ScheduleMonth;
+        if ((remote.version ?? 0) <= (versions[selectedId] ?? 0) || cancelled || pendingRef.current[selectedId]) return;
+        setAssignmentsByMonth((current) => ({ ...current, [selectedId]: remote.assignments }));
+        setMarkersByMonth((current) => ({ ...current, [selectedId]: remote.markers ?? [] }));
+        setVersions((current) => ({ ...current, [selectedId]: remote.version ?? current[selectedId] }));
+        setSyncState("synced");
+      } catch {
+        // El siguiente sondeo reintentará; los cambios pendientes se mantienen.
+      }
     };
     void syncFromServer();
     const interval = window.setInterval(() => void syncFromServer(), 3500);
@@ -670,7 +729,7 @@ function ScheduleManager({
   }, [pendingChanges, savingMonths, selectedId, versions]);
 
   async function publishMonth() {
-    if (hasPendingChanges || isSavingSelected || publishing) {
+    if (pendingRef.current[selectedId] || hasPendingChanges || isSavingSelected || publishing) {
       toast.message("Esperando que los cambios se sincronicen antes de publicar.");
       return;
     }
@@ -683,7 +742,6 @@ function ScheduleManager({
       });
       const result = (await response.json()) as { error?: string; version?: number };
       if (!response.ok) throw new Error(result.error ?? "No fue posible publicar");
-      setVersions((current) => ({ ...current, [selectedId]: result.version ?? current[selectedId] }));
       toast.success("Mes publicado en Turnos");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No fue posible publicar");
