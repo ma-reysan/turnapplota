@@ -76,13 +76,6 @@ export async function getLatestLunchMenu() {
 
 export async function syncLunchMenu() {
   if (!isDatabaseConfigured()) throw new Error("Base de datos no configurada");
-  const latest = await getLatestLunchMenu();
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit",
-  }).format(new Date());
-  if (latest && new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit",
-  }).format(new Date(latest.fetchedAt)) === today) return latest;
   const response = await fetch(LUNCH_MENU_SOURCE_URL, {
     cache: "no-store",
     headers: { "User-Agent": "TurnApp Lota/1.0 (+https://turnapplota.vercel.app)" },
