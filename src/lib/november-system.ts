@@ -132,14 +132,15 @@ export function frozenExpiry(
 }
 
 export function basePointRecords({
-  schedules, absences, corrections, freezes, at,
+  schedules, absences, corrections, freezes, at, includeExpired = false,
 }: {
   schedules: ScheduleMonth[];
   absences: Array<Pick<DoctorAbsence, "doctorId" | "startDate" | "endDate">>;
   corrections: Array<Pick<BaseCorrection, "assignmentId" | "worked">>;
   freezes: PointFreeze[];
   at: string;
-}): PointRecord[] {
+  includeExpired?: boolean;
+}): Array<PointRecord & { assignmentId: string }> {
   const now = Date.parse(at);
   const today = santiagoParts(at).date;
   const corrected = new Map(corrections.map((item) => [item.assignmentId, item.worked]));
@@ -151,6 +152,7 @@ export function basePointRecords({
       absence.startDate <= (item.kind === "NIGHT" ? nextDate(item.date) : item.date) &&
       item.date <= absence.endDate))
     .map((item) => ({
+      assignmentId: item.id,
       doctorId: item.doctorId,
       date: item.kind === "NIGHT" ? nextDate(item.date) : item.date,
       points: 1,
@@ -162,7 +164,7 @@ export function basePointRecords({
         freezes,
       ),
     }))
-    .filter((item) => item.expiresAt >= today);
+    .filter((item) => includeExpired || item.expiresAt >= today);
 }
 
 export function replacementPointRecords(replacements: Replacement[], freezes: PointFreeze[], at: string): PointRecord[] {
@@ -180,7 +182,7 @@ export function availableFichas(replacements: Replacement[], doctorId: string, d
   const monday = weekStart(date);
   const following = format(addDays(new Date(monday + "T12:00:00"), 7), "yyyy-MM-dd");
   const spent = replacements.filter((item) => item.doctorId === doctorId &&
-    item.mode === "voluntary" && item.date >= monday && item.date < following &&
+    item.mode === "voluntary" && item.typeCode !== "BASE" && item.date >= monday && item.date < following &&
     item.date >= NEW_SYSTEM_START)
     .reduce((sum, item) => sum + (item.typeCode === "FULL_24" || item.typeCode === "SAT_HOLIDAY_24" ? 2 : 1), 0);
   return Math.max(0, 2 - spent);

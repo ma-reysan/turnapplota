@@ -19,7 +19,11 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return Response.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   }
-  if (parsed.data.date >= NEW_SYSTEM_START && parsed.data.mode === "voluntary") {
+  if (parsed.data.typeCode === "BASE" &&
+    (parsed.data.points !== 1 || parsed.data.superhero || parsed.data.mode !== "voluntary")) {
+    return Response.json({ error: "El punto base debe valer +1" }, { status: 400 });
+  }
+  if (parsed.data.typeCode !== "BASE" && parsed.data.date >= NEW_SYSTEM_START && parsed.data.mode === "voluntary") {
     const data = await getAppData();
     const hours = parsed.data.typeCode === "FULL_24" || parsed.data.typeCode === "SAT_HOLIDAY_24" ? 24 : 12;
     if (!canVolunteer(data.replacements, parsed.data.doctorId, parsed.data.date, hours)) {

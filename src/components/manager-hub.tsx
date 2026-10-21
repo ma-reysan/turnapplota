@@ -31,7 +31,7 @@ import { ReplacementStatus } from "@/components/replacement-status";
 import { AbsenceFreezeManager } from "@/components/absence-freeze-manager";
 import { NovemberManager } from "@/components/november-manager";
 import type { NovemberData } from "@/lib/november-data";
-import { availableFichas, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
+import { availableFichas, basePointRecords, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
 import type { OnCallWeek } from "@/lib/november-system";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
 import { OtrosManager } from "@/components/otros-manager";
@@ -299,6 +299,158 @@ function EditableShiftCard({
           ))}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+export function EditableOnCallCard({
+  week,
+  slot,
+  doctorId,
+  colorKey,
+  doctors,
+  colorLegend,
+  occupiedDoctorIds,
+  highlightedDoctor,
+  disabled,
+  onAssign,
+  onColor,
+}: {
+  week: string;
+  slot: number;
+  doctorId: string;
+  colorKey: ShiftColorKey | null;
+  doctors: Doctor[];
+  colorLegend: ShiftColorLegendItem[];
+  occupiedDoctorIds: string[];
+  highlightedDoctor: string | null;
+  disabled: boolean;
+  onAssign: (doctorId: string) => void;
+  onColor: (colorKey: ShiftColorKey | null) => void;
+}) {
+  const { isOver, setNodeRef } = useDroppable({ id: `oncall:${week}:${slot}`, disabled });
+  const assignedDoctor = doctors.find((doctor) => doctor.id === doctorId);
+  const [query, setQuery] = useState(assignedDoctor?.shortName ?? "");
+  const [open, setOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const normalized = normalizeDoctorSearch(query);
+  const suggestions = doctors
+    .filter((doctor) => doctor.active && !occupiedDoctorIds.includes(doctor.id))
+    .filter((doctor) => normalized.length >= 2 && (
+      normalizeDoctorSearch(doctor.shortName).includes(normalized) ||
+      normalizeDoctorSearch(doctor.longName).includes(normalized)
+    ))
+    .slice(0, 6);
+
+  function choose(doctor: Doctor) {
+    setQuery(doctor.shortName);
+    setOpen(false);
+    onAssign(doctor.id);
+  }
+
+  function validate() {
+    if (!query.trim()) {
+      onAssign("");
+      setOpen(false);
+      return;
+    }
+    const exact = doctors.find((doctor) => doctor.active &&
+      [doctor.shortName, doctor.longName].some((name) =>
+        normalizeDoctorSearch(name) === normalizeDoctorSearch(query)));
+    if (exact && !occupiedDoctorIds.includes(exact.id)) choose(exact);
+    else {
+      setQuery(assignedDoctor?.shortName ?? "");
+      setOpen(false);
+      toast.error(exact ? "Ese médico ya está de llamado esta semana" : "Médico no encontrado. Agrégalo primero a la nómina.");
+    }
+  }
+
+  return (
+    <div className="group/shift relative" ref={setNodeRef}>
+      <input
+        aria-label={`Médico de llamado ${slot + 1}, semana ${week}`}
+        className={cn(
+          "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow,opacity] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          isOver && "border-[var(--brand)] ring-2 ring-[var(--brand)]",
+          highlightedDoctor && assignedDoctor?.id !== highlightedDoctor && "opacity-[.32]",
+        )}
+        disabled={disabled}
+        onBlur={() => window.setTimeout(validate, 120)}
+        onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            if (suggestions[0]) choose(suggestions[0]);
+            else validate();
+          }
+          if (event.key === "Escape") {
+            setQuery(assignedDoctor?.shortName ?? "");
+            setOpen(false);
+          }
+        }}
+        placeholder="-"
+        style={shiftColorStyle(colorKey ?? undefined)}
+        value={query}
+      />
+      <button
+        aria-expanded={paletteOpen}
+        aria-label={`Pintar llamado ${slot + 1} de la semana ${week}`}
+        className={cn(
+          "absolute left-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-l text-white opacity-0 drop-shadow-[0_1px_1px_rgba(0,0,0,.9)] transition-opacity hover:bg-black/15 focus:opacity-100 group-hover/shift:opacity-100 group-focus-within/shift:opacity-100 [@media(hover:none)]:opacity-60",
+          !colorKey && "text-[var(--shift-normal-text)]/65 drop-shadow-none",
+        )}
+        disabled={disabled}
+        onClick={() => setPaletteOpen((value) => !value)}
+        onPointerDown={(event) => event.preventDefault()}
+        title="Pintar llamado"
+        type="button"
+      >
+        <Paintbrush size={10} strokeWidth={2.4} />
+      </button>
+      {assignedDoctor ? <button
+        aria-label={`Quitar a ${assignedDoctor.shortName} del llamado`}
+        className="absolute right-0 top-0 z-40 grid h-[18px] w-4 place-items-center rounded-r text-white/75 drop-shadow-[0_1px_1px_rgba(0,0,0,.8)] transition hover:bg-black/15 hover:text-red-200"
+        disabled={disabled}
+        onClick={() => { setQuery(""); setOpen(false); onAssign(""); }}
+        onPointerDown={(event) => event.preventDefault()}
+        title="Quitar médico"
+        type="button"
+      ><X size={11} strokeWidth={2.5} /></button> : null}
+      {paletteOpen && !disabled ? <div className="absolute left-0 top-5 z-[70] grid w-[104px] grid-cols-4 gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1.5 shadow-xl">
+        <button
+          aria-label="Dejar llamado con color normal"
+          className="grid h-5 w-5 place-items-center rounded-full border-2 border-[var(--line)] bg-[var(--shift-normal)] text-[8px] font-bold text-[var(--shift-normal-text)]"
+          onClick={() => { onColor(null); setPaletteOpen(false); }}
+          onPointerDown={(event) => event.preventDefault()}
+          title="Normal"
+          type="button"
+        >×</button>
+        {SHIFT_COLOR_KEYS.map((key) => <button
+          aria-label={`Pintar ${colorLegend.find((item) => item.key === key)?.label ?? key}`}
+          className={cn(
+            "h-5 w-5 rounded-full border-2 border-black/15 transition-transform hover:scale-110",
+            colorKey === key && "ring-2 ring-[var(--foreground)] ring-offset-1 ring-offset-[var(--surface)]",
+          )}
+          key={key}
+          onClick={() => { onColor(key); setPaletteOpen(false); }}
+          onPointerDown={(event) => event.preventDefault()}
+          style={shiftColorStyle(key)}
+          title={colorLegend.find((item) => item.key === key)?.label ?? key}
+          type="button"
+        />)}
+      </div> : null}
+      {open && !disabled && suggestions.length ? <div className="absolute left-0 top-6 z-50 min-w-44 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)] p-1 shadow-xl">
+        {suggestions.map((doctor) => <button
+          className="block w-full rounded-md px-2 py-1.5 text-left hover:bg-[var(--surface-soft)]"
+          key={doctor.id}
+          onMouseDown={(event) => { event.preventDefault(); choose(doctor); }}
+          type="button"
+        >
+          <strong className="block text-xs">{doctor.longName}</strong>
+          <small className="text-[10px] text-[var(--muted)]">{doctor.shortName}</small>
+        </button>)}
+      </div> : null}
     </div>
   );
 }
@@ -602,6 +754,20 @@ function ScheduleManager({
   const showOnCall = selectedId >= NEW_SYSTEM_START.slice(0, 7);
   const onCallByWeek = new Map(onCallWeeks.map((week) => [week.weekStart, week]));
 
+  function editOnCallSlot(start: string, slot: number, change: { doctorId?: string; colorKey?: ShiftColorKey | null }) {
+    setWeekEdits((current) => {
+      const week = current[start] ?? onCallByWeek.get(start) ?? {
+        doctorIds: ["", "", ""], colorKeys: [null, null, null],
+      };
+      return { ...current, [start]: {
+        doctorIds: [0, 1, 2].map((position) =>
+          position === slot && "doctorId" in change ? change.doctorId ?? "" : week.doctorIds[position] ?? ""),
+        colorKeys: [0, 1, 2].map((position) =>
+          position === slot && "colorKey" in change ? change.colorKey ?? null : week.colorKeys[position] ?? null),
+      } };
+    });
+  }
+
   async function saveOnCallWeek(start: string) {
     const selected = weekEdits[start];
     if (!selected) return;
@@ -886,6 +1052,18 @@ function ScheduleManager({
     const target = event.over ? String(event.over.id) : "";
     setDraggedDoctorId(null);
     setOverSlotId(null);
+    if (target.startsWith("oncall:")) {
+      const [, start, slotText] = target.split(":");
+      const slot = Number(slotText);
+      const week = weekEdits[start] ?? onCallByWeek.get(start) ?? { doctorIds: ["", "", ""] };
+      if (!showOnCall || ![0, 1, 2].includes(slot)) return;
+      if (week.doctorIds.some((id, position) => position !== slot && id === doctorId)) {
+        toast.error("Ese médico ya está de llamado esta semana");
+        return;
+      }
+      editOnCallSlot(start, slot, { doctorId });
+      return;
+    }
     if (!target.startsWith("slot:")) return;
     const [, date, kind, slot] = target.split(":");
     if (!date.startsWith(`${selectedId}-`)) return;
@@ -1075,7 +1253,7 @@ function ScheduleManager({
           <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
           <div className="scrollbar-subtle overflow-x-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
             <div className={cn("grid gap-1", showOnCall
-              ? "min-w-[900px] grid-cols-[repeat(7,minmax(95px,1fr))_minmax(165px,1.4fr)]"
+              ? "min-w-[760px] grid-cols-8"
               : "min-w-[680px] grid-cols-7")}>
               {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day) => (
                 <div className="pb-1 text-center text-[9px] font-semibold text-[var(--muted)]" key={day}>
@@ -1141,46 +1319,38 @@ function ScheduleManager({
                       ))}
                     </div>
                   </div>
-                  {showOnCall && index % 7 === 6 ? <div className="flex min-h-[105px] flex-col gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1">
-                    <span className="text-center text-[9px] font-semibold text-[var(--muted)]">Semana {start.slice(5)}</span>
-                    {[0, 1, 2].map((slot) => {
-                      const doctorId = selectedWeek.doctorIds[slot] ?? "";
-                      const colorKey = selectedWeek.colorKeys[slot] ?? null;
-                      return <div className="flex gap-0.5" key={slot}>
-                        <select aria-label={`Médico de llamado ${slot + 1}, semana ${start}`}
-                          className="h-5 min-w-0 flex-1 rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-0.5 text-[9px] font-semibold text-[var(--shift-normal-text)]"
-                          disabled={savingWeek === start}
-                          onChange={(event) => setWeekEdits((current) => ({ ...current, [start]: {
-                            doctorIds: [0, 1, 2].map((position) => position === slot ? event.target.value : selectedWeek.doctorIds[position] ?? ""),
-                            colorKeys: [0, 1, 2].map((position) => selectedWeek.colorKeys[position] ?? null),
-                          } }))}
-                          style={shiftColorStyle(colorKey ?? undefined)} value={doctorId}>
-                          <option value="">—</option>
-                          {doctorId && !doctors.some((doctor) => doctor.id === doctorId && doctor.active)
-                            ? <option value={doctorId}>{doctors.find((doctor) => doctor.id === doctorId)?.shortName ?? doctorId} (inactivo)</option>
-                            : null}
-                          {doctors.filter((doctor) => doctor.active).map((doctor) => <option
-                            disabled={selectedWeek.doctorIds.some((value, position) => position !== slot && value === doctor.id)}
-                            key={doctor.id} value={doctor.id}>{doctor.shortName}</option>)}
-                        </select>
-                        <select aria-label={`Color de llamado ${slot + 1}, semana ${start}`}
-                          className="h-5 w-10 rounded border border-[var(--shift-border)] bg-[var(--surface)] text-[9px]"
-                          disabled={savingWeek === start}
-                          onChange={(event) => setWeekEdits((current) => ({ ...current, [start]: {
-                            doctorIds: [0, 1, 2].map((position) => selectedWeek.doctorIds[position] ?? ""),
-                            colorKeys: [0, 1, 2].map((position) => position === slot ? event.target.value as ShiftColorKey || null : selectedWeek.colorKeys[position] ?? null),
-                          } }))} value={colorKey ?? ""}>
-                          <option value="">○</option>
-                          {colorLegend.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
-                        </select>
-                      </div>;
-                    })}
-                    <button className="rounded bg-[var(--brand)] px-1 py-0.5 text-[9px] font-semibold text-white disabled:opacity-50"
-                      disabled={!weekEdits[start] || Boolean(savingWeek) || hasPendingChanges || isSavingSelected}
-                      onClick={() => void saveOnCallWeek(start)} type="button">
-                      {savingWeek === start ? "Guardando…" : "Guardar llamado"}
-                    </button>
-                    {storedWeek?.needsReview ? <span className="text-center text-[9px] text-amber-700">Revisar semana</span> : null}
+                  {showOnCall && index % 7 === 6 ? <div className="relative flex min-h-[105px] flex-col rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1">
+                    <span className="block text-right text-[9px] leading-3 text-[var(--muted)]" title={`Semana del ${start}`}>
+                      Semana {start.slice(5)}
+                    </span>
+                    <div className="space-y-0.5">
+                      {[0, 1, 2].map((slot) => <EditableOnCallCard
+                        colorKey={selectedWeek.colorKeys[slot] ?? null}
+                        colorLegend={colorLegend}
+                        disabled={savingWeek === start}
+                        doctorId={selectedWeek.doctorIds[slot] ?? ""}
+                        doctors={doctors}
+                        highlightedDoctor={highlightedDoctor}
+                        key={`${start}-${slot}-${selectedWeek.doctorIds[slot] ?? ""}`}
+                        occupiedDoctorIds={selectedWeek.doctorIds.filter((id, position) => position !== slot && Boolean(id))}
+                        onAssign={(doctorId) => editOnCallSlot(start, slot, { doctorId })}
+                        onColor={(colorKey) => editOnCallSlot(start, slot, { colorKey })}
+                        slot={slot}
+                        week={start}
+                      />)}
+                      <div aria-hidden className="mx-1 my-1 h-px bg-[var(--shift-divider)]" />
+                    </div>
+                    <div className="mt-auto flex items-center justify-end gap-1">
+                      {storedWeek?.needsReview ? <span className="text-[8px] text-amber-700" title="Revisar cambios de turnos o ausencia">Revisar</span> : null}
+                      <button
+                        aria-label={`Guardar llamados de la semana ${start}`}
+                        className="rounded border border-[var(--line)] bg-[var(--surface)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--muted)] transition hover:border-[var(--brand)] hover:text-[var(--brand)] disabled:opacity-40"
+                        disabled={!weekEdits[start] || Boolean(savingWeek) || hasPendingChanges || isSavingSelected}
+                        onClick={() => void saveOnCallWeek(start)}
+                        title="Guardar cambios de llamado"
+                        type="button"
+                      >{savingWeek === start ? "Guardando…" : "Guardar"}</button>
+                    </div>
                   </div> : null}
                   </div>
                 );
@@ -1346,6 +1516,7 @@ function ScheduleManagerMiniAnalysis({
 
 function ScoreManager({
   doctors,
+  schedules,
   types,
   recent,
   holidays,
@@ -1353,6 +1524,7 @@ function ScoreManager({
   onNovemberUpdate,
 }: {
   doctors: Doctor[];
+  schedules: ScheduleMonth[];
   types: ReplacementType[];
   recent: Replacement[];
   holidays: Holiday[];
@@ -1363,6 +1535,7 @@ function ScoreManager({
   const [date, setDate] = useState(santiagoParts(new Date()).date);
   const [doctorId, setDoctorId] = useState(doctors.find((doctor) => doctor.active)?.id ?? "");
   const [shift, setShift] = useState<ReplacementShift>("day");
+  const [scoreType, setScoreType] = useState<"replacement" | "base">("replacement");
   const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
   const [superhero, setSuperhero] = useState(false);
   const holidayDates = useMemo(
@@ -1384,13 +1557,29 @@ function ScoreManager({
     })?.defaultPoints ?? 0,
   );
   const [history, setHistory] = useState(() =>
-    [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
+    recent.filter((item) => item.typeCode !== "BASE")
+      .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
   );
   const [allRecords, setAllRecords] = useState(recent);
   const fichas = date >= NEW_SYSTEM_START ? availableFichas(allRecords, doctorId, date) : null;
   const fichaCost = shift === "both" ? 2 : 1;
-  const fichaBlocked = mode === "voluntary" && fichas !== null && fichas < fichaCost;
+  const fichaBlocked = scoreType === "replacement" && mode === "voluntary" && fichas !== null && fichas < fichaCost;
   const doctorsById = new Map(doctors.map((doctor) => [doctor.id, doctor]));
+  const automaticBase = basePointRecords({
+    schedules, absences: november.absences, corrections: november.corrections,
+    freezes: november.freezes, at: new Date().toISOString(), includeExpired: true,
+  });
+  const manualBase = allRecords.filter((item) => item.typeCode === "BASE");
+  const baseEntries = [
+    ...automaticBase.map((item) => ({
+      key: `assignment-${item.assignmentId}`, doctorId: item.doctorId, date: item.date,
+      assignmentId: item.assignmentId, replacement: null as Replacement | null,
+    })),
+    ...manualBase.map((item) => ({
+      key: `manual-${item.id}`, doctorId: item.doctorId, date: item.date,
+      assignmentId: null as string | null, replacement: item as Replacement | null,
+    })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
 
   function toggleShift(item: "day" | "night") {
     const nextShift: ReplacementShift = shift === "both"
@@ -1427,10 +1616,10 @@ function ScoreManager({
       id: crypto.randomUUID(),
       date,
       doctorId,
-      typeCode: automaticType?.code ?? "LEGACY_UNKNOWN",
-      points,
-      mode,
-      superhero,
+      typeCode: scoreType === "base" ? "BASE" : automaticType?.code ?? "LEGACY_UNKNOWN",
+      points: scoreType === "base" ? 1 : points,
+      mode: scoreType === "base" ? "voluntary" : mode,
+      superhero: scoreType === "base" ? false : superhero,
       expiresAt: addDays(new Date(`${date}T12:00:00`), 120)
         .toISOString()
         .slice(0, 10),
@@ -1444,12 +1633,32 @@ function ScoreManager({
     if (!response.ok) toast.error(result.error ?? "No fue posible guardar");
     else {
       setAllRecords((current) => [replacement, ...current]);
-      setHistory((current) =>
+      if (scoreType === "replacement") setHistory((current) =>
         [replacement, ...current]
           .sort((a, b) => b.date.localeCompare(a.date))
           .slice(0, 15),
       );
       toast.success("Puntaje guardado");
+    }
+  }
+
+  async function removeBase(assignmentId: string) {
+    if (!window.confirm("¿Eliminar este punto base del turno?")) return;
+    try {
+      const response = await fetch("/api/november", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "base.set", assignmentId, worked: false, reason: "Punto base eliminado en Jefatura" }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error ?? "No fue posible eliminar el punto base");
+      const refreshed = await fetch("/api/november", { cache: "no-store" });
+      const next = await refreshed.json() as NovemberData & { error?: string };
+      if (!refreshed.ok) throw new Error(next.error ?? "No fue posible actualizar los puntos base");
+      onNovemberUpdate(next);
+      toast.success("Punto base eliminado");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible eliminar el punto base");
     }
   }
 
@@ -1471,8 +1680,7 @@ function ScoreManager({
   }
 
   return (
-    <div className="grid gap-3 xl:grid-cols-2">
-      <div className="space-y-3">
+    <div className="space-y-3">
       <form
         className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
         onSubmit={submit}
@@ -1481,7 +1689,7 @@ function ScoreManager({
           <Star size={17} className="text-[var(--brand)]" />
           <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2 2xl:grid-cols-3 2xl:items-end">
+        <div className="mt-2 grid gap-2 md:grid-cols-2">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -1507,84 +1715,108 @@ function ScoreManager({
                 ))}
             </select>
           </label>
-          <fieldset className="text-xs text-[var(--muted)]">
-            <legend>Turno</legend>
-            <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
-              {(["day", "night"] as const).map((item) => (
-                <label
-                  className={cn(
-                    "flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition",
-                    item === "night" && "border-l border-[var(--line)]",
-                    (shift === item || shift === "both") && "bg-[var(--brand)] text-white",
-                  )}
-                  key={item}
-                >
+          <div className="grid gap-2">
+            <label className="text-xs text-[var(--muted)]">
+              Tipo de puntaje
+              <select
+                className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
+                onChange={(event) => setScoreType(event.target.value as "replacement" | "base")}
+                value={scoreType}
+              >
+                <option value="replacement">Reemplazo</option>
+                <option value="base">Punto Base</option>
+              </select>
+            </label>
+            {scoreType === "replacement" ? <>
+            <fieldset className="text-xs text-[var(--muted)]">
+              <legend>Turno</legend>
+              <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
+                {(["day", "night"] as const).map((item) => (
+                  <label
+                    className={cn(
+                      "flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition",
+                      item === "night" && "border-l border-[var(--line)]",
+                      (shift === item || shift === "both") && "bg-[var(--brand)] text-white",
+                    )}
+                    key={item}
+                  >
+                    <input
+                      checked={shift === item || shift === "both"}
+                      className="sr-only"
+                      onChange={() => toggleShift(item)}
+                      type="checkbox"
+                    />
+                    {item === "day" ? "Día" : "Noche"}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend className="sr-only">Tipo de puntaje</legend>
+              <div className="grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
+                <label className={cn("flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition", mode === "invoked" && "bg-[var(--brand)] text-white")}>
                   <input
-                    checked={shift === item || shift === "both"}
+                    checked={mode === "invoked"}
                     className="sr-only"
-                    onChange={() => toggleShift(item)}
+                    onChange={(event) => setMode(event.target.checked ? "invoked" : "voluntary")}
                     type="checkbox"
                   />
-                  {item === "day" ? "Día" : "Noche"}
+                  🪽 Convocado
                 </label>
-              ))}
-            </div>
-          </fieldset>
-          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
-            <input
-              checked={superhero}
-              className="accent-purple-600"
-              onChange={(event) => {
-                setSuperhero(event.target.checked);
-                setPoints((value) => Math.max(0, value + (event.target.checked ? 1 : -1)));
-              }}
-              type="checkbox"
-            />
-            🦸 Superhéroe
-          </label>
-          <label className="flex h-[31px] cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-[10px] font-medium">
-            <input
-              checked={mode === "invoked"}
-              className="accent-[var(--brand)]"
-              onChange={(event) => setMode(event.target.checked ? "invoked" : "voluntary")}
-              type="checkbox"
-            />
-            🪽 Convocado
-          </label>
-          <label className="text-xs text-[var(--muted)]">
+                <label className={cn("flex cursor-pointer items-center justify-center gap-1.5 border-l border-[var(--line)] px-2 text-[10px] font-medium transition", superhero && "bg-[var(--brand)] text-white")}>
+                  <input
+                    checked={superhero}
+                    className="sr-only"
+                    onChange={(event) => {
+                      setSuperhero(event.target.checked);
+                      setPoints((value) => Math.max(0, value + (event.target.checked ? 1 : -1)));
+                    }}
+                    type="checkbox"
+                  />
+                  🦸 Superhéroe
+                </label>
+              </div>
+            </fieldset>
+            </> : null}
+          </div>
+          <label className="self-end text-xs text-[var(--muted)]">
             Puntos
             <input
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
+              disabled={scoreType === "base"}
               max={20}
               min={0}
               onChange={(event) => setPoints(Number(event.target.value))}
               type="number"
-              value={points}
+              value={scoreType === "base" ? 1 : points}
             />
           </label>
           <button
-            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 2xl:col-span-3"
+            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2"
             disabled={fichaBlocked}
             type="submit"
           >
             <Save size={14} /> Guardar
           </button>
         </div>
-        {fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Las convocatorias no requieren fichas.</p> : null}
+        {scoreType === "replacement" && fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Las convocatorias no requieren fichas.</p> : null}
       </form>
+      <div className="grid gap-3 xl:grid-cols-3">
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <h2 className="text-sm font-semibold">Últimos voluntarios e invocados</h2>
         <div className="mt-2 divide-y divide-[var(--line)]">
           {history.map((replacement) => (
             <div
-              className="grid grid-cols-[78px_minmax(70px,.65fr)_minmax(120px,1.35fr)_40px_28px] items-center gap-2 py-2 text-xs"
+              className="grid grid-cols-[70px_minmax(0,.65fr)_minmax(0,1.35fr)_28px_28px] items-center gap-1.5 py-2 text-xs"
               key={replacement.id}
             >
               <span className="text-xs text-[var(--muted)]">{replacement.date}</span>
-              <strong>{doctorsById.get(replacement.doctorId)?.shortName}</strong>
+              <strong className="truncate">{doctorsById.get(replacement.doctorId)?.shortName}</strong>
               <span className="flex items-center justify-end gap-1 text-right">
                 <small className="truncate text-[var(--muted)]">
-                  {replacement.typeCode === "HERO"
+                  {replacement.typeCode === "BASE"
+                    ? "Punto Base"
+                    : replacement.typeCode === "HERO"
                     ? "Histórico"
                     : getReplacementTypeLabel(replacement, types) ?? "Histórico"}
                 </small>
@@ -1609,8 +1841,32 @@ function ScoreManager({
           ))}
         </div>
       </section>
+        <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+          <h2 className="text-sm font-semibold">Puntos Base</h2>
+          <div className="mt-2 max-h-[520px] overflow-y-auto divide-y divide-[var(--line)]">
+            {baseEntries.map((entry) => (
+              <div className="grid grid-cols-[78px_minmax(0,1fr)_28px_28px] items-center gap-2 py-2 text-xs" key={entry.key}>
+                <span className="text-[var(--muted)]">{entry.date}</span>
+                <strong className="truncate">{doctorsById.get(entry.doctorId)?.shortName ?? entry.doctorId}</strong>
+                <span className="font-semibold text-[var(--brand)]">+1</span>
+                <button
+                  aria-label={`Eliminar punto base de ${doctorsById.get(entry.doctorId)?.shortName ?? entry.doctorId} del ${entry.date}`}
+                  className="grid h-7 w-7 place-items-center rounded-md text-[var(--muted)] hover:bg-red-100 hover:text-red-700"
+                  onClick={() => entry.assignmentId
+                    ? void removeBase(entry.assignmentId)
+                    : entry.replacement ? void removeReplacement(entry.replacement) : undefined}
+                  title="Eliminar punto base"
+                  type="button"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            {!baseEntries.length ? <p className="py-2 text-xs text-[var(--muted)]">Sin puntos base registrados.</p> : null}
+          </div>
+        </section>
+        <AbsenceFreezeManager data={november} doctors={doctors} onUpdate={onNovemberUpdate} />
       </div>
-      <AbsenceFreezeManager data={november} doctors={doctors} onUpdate={onNovemberUpdate} />
     </div>
   );
 }
@@ -1707,6 +1963,7 @@ export function ManagerHub({
       ) : tab === "scores" ? (
         <ScoreManager
           doctors={doctors}
+          schedules={schedules}
           holidays={holidays}
           recent={replacements}
           types={types}

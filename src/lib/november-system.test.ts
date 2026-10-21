@@ -54,6 +54,18 @@ describe("cambio del 1 de noviembre", () => {
     ], freezes: [], at })).toHaveLength(2);
   });
 
+  it("identifica cada punto base y permite excluirlo sin alterar otros turnos", () => {
+    const schedules = [month("2026-11", [
+      assignment("day", "2026-11-01", "DAY"),
+      assignment("night", "2026-11-01", "NIGHT"),
+    ])];
+    const input = { schedules, absences: [], freezes: [], at: "2026-11-02T12:00:00.000Z" };
+    expect(basePointRecords({ ...input, corrections: [], includeExpired: true })
+      .map((item) => item.assignmentId)).toEqual(["day", "night"]);
+    expect(basePointRecords({ ...input, corrections: [{ assignmentId: "day", worked: false }], includeExpired: true })
+      .map((item) => item.assignmentId)).toEqual(["night"]);
+  });
+
   it("reserva fichas solo al voluntariado desde noviembre", () => {
     const records = [
       replacement("old", "2026-10-31", "voluntary"),
@@ -64,6 +76,8 @@ describe("cambio del 1 de noviembre", () => {
     expect(availableFichas(records, "a", "2026-11-01")).toBe(1);
     expect(canVolunteer(records, "a", "2026-11-01", 24)).toBe(false);
     expect(availableFichas(records, "a", "2026-11-02")).toBe(2);
+    expect(availableFichas([...records, replacement("base", "2026-11-01", "voluntary", "BASE")],
+      "a", "2026-11-01")).toBe(1);
   });
 
   it("aplica descanso entre meses y deja día más noche del mismo día como 24 horas", () => {
