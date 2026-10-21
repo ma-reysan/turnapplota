@@ -14,6 +14,7 @@ import type {
   ShiftMarker,
 } from "@/lib/types";
 import { calendarDays, cn, monthKey, monthLabel } from "@/lib/utils";
+import { appliesOnCall, weekStart, type OnCallWeek } from "@/lib/november-system";
 
 const weekdayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -59,10 +60,12 @@ export function ScheduleCalendar({
   doctors,
   schedules,
   shiftColorLegend,
+  onCallWeeks = [],
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
   shiftColorLegend: ShiftColorLegendItem[];
+  onCallWeeks?: OnCallWeek[];
 }) {
   const sortedSchedules = useMemo(
     () => [...schedules].sort((a, b) => b.id.localeCompare(a.id)),
@@ -72,6 +75,8 @@ export function ScheduleCalendar({
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const schedule = sortedSchedules.find((item) => item.id === selectedId) ?? sortedSchedules[0];
+  const showOnCall = Boolean(schedule && schedule.id >= "2026-11");
+  const onCallByWeek = new Map(onCallWeeks.map((item) => [item.weekStart, item]));
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
     [doctors],
@@ -248,7 +253,7 @@ export function ScheduleCalendar({
                 </h2>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className={cn("grid gap-1", showOnCall ? "grid-cols-8" : "grid-cols-7")}>
               {weekdayLabels.map((label) => (
                 <div
                   className="pb-1 text-center text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]"
@@ -257,19 +262,22 @@ export function ScheduleCalendar({
                   {label}
                 </div>
               ))}
-              {calendarDays(schedule.year, schedule.month).map((date) => {
+              {showOnCall ? <div className="pb-1 text-center text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">Llamado</div> : null}
+              {calendarDays(schedule.year, schedule.month).map((date, index) => {
                 const dateKey = monthKey(
                   date.getFullYear(),
                   date.getMonth() + 1,
                 ) + `-${String(date.getDate()).padStart(2, "0")}`;
                 const inMonth = date.getMonth() + 1 === schedule.month;
+                const start = weekStart(dateKey);
+                const week = onCallByWeek.get(start);
                 return (
+                  <div className="contents" key={dateKey}>
                   <div
                     className={cn(
                       "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
-                    key={dateKey}
                   >
                     <span className="block text-right text-[9px] font-semibold leading-3 text-[var(--muted)]">
                       {date.getDate()}
@@ -299,6 +307,18 @@ export function ScheduleCalendar({
                         />
                       ))}
                     </div>
+                  </div>
+                  {showOnCall && index % 7 === 6 ? (
+                    <div className="flex min-h-[105px] flex-col justify-center gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1">
+                      <span className="text-center text-[9px] text-[var(--muted)]">
+                        {appliesOnCall(start) ? `Semana ${start.slice(8)}` : "Desde 1 nov"}
+                      </span>
+                      {week?.doctorIds.map((doctorId) => (
+                        <span className="truncate rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-1 text-center text-[10px] font-semibold"
+                          key={doctorId}>{doctorsById.get(doctorId)?.shortName ?? doctorId}</span>
+                      )) ?? <span className="text-center text-[10px] text-[var(--muted)]">Pendiente</span>}
+                    </div>
+                  ) : null}
                   </div>
                 );
               })}

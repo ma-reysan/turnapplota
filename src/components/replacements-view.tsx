@@ -1,29 +1,35 @@
 "use client";
 
 import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { getReplacementTypeLabel } from "@/lib/replacement-scoring";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
+import { availableFichas, basePointRecords, NEW_SYSTEM_START, replacementPointRecords, santiagoParts } from "@/lib/november-system";
+import { NOVEMBER_PEARLS } from "@/lib/november-pearls";
+import type { ScheduleMonth } from "@/lib/types";
 
 const pearlSectionLabels = {
   perlas: "Perlas",
   puntos: "Puntos",
   superheroe: "Superhéroe",
   comodindeapoyo: "Comodín de apoyo",
+  tabla: "Tabla",
+  descanso: "Descanso",
+  fichas: "Fichas",
+  medicosdellamado: "Médicos de Llamado",
+  puntosbase: "Puntos base",
+  puntosporreemplazo: "Puntos por reemplazo",
 } as const;
 
 type PearlSectionKey = keyof typeof pearlSectionLabels;
 
 function groupPearls(pearls: string[]) {
-  const sections: Record<PearlSectionKey, string[]> = {
-    perlas: [],
-    puntos: [],
-    superheroe: [],
-    comodindeapoyo: [],
-  };
+  const sections = Object.fromEntries(
+    Object.keys(pearlSectionLabels).map((key) => [key, [] as string[]]),
+  ) as Record<PearlSectionKey, string[]>;
   let current: PearlSectionKey = "perlas";
 
   for (const line of pearls) {
@@ -40,7 +46,7 @@ function groupPearls(pearls: string[]) {
     }
   }
 
-  return Object.entries(sections) as [PearlSectionKey, string[]][];
+  return (Object.entries(sections) as [PearlSectionKey, string[]][]).filter(([, lines]) => lines.length);
 }
 
 export function ReplacementsView({
@@ -49,13 +55,50 @@ export function ReplacementsView({
   types,
   pearls,
   lastInvokedDoctorId,
+  schedules = [],
+  november,
+  initialNow,
 }: {
   doctors: Doctor[];
   replacements: Replacement[];
   types: ReplacementType[];
   pearls: string[];
   lastInvokedDoctorId?: string;
+  schedules?: ScheduleMonth[];
+  november?: {
+    absences: Array<{ doctorId: string; startDate: string; endDate: string }>;
+    freezes: Array<{ id: string; doctorId: string; startDate: string; endDate: string }>;
+    corrections: Array<{ assignmentId: string; worked: boolean }>;
+  };
+  initialNow?: string;
 }) {
+  const [liveNow, setLiveNow] = useState(initialNow ?? new Date().toISOString());
+  useEffect(() => {
+    const timer = window.setInterval(() => setLiveNow(new Date().toISOString()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const currentDate = santiagoParts(liveNow).date;
+  const newSystem = currentDate >= NEW_SYSTEM_START;
+  const base = newSystem && november ? basePointRecords({
+    schedules, absences: november.absences, corrections: november.corrections,
+    freezes: november.freezes, at: liveNow,
+  }) : [];
+  const effectiveReplacements = newSystem && november
+    ? replacements.map((item) => {
+      const record = replacementPointRecords([item], november.freezes, liveNow)[0];
+      return record ? { ...item, expiresAt: record.expiresAt } : item;
+    })
+    : replacements;
+  const displayReplacements: Replacement[] = [
+    ...effectiveReplacements,
+    ...base.map((item, index) => ({
+      id: `base-${item.doctorId}-${item.date}-${index}`,
+      doctorId: item.doctorId, date: item.date, typeCode: "BASE", points: item.points,
+      mode: "legacy_unknown" as const, superhero: false, expiresAt: item.expiresAt,
+    })),
+  ];
+  const fichas = newSystem ? Object.fromEntries(doctors.map((doctor) =>
+    [doctor.id, availableFichas(replacements, doctor.id, currentDate) ?? 2])) : null;
   const [mode, setMode] = useState<"table" | "list">("table");
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const [exportingImage, setExportingImage] = useState(false);
@@ -66,10 +109,11 @@ export function ReplacementsView({
   const lastInvokedDoctor = lastInvokedDoctorId
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
-  const pearlSections = groupPearls(pearls);
-  const sortedReplacements = [...replacements].sort((a, b) => b.date.localeCompare(a.date));
-  const active = replacements.filter((replacement) => isActiveReplacement(replacement.date));
-  const dates = [...new Set(replacements.map((replacement) => replacement.date))].sort((a, b) =>
+  const pearlSections = groupPearls(newSystem ? NOVEMBER_PEARLS : pearls);
+  const sortedReplacements = [...displayReplacements].sort((a, b) => b.date.localeCompare(a.date));
+  const active = displayReplacements.filter((replacement) =>
+    newSystem ? replacement.expiresAt >= currentDate : isActiveReplacement(replacement.date));
+  const dates = [...new Set(displayReplacements.map((replacement) => replacement.date))].sort((a, b) =>
     a.localeCompare(b),
   );
   const rankedDoctors = doctors
@@ -79,7 +123,7 @@ export function ReplacementsView({
       const nextExpiry = [...new Set(own.map((replacement) => replacement.expiresAt))].sort()[0];
       return {
         doctor,
-        hasEntries: replacements.some((replacement) => replacement.doctorId === doctor.id),
+        hasEntries: replacements.some((replacement) => replacement.doctorId === doctor.id) || base.some((item) => item.doctorId === doctor.id),
         points: own.reduce((sum, replacement) => sum + replacement.points, 0),
         nextExpiry,
         expiringPoints: nextExpiry
@@ -97,7 +141,8 @@ export function ReplacementsView({
     tableScrollRef.current.scrollLeft = tableScrollRef.current.scrollWidth;
   }, [dates.length, mode]);
 
-  const exportScoresImage = useCallback(async () => {
+  useEffect(() => {
+    async function exportScoresImage() {
     if (exportingImage || !rankedDoctors.length) return;
     setExportingImage(true);
     try {
@@ -157,13 +202,11 @@ export function ReplacementsView({
     } finally {
       setExportingImage(false);
     }
-  }, [exportingImage, rankedDoctors]);
-
-  useEffect(() => {
+    }
     const handler = () => void exportScoresImage();
     window.addEventListener("turnapp:export-replacements-image", handler);
     return () => window.removeEventListener("turnapp:export-replacements-image", handler);
-  }, [exportScoresImage]);
+  }, [exportingImage, rankedDoctors]);
 
   return (
     <div className="space-y-3">
@@ -230,12 +273,12 @@ export function ReplacementsView({
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
                     <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface)] px-3 py-2 text-left">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold">{doctor.shortName}</span>
+                        <span className="font-semibold">{doctor.shortName}{fichas ? <small className="ml-1 text-[9px] text-[var(--muted)]">{fichas[doctor.id]} fichas</small> : null}</span>
                         <span className="text-base font-bold leading-none text-[var(--brand)]">{points}</span>
                       </div>
                     </th>
                     {dates.map((date) => {
-                      const value = replacements
+                      const value = displayReplacements
                         .filter(
                           (replacement) =>
                             replacement.doctorId === doctor.id && replacement.date === date,
@@ -282,8 +325,7 @@ export function ReplacementsView({
                   <time className="text-xs text-[var(--muted)]">{replacement.date}</time>
                   <strong className="text-xs">{doctor?.shortName ?? replacement.doctorId}</strong>
                   <span className="text-[11px] text-[var(--muted)]">
-                    {getReplacementTypeLabel(replacement, types) ??
-                      "Registro histórico · tipo no informado"}
+                    {replacement.typeCode === "BASE" ? "Punto base" : getReplacementTypeLabel(replacement, types) ?? "Registro histórico · tipo no informado"}
                   </span>
                   <span className="flex items-center justify-start gap-0.5 sm:justify-end">
                     {replacement.mode === "invoked" ? (

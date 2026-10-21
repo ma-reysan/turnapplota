@@ -27,6 +27,10 @@ export const doctors = pgTable(
     longName: text("long_name").notNull(),
     active: boolean("active").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
+    onlyVolunteer: boolean("only_volunteer").notNull().default(false),
+    allowDay: boolean("allow_day").notNull().default(true),
+    allowNight: boolean("allow_night").notNull().default(true),
+    allowFridaySaturday24: boolean("allow_friday_saturday_24").notNull().default(false),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -126,6 +130,37 @@ export const replacements = pgTable("replacements", {
   expiresAt: date("expires_at").notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const onCallWeeks = pgTable("on_call_weeks", {
+  weekStart: date("week_start").primaryKey(),
+  doctorIds: jsonb("doctor_ids").$type<string[]>().notNull(),
+  manual: boolean("manual").notNull().default(false),
+  needsReview: boolean("needs_review").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const doctorAbsences = pgTable("doctor_absences", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull().references(() => doctors.id),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  reason: text("reason").notNull(),
+  note: text("note"),
+});
+
+export const pointFreezes = pgTable("point_freezes", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull().references(() => doctors.id),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+});
+
+export const baseCorrections = pgTable("base_corrections", {
+  assignmentId: text("assignment_id").primaryKey().references(() => shiftAssignments.id),
+  worked: boolean("worked").notNull(),
+  reason: text("reason").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

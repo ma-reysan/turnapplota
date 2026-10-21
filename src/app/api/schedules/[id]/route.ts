@@ -2,6 +2,9 @@ import { and, eq, gte, lte } from "drizzle-orm";
 import { getDb, getSql, isDatabaseConfigured } from "@/db";
 import { scheduleMonths, shiftAssignments, shiftMarkers } from "@/db/schema";
 import { hasJefaturaSession } from "@/lib/auth";
+import { getAppData } from "@/lib/data";
+import { readNovemberData } from "@/lib/november-data";
+import { NEW_SYSTEM_START, restIssues, weekStart } from "@/lib/november-system";
 import { findNightToDayConflicts } from "@/lib/schedule-conflicts";
 import { schedulePatchSchema } from "@/lib/validation";
 
@@ -110,6 +113,15 @@ export async function PATCH(
     const conflict = introducedConflicts[0] ?? nextConflicts[0];
     return Response.json({ error: `Un turno de noche no puede ir seguido de un turno de día (${conflict.nightDate}–${conflict.dayDate})` }, { status: 400 });
   }
+  if (id >= NEW_SYSTEM_START.slice(0, 7) && assignments.length) {
+    const touched = new Set(assignments.map((item) => item.date));
+    const conflict = restIssues(nextAssignments).find((item) =>
+      item.current.date >= NEW_SYSTEM_START &&
+      (touched.has(item.previous.date) || touched.has(item.current.date)));
+    if (conflict) return Response.json({
+      error: `Descanso obligatorio: ${conflict.doctorId} tiene turnos incompatibles el ${conflict.previous.date} y ${conflict.current.date}`,
+    }, { status: 400 });
+  }
   const sql = getSql();
   const assignmentQueries = assignments.flatMap((assignment) => {
     const remove = sql`DELETE FROM shift_assignments WHERE schedule_id = ${id} AND shift_date = ${assignment.date} AND kind = ${assignment.kind} AND slot = ${assignment.slot}`;
@@ -132,6 +144,22 @@ export async function PATCH(
     ...markerQueries,
     sql`INSERT INTO audit_events (action, entity_type, entity_id, after) VALUES (${publish ? "schedule.published" : "schedule.autosaved"}, 'schedule', ${id}, ${JSON.stringify({ assignments: assignments.length, markers: markers.length })}::jsonb)`,
   ]);
+  if (id >= NEW_SYSTEM_START.slice(0, 7)) {
+    if (publish) {
+      const data = await getAppData();
+      const transition = await readNovemberData(data);
+      for (const week of transition.onCallWeeks.filter((item) =>
+        item.weekStart <= monthEnd && weekStart(`${id}-01`) <= item.weekStart)) {
+        await sql`INSERT INTO on_call_weeks (week_start, doctor_ids, manual, needs_review)
+          VALUES (${week.weekStart}, ${JSON.stringify(week.doctorIds)}::jsonb, ${week.manual}, ${week.needsReview})
+          ON CONFLICT (week_start) DO NOTHING`;
+      }
+    }
+    for (const start of new Set(assignments.map((item) => weekStart(item.date)))) {
+      await sql`UPDATE on_call_weeks SET needs_review = true, updated_at = now()
+        WHERE week_start = ${start} AND manual = false`;
+    }
+  }
   const updated = await db.select().from(scheduleMonths).where(eq(scheduleMonths.id, id));
   return Response.json({ ok: true, version: updated[0]?.version ?? 1, status: updated[0]?.status ?? "draft" });
 }

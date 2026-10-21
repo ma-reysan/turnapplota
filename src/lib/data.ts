@@ -79,6 +79,10 @@ export async function getAppData(): Promise<SeedData> {
       longName: row.longName,
       active: row.active,
       sortOrder: row.sortOrder,
+      onlyVolunteer: row.onlyVolunteer,
+      allowDay: row.allowDay,
+      allowNight: row.allowNight,
+      allowFridaySaturday24: row.allowFridaySaturday24,
     })),
     schedules: monthRows.map((month) => ({
       id: month.id,

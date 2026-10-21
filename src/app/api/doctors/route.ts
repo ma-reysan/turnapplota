@@ -42,5 +42,9 @@ export async function POST(request: Request) {
       VALUES (${before.length ? "doctor.updated" : "doctor.created"}, 'doctor', ${input.id},
         ${JSON.stringify(before[0] ?? null)}::jsonb, ${JSON.stringify(input)}::jsonb)`,
   ]);
+  if (before[0] && before[0].active !== input.active) {
+    await sql`UPDATE on_call_weeks SET needs_review = true, updated_at = now()
+      WHERE doctor_ids ? ${input.id} AND week_start + 6 >= DATE '2026-11-01'`;
+  }
   return Response.json({ ok: true });
 }

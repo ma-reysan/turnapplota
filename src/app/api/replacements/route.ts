@@ -2,6 +2,8 @@ import { addDays } from "date-fns";
 import { getSql, isDatabaseConfigured } from "@/db";
 import { hasJefaturaSession } from "@/lib/auth";
 import { replacementInputSchema } from "@/lib/validation";
+import { getAppData } from "@/lib/data";
+import { canVolunteer, NEW_SYSTEM_START } from "@/lib/november-system";
 
 export async function POST(request: Request) {
   if (!(await hasJefaturaSession())) {
@@ -16,6 +18,13 @@ export async function POST(request: Request) {
   const parsed = replacementInputSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return Response.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
+  }
+  if (parsed.data.date >= NEW_SYSTEM_START && parsed.data.mode === "voluntary") {
+    const data = await getAppData();
+    const hours = parsed.data.typeCode === "FULL_24" || parsed.data.typeCode === "SAT_HOLIDAY_24" ? 24 : 12;
+    if (!canVolunteer(data.replacements, parsed.data.doctorId, parsed.data.date, hours)) {
+      return Response.json({ error: "Médico sin fichas para otro reemplazo voluntario" }, { status: 409 });
+    }
   }
   const expiresAt = addDays(new Date(`${parsed.data.date}T12:00:00Z`), 120)
     .toISOString()

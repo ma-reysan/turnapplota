@@ -29,6 +29,9 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
+import { NovemberManager } from "@/components/november-manager";
+import type { NovemberData } from "@/lib/november-data";
+import { availableFichas, NEW_SYSTEM_START, santiagoParts } from "@/lib/november-system";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
 import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
@@ -1257,7 +1260,7 @@ function ScoreManager({
   holidays: Holiday[];
 }) {
   const formTypes = types.filter((type) => type.code !== "HERO");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(santiagoParts(new Date()).date);
   const [doctorId, setDoctorId] = useState(doctors.find((doctor) => doctor.active)?.id ?? "");
   const [shift, setShift] = useState<ReplacementShift>("day");
   const [mode, setMode] = useState<"voluntary" | "invoked">("voluntary");
@@ -1283,6 +1286,10 @@ function ScoreManager({
   const [history, setHistory] = useState(() =>
     [...recent].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
   );
+  const [allRecords, setAllRecords] = useState(recent);
+  const fichas = date >= NEW_SYSTEM_START ? availableFichas(allRecords, doctorId, date) : null;
+  const fichaCost = shift === "both" ? 2 : 1;
+  const fichaBlocked = mode === "voluntary" && fichas !== null && fichas < fichaCost;
   const doctorsById = new Map(doctors.map((doctor) => [doctor.id, doctor]));
 
   function toggleShift(item: "day" | "night") {
@@ -1312,6 +1319,10 @@ function ScoreManager({
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (fichaBlocked) {
+      toast.error("Médico sin fichas para otro reemplazo voluntario");
+      return;
+    }
     const replacement = {
       id: crypto.randomUUID(),
       date,
@@ -1332,6 +1343,7 @@ function ScoreManager({
     const result = (await response.json()) as { error?: string };
     if (!response.ok) toast.error(result.error ?? "No fue posible guardar");
     else {
+      setAllRecords((current) => [replacement, ...current]);
       setHistory((current) =>
         [replacement, ...current]
           .sort((a, b) => b.date.localeCompare(a.date))
@@ -1354,6 +1366,7 @@ function ScoreManager({
       return;
     }
     setHistory((current) => current.filter((item) => item.id !== replacement.id));
+    setAllRecords((current) => current.filter((item) => item.id !== replacement.id));
     toast.success("Puntaje eliminado");
   }
 
@@ -1450,11 +1463,13 @@ function ScoreManager({
           </label>
           <button
             className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 xl:col-span-1"
+            disabled={fichaBlocked}
             type="submit"
           >
             <Save size={14} /> Guardar
           </button>
         </div>
+        {fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Las convocatorias no requieren fichas.</p> : null}
       </form>
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 xl:w-[72%] xl:min-w-[540px]">
         <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
@@ -1504,6 +1519,7 @@ export function ManagerHub({
   replacements,
   holidays,
   shiftColorLegend,
+  november,
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
@@ -1511,8 +1527,9 @@ export function ManagerHub({
   replacements: Replacement[];
   holidays: Holiday[];
   shiftColorLegend: ShiftColorLegendItem[];
+  november: NovemberData;
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "generator" | "otros">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "generator" | "november" | "otros">("schedule");
   return (
     <div>
       <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
@@ -1563,6 +1580,16 @@ export function ManagerHub({
           >
             <Star size={16} /> Otros
           </button>
+          <button
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
+              tab === "november" && "bg-[var(--surface)] shadow-sm",
+            )}
+            onClick={() => setTab("november")}
+            type="button"
+          >
+            <CalendarCheck size={16} /> Desde noviembre
+          </button>
         </div>
         <div className="hidden sm:block" />
       </div>
@@ -1581,6 +1608,8 @@ export function ManagerHub({
         />
       ) : tab === "generator" ? (
         <ShiftGeneratorManager holidays={holidays} />
+      ) : tab === "november" ? (
+        <NovemberManager doctors={doctors} schedules={schedules} initial={november} />
       ) : (
         <OtrosManager initialHolidays={holidays} />
       )}

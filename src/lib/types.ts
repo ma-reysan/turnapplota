@@ -8,6 +8,10 @@ export interface Doctor {
   longName: string;
   active: boolean;
   sortOrder: number;
+  onlyVolunteer?: boolean;
+  allowDay?: boolean;
+  allowNight?: boolean;
+  allowFridaySaturday24?: boolean;
 }
 
 export interface ShiftAssignment {
