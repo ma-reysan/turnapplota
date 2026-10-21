@@ -12,6 +12,22 @@ const TYPE_BY_WEEKDAY: Record<number, Record<"day" | "night", string>> = {
   6: { day: "SAT_12", night: "SAT_12" },
 };
 
+const WEEKDAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+export function getReplacementTypeLabel(
+  replacement: { date: string; typeCode: string },
+  types: ReplacementType[],
+) {
+  const weekday = new Date(`${replacement.date}T12:00:00Z`).getUTCDay();
+  if (replacement.typeCode === "FULL_24") {
+    return `${WEEKDAY_LABELS[weekday]} 24h`;
+  }
+  if (replacement.typeCode === "SAT_HOLIDAY_24") {
+    return weekday === 6 ? "Sábado 24h" : `${WEEKDAY_LABELS[weekday]} festivo 24h`;
+  }
+  return types.find((type) => type.code === replacement.typeCode)?.label;
+}
+
 export function getAutomaticReplacementType({
   date,
   shift,

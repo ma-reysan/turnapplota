@@ -34,6 +34,7 @@ import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
 import {
   getAutomaticReplacementType,
+  getReplacementTypeLabel,
   type ReplacementShift,
 } from "@/lib/replacement-scoring";
 import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
@@ -1469,8 +1470,7 @@ function ScoreManager({
                 <small className="truncate text-[var(--muted)]">
                   {replacement.typeCode === "HERO"
                     ? "Histórico"
-                    : types.find((type) => type.code === replacement.typeCode)?.label ??
-                      "Histórico"}
+                    : getReplacementTypeLabel(replacement, types) ?? "Histórico"}
                 </small>
                 {replacement.mode === "invoked" ? (
                   <ReplacementStatus emoji="🪽" label="Invocado" />

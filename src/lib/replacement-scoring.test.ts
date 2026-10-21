@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { REPLACEMENT_TYPES } from "@/lib/constants";
-import { getAutomaticReplacementType } from "@/lib/replacement-scoring";
+import { getAutomaticReplacementType, getReplacementTypeLabel } from "@/lib/replacement-scoring";
 
 const holidays = new Set(["2026-09-18"]);
 
@@ -37,5 +37,19 @@ describe("getAutomaticReplacementType", () => {
       code: "SAT_HOLIDAY_24",
       defaultPoints: 7,
     });
+  });
+});
+
+describe("getReplacementTypeLabel", () => {
+  it("shows the selected Sunday day-and-night shift as 24 hours", () => {
+    expect(getReplacementTypeLabel({ date: "2026-10-11", typeCode: "FULL_24" }, REPLACEMENT_TYPES))
+      .toBe("Domingo 24h");
+  });
+
+  it("distinguishes Saturday from a weekday holiday", () => {
+    expect(getReplacementTypeLabel({ date: "2026-09-12", typeCode: "SAT_HOLIDAY_24" }, REPLACEMENT_TYPES))
+      .toBe("Sábado 24h");
+    expect(getReplacementTypeLabel({ date: "2026-09-18", typeCode: "SAT_HOLIDAY_24" }, REPLACEMENT_TYPES))
+      .toBe("Viernes festivo 24h");
   });
 });

@@ -4,6 +4,7 @@ import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
+import { getReplacementTypeLabel } from "@/lib/replacement-scoring";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
 
@@ -62,7 +63,6 @@ export function ReplacementsView({
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
     [doctors],
   );
-  const typesByCode = useMemo(() => new Map(types.map((type) => [type.code, type])), [types]);
   const lastInvokedDoctor = lastInvokedDoctorId
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
@@ -274,7 +274,6 @@ export function ReplacementsView({
           <div className="mx-auto divide-y divide-[var(--line)] lg:w-3/5">
             {sortedReplacements.slice(0, 80).map((replacement) => {
               const doctor = doctorsById.get(replacement.doctorId);
-              const type = typesByCode.get(replacement.typeCode);
               return (
                 <article
                   className="grid gap-x-2 gap-y-0.5 px-2 py-1.5 sm:grid-cols-[90px_110px_minmax(150px,1fr)_auto_48px] sm:items-center"
@@ -283,7 +282,8 @@ export function ReplacementsView({
                   <time className="text-xs text-[var(--muted)]">{replacement.date}</time>
                   <strong className="text-xs">{doctor?.shortName ?? replacement.doctorId}</strong>
                   <span className="text-[11px] text-[var(--muted)]">
-                    {type?.label ?? "Registro histórico · tipo no informado"}
+                    {getReplacementTypeLabel(replacement, types) ??
+                      "Registro histórico · tipo no informado"}
                   </span>
                   <span className="flex items-center justify-start gap-0.5 sm:justify-end">
                     {replacement.mode === "invoked" ? (

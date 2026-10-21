@@ -17,7 +17,7 @@ export interface DoctorAnalysis {
 }
 
 function dateKey(value: Date) {
-  return value.toISOString().slice(0, 10);
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
 }
 
 export function daysInRange(start: Date, end: Date) {

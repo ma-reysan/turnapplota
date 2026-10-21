@@ -73,14 +73,31 @@ const scheduleSlotSchema = z.object({
 });
 
 export const schedulePatchSchema = z.object({
-  id: z.string().regex(/^\d{4}-\d{2}$/),
+  id: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
   publish: z.boolean().optional(),
   assignments: z.array(scheduleSlotSchema.extend({ doctorId: z.string().min(1).nullable() })).default([]),
   markers: z.array(scheduleSlotSchema.extend({ colorKey: shiftColorKeySchema.nullable() })).default([]),
 }).superRefine((value, context) => {
+  const doctorShifts = new Set<string>();
   for (const item of [...value.assignments, ...value.markers]) {
     if (item.kind === "NIGHT" && item.slot > 2) {
       context.addIssue({ code: "custom", message: "La noche admite solo dos médicos" });
+    }
+  }
+  for (const assignment of value.assignments) {
+    if (assignment.date.slice(0, 7) !== value.id) {
+      context.addIssue({ code: "custom", message: "La fecha del turno debe pertenecer al mes seleccionado" });
+    }
+    if (!assignment.doctorId) continue;
+    const key = `${assignment.date}:${assignment.kind}:${assignment.doctorId}`;
+    if (doctorShifts.has(key)) {
+      context.addIssue({ code: "custom", message: "Un médico no puede ocupar dos puestos del mismo turno" });
+    }
+    doctorShifts.add(key);
+  }
+  for (const marker of value.markers) {
+    if (marker.date.slice(0, 7) !== value.id) {
+      context.addIssue({ code: "custom", message: "La fecha del color debe pertenecer al mes seleccionado" });
     }
   }
 });

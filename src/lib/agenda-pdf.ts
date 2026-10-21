@@ -48,29 +48,36 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number) {
   return lines.length ? lines : [""];
 }
 
-export async function exportAgendaPdf(doctorName: string, days: Day[], options?: { periodLabel?: string; fileSuffix?: string; includeAllActivities?: boolean }) {
+export async function exportAgendaPdf(doctorName: string, days: Day[], options?: { periodLabel?: string; fileSuffix?: string }) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const fontSize = 7.4;
-  const cards: Card[] = days.map((day) => {
+  const maxLinesPerCard = 60;
+  const cards: Card[] = days.flatMap((day) => {
     const activities = day.activities.length ? day.activities : [{ time: "", activity: "Libre / Sin actividades" }];
-    const shown = options?.includeAllActivities ? activities : activities.slice(0, 5);
-    const lines = shown.flatMap((activity) => {
+    const lines = activities.flatMap((activity) => {
       const isShift = activity.activity.includes("TURNO");
       const font = isShift ? bold : regular;
       const value = `${activity.time ? `${activity.time}  ` : ""}${activity.activity}`;
       return wrap(value, font, fontSize, CARD_WIDTH - 14).map((text) => ({ text, bold: isShift }));
     });
-    return { day, lines, height: Math.max(34, 32 + (lines.length - 1) * 7.5) };
+    const parts = Math.max(1, Math.ceil(lines.length / maxLinesPerCard));
+    return Array.from({ length: parts }, (_, part) => {
+      const segment = lines.slice(part * maxLinesPerCard, (part + 1) * maxLinesPerCard);
+      const label = parts > 1 ? `${day.label} · continuación ${part + 1}/${parts}` : day.label;
+      const cardDay = label === day.label ? day : { ...day, label };
+      return { day: cardDay, lines: segment, height: Math.max(34, 32 + (segment.length - 1) * 7.5) };
+    });
   });
+  if (!cards.length) return;
   const rows = Array.from({ length: Math.ceil(cards.length / COLUMNS) }, (_, index) => cards.slice(index * COLUMNS, (index + 1) * COLUMNS));
   const pages: Array<Array<{ cards: Card[]; height: number }>> = [[]];
   let used = 0;
   rows.forEach((row) => {
     const height = Math.max(...row.map((card) => card.height));
     const gap = pages.at(-1)!.length ? ROW_GAP : 0;
-    if (pages.at(-1)!.length >= 6 || used + gap + height > TOP - BOTTOM) {
+    if (pages.at(-1)!.length && used + gap + height > TOP - BOTTOM) {
       pages.push([]);
       used = 0;
     }

@@ -55,6 +55,7 @@ export function EdfModule({
     .map((schedule) => ({ id: schedule.id, year: schedule.year, month: schedule.month, schedule })), [schedules]);
   const [selectedMonthId, setSelectedMonthId] = useState(months[0]?.id ?? "");
   const [selectedDoctorName, setSelectedDoctorName] = useState("");
+  const [doctorMappings, setDoctorMappings] = useState<Record<string, string>>({});
   const [workbook, setWorkbook] = useState<XLSX.WorkBook | null>(null);
   const [loading, setLoading] = useState(Boolean(initialAgenda));
   const [exporting, setExporting] = useState<"turnos" | "agenda" | null>(null);
@@ -101,7 +102,10 @@ export function EdfModule({
     ?? doctorOptions[0]?.name
     ?? "";
   const doctorName = selectedDoctorName || preferredDoctorName;
-  const matchingDoctor = doctors.find((doctor) => doctorName && matchesDoctor(doctorName, doctor));
+  const doctorNameKey = normalizedName(doctorName);
+  const doctorCandidates = doctors.filter((doctor) => doctorName && matchesDoctor(doctorName, doctor));
+  const explicitDoctor = doctors.find((doctor) => doctor.id === doctorMappings[doctorNameKey]);
+  const matchingDoctor = explicitDoctor ?? (doctorCandidates.length === 1 ? doctorCandidates[0] : undefined);
   const selectedSchedule = selectedMonth?.schedule;
 
   const exportTurnos = useCallback(async () => {
@@ -158,7 +162,6 @@ export function EdfModule({
       await exportAgendaPdf(doctorName, uniqueDays, {
         periodLabel: monthLabel(selectedMonth.year, selectedMonth.month),
         fileSuffix: selectedMonth.id,
-        includeAllActivities: true,
       });
       toast.success("PDF de Agenda APS descargado");
     } catch (error) {
@@ -214,7 +217,16 @@ export function EdfModule({
               {months.map((month) => <option key={month.id} value={month.id}>{monthLabel(month.year, month.month)}</option>)}
             </select>
           </label>
-          <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:mt-1" disabled={!selectedMonth || !doctorName || Boolean(exporting)} onClick={() => void exportTurnos()} type="button">
+          {doctorCandidates.length !== 1 ? <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs sm:col-span-2" role="alert">
+            <p className="font-semibold text-amber-900 dark:text-amber-100">{doctorCandidates.length > 1 ? "Hay más de un médico compatible con este nombre del Excel." : "No hay una coincidencia segura con la nómina."} Asocia el nombre manualmente antes de exportar turnos.</p>
+            <label className="mt-2 grid gap-1 text-[var(--muted)]">Médico de la nómina
+              <select className="rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)]" onChange={(event) => setDoctorMappings((current) => ({ ...current, [doctorNameKey]: event.target.value }))} value={matchingDoctor?.id ?? ""}>
+                <option value="">Selecciona médico…</option>
+                {doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.longName}</option>)}
+              </select>
+            </label>
+          </div> : null}
+          <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:mt-1" disabled={!selectedMonth || !doctorName || !matchingDoctor || Boolean(exporting)} onClick={() => void exportTurnos()} type="button">
             {exporting === "turnos" ? <LoaderCircle className="animate-spin" size={17} /> : <Download size={17} />} Exportar turnos
           </button>
           <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 sm:mt-1" disabled={!workbook || loading || !selectedMonth || !doctorName || Boolean(exporting)} onClick={() => void exportAgenda()} type="button">

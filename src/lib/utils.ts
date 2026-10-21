@@ -61,6 +61,13 @@ export function formatDateTime(value: string | Date) {
 }
 
 export function isActiveReplacement(date: string, today = new Date()) {
-  const expiry = addDays(new Date(`${date}T12:00:00`), 120);
-  return expiry >= today;
+  const todayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Santiago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(today);
+  if (date > todayKey) return false;
+  const expiry = addDays(new Date(`${date}T12:00:00Z`), 120).toISOString().slice(0, 10);
+  return expiry >= todayKey;
 }

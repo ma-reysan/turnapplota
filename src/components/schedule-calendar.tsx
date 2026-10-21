@@ -113,10 +113,10 @@ export function ScheduleCalendar({
     [conflicts, schedules],
   );
   const visibleDateKeys = useMemo(
-    () => new Set(calendarDays(schedule.year, schedule.month).map((date) =>
+    () => new Set(schedule ? calendarDays(schedule.year, schedule.month).map((date) =>
       `${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`,
-    )),
-    [schedule.month, schedule.year],
+    ) : []),
+    [schedule],
   );
 
   const visibleDoctors = useMemo(() => {

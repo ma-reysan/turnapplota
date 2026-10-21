@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return Response.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   }
-  const expiresAt = addDays(new Date(`${parsed.data.date}T12:00:00`), 120)
+  const expiresAt = addDays(new Date(`${parsed.data.date}T12:00:00Z`), 120)
     .toISOString()
     .slice(0, 10);
   const record = { ...parsed.data, replacementDate: parsed.data.date, expiresAt };
