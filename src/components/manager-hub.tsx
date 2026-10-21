@@ -1682,15 +1682,15 @@ function ScoreManager({
   return (
     <div className="space-y-3">
       <form
-        className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
+        className="mx-auto w-full max-w-[1240px] rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
         onSubmit={submit}
       >
         <div className="flex items-center gap-2">
           <Star size={17} className="text-[var(--brand)]" />
           <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2">
-          <label className="text-xs text-[var(--muted)]">
+        <div className="mt-3 flex flex-wrap items-end gap-2.5">
+          <label className="w-full text-xs text-[var(--muted)] sm:w-[160px]">
             Fecha
             <input
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
@@ -1699,7 +1699,7 @@ function ScoreManager({
               value={date}
             />
           </label>
-          <label className="text-xs text-[var(--muted)]">
+          <label className="w-full text-xs text-[var(--muted)] sm:w-[240px]">
             Médico
             <select
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
@@ -1715,8 +1715,7 @@ function ScoreManager({
                 ))}
             </select>
           </label>
-          <div className="grid gap-2">
-            <label className="text-xs text-[var(--muted)]">
+          <label className="w-full text-xs text-[var(--muted)] sm:w-[150px]">
               Tipo de puntaje
               <select
                 className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
@@ -1726,9 +1725,9 @@ function ScoreManager({
                 <option value="replacement">Reemplazo</option>
                 <option value="base">Punto Base</option>
               </select>
-            </label>
-            {scoreType === "replacement" ? <>
-            <fieldset className="text-xs text-[var(--muted)]">
+          </label>
+          {scoreType === "replacement" ? <>
+            <fieldset className="w-full text-xs text-[var(--muted)] sm:w-[170px]">
               <legend>Turno</legend>
               <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
                 {(["day", "night"] as const).map((item) => (
@@ -1751,9 +1750,9 @@ function ScoreManager({
                 ))}
               </div>
             </fieldset>
-            <fieldset>
-              <legend className="sr-only">Tipo de puntaje</legend>
-              <div className="grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
+            <fieldset className="w-full sm:w-[225px]">
+              <legend className="text-xs text-[var(--muted)]">Condición</legend>
+              <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
                 <label className={cn("flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition", mode === "invoked" && "bg-[var(--brand)] text-white")}>
                   <input
                     checked={mode === "invoked"}
@@ -1777,9 +1776,8 @@ function ScoreManager({
                 </label>
               </div>
             </fieldset>
-            </> : null}
-          </div>
-          <label className="self-end text-xs text-[var(--muted)]">
+          </> : null}
+          <label className="w-full text-xs text-[var(--muted)] sm:w-[80px]">
             Puntos
             <input
               className="mt-1 block w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs text-[var(--foreground)]"
@@ -1792,7 +1790,7 @@ function ScoreManager({
             />
           </label>
           <button
-            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2"
+            className="flex h-[31px] w-full items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white sm:w-[105px]"
             disabled={fichaBlocked}
             type="submit"
           >
