@@ -4,6 +4,7 @@ import { hasJefaturaSession } from "@/lib/auth";
 import { getAppData } from "@/lib/data";
 import { readNovemberData } from "@/lib/november-data";
 import { NEW_SYSTEM_START, weekStart } from "@/lib/november-system";
+import { SHIFT_COLOR_KEYS } from "@/lib/shift-colors";
 
 const id = z.string().min(1).max(100);
 const absence = z.object({
@@ -12,7 +13,10 @@ const absence = z.object({
   note: z.string().max(300).optional(),
 });
 const actionSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("oncall.set"), weekStart: z.iso.date(), doctorIds: z.array(id).length(3) }),
+  z.object({ type: z.literal("oncall.set"), weekStart: z.iso.date(),
+    doctorIds: z.array(z.union([id, z.literal("")])).length(3),
+    colorKeys: z.array(z.union([z.null(), z.string().refine((value) => SHIFT_COLOR_KEYS.includes(value as typeof SHIFT_COLOR_KEYS[number]))])).length(3),
+  }),
   z.object({ type: z.literal("absence.add"), absence }),
   z.object({ type: z.literal("absence.delete"), id }),
   z.object({ type: z.literal("freeze.add"), freeze: z.object({
@@ -22,9 +26,6 @@ const actionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("base.set"), assignmentId: id, worked: z.boolean(),
     reason: z.string().trim().min(3).max(300) }),
   z.object({ type: z.literal("base.delete"), assignmentId: id }),
-  z.object({ type: z.literal("doctor.conditions"), doctorId: id,
-    onlyVolunteer: z.boolean(), allowDay: z.boolean(), allowNight: z.boolean(),
-    allowFridaySaturday24: z.boolean() }),
 ]);
 
 async function ready() {
@@ -50,25 +51,26 @@ export async function POST(request: Request) {
   const transition = await readNovemberData(data);
   const sql = getSql();
   if (action.type === "oncall.set") {
+    const selected = action.doctorIds.filter(Boolean);
     if (action.weekStart !== weekStart(action.weekStart) || action.weekStart < weekStart(NEW_SYSTEM_START) ||
       !transition.onCallWeeks.some((item) => item.weekStart === action.weekStart) ||
-      new Set(action.doctorIds).size !== 3) {
-      return Response.json({ error: "Semana o trío de llamado inválido" }, { status: 400 });
+      new Set(selected).size !== selected.length) {
+      return Response.json({ error: "Semana o médicos de llamado inválidos" }, { status: 400 });
     }
     const end = new Date(action.weekStart + "T12:00:00");
     end.setDate(end.getDate() + 6);
     const weekEnd = end.toISOString().slice(0, 10);
-    if (action.doctorIds.some((doctorId) => {
+    if (selected.some((doctorId) => {
       const doctor = data.doctors.find((item) => item.id === doctorId);
-      return !doctor?.active || doctor.onlyVolunteer ||
+      return !doctor?.active ||
         transition.absences.some((item) => item.doctorId === doctorId &&
           item.startDate <= weekEnd && item.endDate >=
             (action.weekStart < NEW_SYSTEM_START ? NEW_SYSTEM_START : action.weekStart));
     })) return Response.json({ error: "Uno de los médicos no puede quedar de llamado" }, { status: 400 });
-    await sql`INSERT INTO on_call_weeks (week_start, doctor_ids, manual, needs_review)
-      VALUES (${action.weekStart}, ${JSON.stringify(action.doctorIds)}::jsonb, true, false)
+    await sql`INSERT INTO on_call_weeks (week_start, doctor_ids, color_keys, manual, needs_review)
+      VALUES (${action.weekStart}, ${JSON.stringify(action.doctorIds)}::jsonb, ${JSON.stringify(action.colorKeys)}::jsonb, true, false)
       ON CONFLICT (week_start) DO UPDATE SET doctor_ids = EXCLUDED.doctor_ids,
-        manual = true, needs_review = false, updated_at = now()`;
+        color_keys = EXCLUDED.color_keys, manual = true, needs_review = false, updated_at = now()`;
   } else if (action.type === "absence.add") {
     const item = action.absence;
     if (!data.doctors.some((doctor) => doctor.id === item.doctorId) || item.endDate < item.startDate)
@@ -105,19 +107,7 @@ export async function POST(request: Request) {
       ON CONFLICT (assignment_id) DO UPDATE SET worked = EXCLUDED.worked,
         reason = EXCLUDED.reason, updated_at = now()`;
   } else {
-    if (action.type === "doctor.conditions") {
-      if (!data.doctors.some((item) => item.id === action.doctorId)) {
-        return Response.json({ error: "Médico no encontrado" }, { status: 404 });
-      }
-      await sql`UPDATE doctors SET only_volunteer = ${action.onlyVolunteer},
-        allow_day = ${action.allowDay}, allow_night = ${action.allowNight},
-        allow_friday_saturday_24 = ${action.allowFridaySaturday24}, updated_at = now()
-        WHERE id = ${action.doctorId}`;
-      await sql`UPDATE on_call_weeks SET needs_review = true, updated_at = now()
-        WHERE doctor_ids ? ${action.doctorId} AND week_start + 6 >= DATE '2026-11-01'`;
-    } else {
-      await sql`DELETE FROM base_corrections WHERE assignment_id = ${action.assignmentId}`;
-    }
+    await sql`DELETE FROM base_corrections WHERE assignment_id = ${action.assignmentId}`;
   }
   return Response.json({ ok: true });
 }

@@ -25,13 +25,14 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
+import { AbsenceFreezeManager } from "@/components/absence-freeze-manager";
 import { NovemberManager } from "@/components/november-manager";
 import type { NovemberData } from "@/lib/november-data";
-import { availableFichas, NEW_SYSTEM_START, santiagoParts } from "@/lib/november-system";
+import { availableFichas, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
+import type { OnCallWeek } from "@/lib/november-system";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
 import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
@@ -61,10 +62,6 @@ import {
   monthLabel,
   normalizeDoctorSearch,
 } from "@/lib/utils";
-
-const ShiftGeneratorManager = dynamic(() =>
-  import("@/components/shift-generator-manager").then((module) => module.ShiftGeneratorManager),
-);
 
 function DoctorDragCard({
   doctor,
@@ -191,11 +188,11 @@ function EditableShiftCard({
       <input
         aria-label={`${kind === "DAY" ? "Turno día" : "Turno noche"} ${slot}`}
         className={cn(
-        "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow,opacity] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
+          "relative z-30 block h-[18px] w-full rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] py-0 pl-5 pr-5 text-center text-[9px] font-bold uppercase leading-[16px] text-[var(--shift-normal-text)] outline-none transition-[border-color,box-shadow,opacity] duration-150 focus:ring-2 focus:ring-[var(--brand)] sm:text-[10px]",
           hasIncompatibility && "border-amber-500 ring-1 ring-amber-500",
           isOver && !laneHighlighted && "border-[var(--brand)] ring-2 ring-[var(--brand)]",
-        laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
-        dimmed && "opacity-[.32]",
+          laneHighlighted && "border-purple-500 ring-2 ring-purple-500",
+          dimmed && "opacity-[.32]",
         )}
         disabled={!editable}
         onBlur={() => window.setTimeout(validate, 120)}
@@ -455,9 +452,13 @@ function RosterEditor({
 
 function ColorLegendEditor({
   items,
+  scheduleId,
+  scheduleLabel,
   onChange,
 }: {
   items: ShiftColorLegendItem[];
+  scheduleId: string;
+  scheduleLabel: string;
   onChange: (items: ShiftColorLegendItem[]) => void;
 }) {
   const [saving, setSaving] = useState(false);
@@ -467,7 +468,7 @@ function ColorLegendEditor({
     const response = await fetch("/api/shift-colors", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ scheduleId, items }),
     });
     const result = (await response.json()) as { error?: string };
     setSaving(false);
@@ -484,7 +485,7 @@ function ColorLegendEditor({
         <span className="flex items-center gap-1.5">
           <Palette size={13} className="text-[var(--brand)]" />
           <strong className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)]">
-            Colores
+            Colores · {scheduleLabel}
           </strong>
         </span>
         <button
@@ -493,7 +494,7 @@ function ColorLegendEditor({
           onClick={saveLegend}
           type="button"
         >
-          {saving ? "Guardando…" : "Guardar leyenda"}
+          {saving ? "Guardando…" : "Guardar para este mes"}
         </button>
       </div>
       <div className="mt-2 grid gap-1">
@@ -549,10 +550,16 @@ function ScheduleManager({
   initialDoctors,
   schedules,
   initialColorLegend,
+  initialColorLegends,
+  onCallWeeks,
+  onOnCallSaved,
 }: {
   initialDoctors: Doctor[];
   schedules: ScheduleMonth[];
   initialColorLegend: ShiftColorLegendItem[];
+  initialColorLegends: Record<string, ShiftColorLegendItem[]>;
+  onCallWeeks: OnCallWeek[];
+  onOnCallSaved: () => Promise<void>;
 }) {
   const [extraMonths, setExtraMonths] = useState<ScheduleMonth[]>([]);
   const sorted = useMemo(
@@ -570,7 +577,7 @@ function ScheduleManager({
   const [markersByMonth, setMarkersByMonth] = useState<Record<string, ShiftMarker[]>>(
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.markers ?? []])),
   );
-  const [colorLegend, setColorLegend] = useState(initialColorLegend);
+  const [colorLegendsByMonth, setColorLegendsByMonth] = useState(initialColorLegends);
   const [versions, setVersions] = useState<Record<string, number>>(
     () => Object.fromEntries(sorted.map((schedule) => [schedule.id, schedule.version ?? 1])),
   );
@@ -582,13 +589,49 @@ function ScheduleManager({
   const [publishing, setPublishing] = useState(false);
   const [laneMode, setLaneMode] = useState(false);
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
+  const [weekEdits, setWeekEdits] = useState<Record<string, Pick<OnCallWeek, "doctorIds" | "colorKeys">>>({});
+  const [savingWeek, setSavingWeek] = useState<string | null>(null);
   const [draggedDoctorId, setDraggedDoctorId] = useState<string | null>(null);
   const [overSlotId, setOverSlotId] = useState<string | null>(null);
   const schedule = sorted.find((item) => item.id === selectedId) ?? initialSchedule;
   const assignments = assignmentsByMonth[selectedId] ?? [];
   const markers = markersByMonth[selectedId] ?? [];
+  const colorLegend = colorLegendsByMonth[selectedId] ?? initialColorLegend;
   const hasPendingChanges = Boolean(pendingChanges[selectedId]);
   const isSavingSelected = Boolean(savingMonths[selectedId]);
+  const showOnCall = selectedId >= NEW_SYSTEM_START.slice(0, 7);
+  const onCallByWeek = new Map(onCallWeeks.map((week) => [week.weekStart, week]));
+
+  async function saveOnCallWeek(start: string) {
+    const selected = weekEdits[start];
+    if (!selected) return;
+    const filled = selected.doctorIds.filter(Boolean);
+    if (new Set(filled).size !== filled.length) {
+      toast.error("Un médico no puede ocupar dos cupos de llamado de la misma semana");
+      return;
+    }
+    setSavingWeek(start);
+    try {
+      const response = await fetch("/api/november", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "oncall.set", weekStart: start, ...selected }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error ?? "No fue posible guardar el llamado");
+      await onOnCallSaved();
+      setWeekEdits((current) => {
+        const next = { ...current };
+        delete next[start];
+        return next;
+      });
+      toast.success("Llamado semanal guardado");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible guardar el llamado");
+    } finally {
+      setSavingWeek(null);
+    }
+  }
 
   const toggleHighlightedDoctor = useCallback((doctorId: string) => {
     setHighlightedDoctor((current) => current === doctorId ? null : doctorId);
@@ -1031,22 +1074,28 @@ function ScheduleManager({
           </div>
           <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
           <div className="scrollbar-subtle overflow-x-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
-            <div className="grid min-w-[680px] grid-cols-7 gap-1">
+            <div className={cn("grid gap-1", showOnCall
+              ? "min-w-[900px] grid-cols-[repeat(7,minmax(95px,1fr))_minmax(165px,1.4fr)]"
+              : "min-w-[680px] grid-cols-7")}>
               {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((day) => (
                 <div className="pb-1 text-center text-[9px] font-semibold text-[var(--muted)]" key={day}>
                   {day}
                 </div>
               ))}
-              {calendarDays(schedule.year, schedule.month).map((date) => {
+              {showOnCall ? <div className="pb-1 text-center text-[9px] font-semibold text-[var(--muted)]">Llamado</div> : null}
+              {calendarDays(schedule.year, schedule.month).map((date, index) => {
                 const dateKey = `${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`;
                 const inMonth = date.getMonth() + 1 === schedule.month;
+                const start = weekStart(dateKey);
+                const storedWeek = onCallByWeek.get(start);
+                const selectedWeek = weekEdits[start] ?? storedWeek ?? { doctorIds: ["", "", ""], colorKeys: [null, null, null] };
                 return (
+                  <div className="contents" key={dateKey}>
                   <div
                     className={cn(
                       "relative min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
-                    key={dateKey}
                   >
                     <span className="block text-right text-[9px] leading-3 text-[var(--muted)]">
                       {date.getDate()}
@@ -1091,6 +1140,48 @@ function ScheduleManager({
                         />
                       ))}
                     </div>
+                  </div>
+                  {showOnCall && index % 7 === 6 ? <div className="flex min-h-[105px] flex-col gap-1 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1">
+                    <span className="text-center text-[9px] font-semibold text-[var(--muted)]">Semana {start.slice(5)}</span>
+                    {[0, 1, 2].map((slot) => {
+                      const doctorId = selectedWeek.doctorIds[slot] ?? "";
+                      const colorKey = selectedWeek.colorKeys[slot] ?? null;
+                      return <div className="flex gap-0.5" key={slot}>
+                        <select aria-label={`Médico de llamado ${slot + 1}, semana ${start}`}
+                          className="h-5 min-w-0 flex-1 rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-0.5 text-[9px] font-semibold text-[var(--shift-normal-text)]"
+                          disabled={savingWeek === start}
+                          onChange={(event) => setWeekEdits((current) => ({ ...current, [start]: {
+                            doctorIds: [0, 1, 2].map((position) => position === slot ? event.target.value : selectedWeek.doctorIds[position] ?? ""),
+                            colorKeys: [0, 1, 2].map((position) => selectedWeek.colorKeys[position] ?? null),
+                          } }))}
+                          style={shiftColorStyle(colorKey ?? undefined)} value={doctorId}>
+                          <option value="">—</option>
+                          {doctorId && !doctors.some((doctor) => doctor.id === doctorId && doctor.active)
+                            ? <option value={doctorId}>{doctors.find((doctor) => doctor.id === doctorId)?.shortName ?? doctorId} (inactivo)</option>
+                            : null}
+                          {doctors.filter((doctor) => doctor.active).map((doctor) => <option
+                            disabled={selectedWeek.doctorIds.some((value, position) => position !== slot && value === doctor.id)}
+                            key={doctor.id} value={doctor.id}>{doctor.shortName}</option>)}
+                        </select>
+                        <select aria-label={`Color de llamado ${slot + 1}, semana ${start}`}
+                          className="h-5 w-10 rounded border border-[var(--shift-border)] bg-[var(--surface)] text-[9px]"
+                          disabled={savingWeek === start}
+                          onChange={(event) => setWeekEdits((current) => ({ ...current, [start]: {
+                            doctorIds: [0, 1, 2].map((position) => selectedWeek.doctorIds[position] ?? ""),
+                            colorKeys: [0, 1, 2].map((position) => position === slot ? event.target.value as ShiftColorKey || null : selectedWeek.colorKeys[position] ?? null),
+                          } }))} value={colorKey ?? ""}>
+                          <option value="">○</option>
+                          {colorLegend.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}
+                        </select>
+                      </div>;
+                    })}
+                    <button className="rounded bg-[var(--brand)] px-1 py-0.5 text-[9px] font-semibold text-white disabled:opacity-50"
+                      disabled={!weekEdits[start] || Boolean(savingWeek) || hasPendingChanges || isSavingSelected}
+                      onClick={() => void saveOnCallWeek(start)} type="button">
+                      {savingWeek === start ? "Guardando…" : "Guardar llamado"}
+                    </button>
+                    {storedWeek?.needsReview ? <span className="text-center text-[9px] text-amber-700">Revisar semana</span> : null}
+                  </div> : null}
                   </div>
                 );
               })}
@@ -1143,7 +1234,12 @@ function ScheduleManager({
                     ))}
                 </div>
               </div>
-              <ColorLegendEditor items={colorLegend} onChange={setColorLegend} />
+              <ColorLegendEditor
+                items={colorLegend}
+                scheduleId={selectedId}
+                scheduleLabel={schedule ? monthLabel(schedule.year, schedule.month) : selectedId}
+                onChange={(items) => setColorLegendsByMonth((current) => ({ ...current, [selectedId]: items }))}
+              />
             </>
           )}
         </aside>
@@ -1161,10 +1257,10 @@ const managerAnalysisHeaders: Array<{ label: string; field: ManagerAnalysisSortK
   { label: "Mes", field: "month" },
   { label: "Día", field: "day" },
   { label: "Noche", field: "night" },
-  { label: "Últ. 3 meses", field: "trailingThreeMonths" },
-  { label: "Dif.", field: "difference" },
   { label: "FDS", field: "weekend" },
   { label: "FDS 3 meses", field: "trailingWeekend", className: "px-3" },
+  { label: "Últ. 3 meses", field: "trailingThreeMonths" },
+  { label: "Dif.", field: "difference" },
 ];
 
 function ScheduleManagerMiniAnalysis({
@@ -1233,12 +1329,12 @@ function ScheduleManagerMiniAnalysis({
                 <td className="px-2 py-1.5 text-center">{row.month}</td>
                 <td className="px-2 py-1.5 text-center">{row.day}</td>
                 <td className="px-2 py-1.5 text-center">{row.night}</td>
+                <td className="px-2 py-1.5 text-center">{row.weekend}</td>
+                <td className="px-3 py-1.5 text-center">{row.trailingWeekend}</td>
                 <td className="px-2 py-1.5 text-center">{row.trailingThreeMonths}</td>
                 <td className={cn("px-2 py-1.5 text-center font-semibold", row.difference > 0.5 ? "text-amber-600" : row.difference < -0.5 ? "text-sky-600" : "text-[var(--brand)]")}>
                   {row.difference > 0 ? "+" : ""}{row.difference.toFixed(1)}
                 </td>
-                <td className="px-2 py-1.5 text-center">{row.weekend}</td>
-                <td className="px-3 py-1.5 text-center">{row.trailingWeekend}</td>
               </tr>
             ))}
           </tbody>
@@ -1253,11 +1349,15 @@ function ScoreManager({
   types,
   recent,
   holidays,
+  november,
+  onNovemberUpdate,
 }: {
   doctors: Doctor[];
   types: ReplacementType[];
   recent: Replacement[];
   holidays: Holiday[];
+  november: NovemberData;
+  onNovemberUpdate: (data: NovemberData) => void;
 }) {
   const formTypes = types.filter((type) => type.code !== "HERO");
   const [date, setDate] = useState(santiagoParts(new Date()).date);
@@ -1371,7 +1471,8 @@ function ScoreManager({
   }
 
   return (
-    <div className="grid gap-3 xl:w-3/5 xl:min-w-[760px]">
+    <div className="grid gap-3 xl:grid-cols-2">
+      <div className="space-y-3">
       <form
         className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3"
         onSubmit={submit}
@@ -1380,7 +1481,7 @@ function ScoreManager({
           <Star size={17} className="text-[var(--brand)]" />
           <h2 className="text-sm font-semibold">Agregar puntaje nuevo</h2>
         </div>
-        <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[110px_minmax(135px,1fr)_minmax(145px,1.2fr)_118px_105px_65px_auto] xl:items-end">
+        <div className="mt-2 grid gap-2 md:grid-cols-2 2xl:grid-cols-3 2xl:items-end">
           <label className="text-xs text-[var(--muted)]">
             Fecha
             <input
@@ -1462,7 +1563,7 @@ function ScoreManager({
             />
           </label>
           <button
-            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 xl:col-span-1"
+            className="flex h-[31px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand)] px-3 text-xs font-semibold text-white md:col-span-2 2xl:col-span-3"
             disabled={fichaBlocked}
             type="submit"
           >
@@ -1471,8 +1572,8 @@ function ScoreManager({
         </div>
         {fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Las convocatorias no requieren fichas.</p> : null}
       </form>
-      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3 xl:w-[72%] xl:min-w-[540px]">
-        <h2 className="text-sm font-semibold">Últimos reemplazos</h2>
+      <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <h2 className="text-sm font-semibold">Últimos voluntarios e invocados</h2>
         <div className="mt-2 divide-y divide-[var(--line)]">
           {history.map((replacement) => (
             <div
@@ -1508,6 +1609,8 @@ function ScoreManager({
           ))}
         </div>
       </section>
+      </div>
+      <AbsenceFreezeManager data={november} doctors={doctors} onUpdate={onNovemberUpdate} />
     </div>
   );
 }
@@ -1519,6 +1622,7 @@ export function ManagerHub({
   replacements,
   holidays,
   shiftColorLegend,
+  shiftColorLegends,
   november,
 }: {
   doctors: Doctor[];
@@ -1527,9 +1631,17 @@ export function ManagerHub({
   replacements: Replacement[];
   holidays: Holiday[];
   shiftColorLegend: ShiftColorLegendItem[];
+  shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   november: NovemberData;
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "generator" | "november" | "otros">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "november" | "otros">("schedule");
+  const [novemberData, setNovemberData] = useState(november);
+  const reloadNovember = useCallback(async () => {
+    const response = await fetch("/api/november", { cache: "no-store" });
+    const result = await response.json() as NovemberData & { error?: string };
+    if (!response.ok) throw new Error(result.error ?? "No fue posible actualizar el llamado");
+    setNovemberData(result);
+  }, []);
   return (
     <div>
       <div className="mb-3 grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
@@ -1540,6 +1652,16 @@ export function ManagerHub({
           <h1 className="text-2xl font-semibold tracking-tight">Jefe de Urgencias</h1>
         </div>
         <div className="flex flex-wrap justify-center justify-self-center rounded-xl bg-[var(--surface-soft)] p-0.5">
+          <button
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
+              tab === "november" && "bg-[var(--surface)] shadow-sm",
+            )}
+            onClick={() => setTab("november")}
+            type="button"
+          >
+            <CalendarCheck size={16} /> Desde noviembre
+          </button>
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
@@ -1563,16 +1685,6 @@ export function ManagerHub({
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
-              tab === "generator" && "bg-[var(--surface)] shadow-sm",
-            )}
-            onClick={() => setTab("generator")}
-            type="button"
-          >
-            <CalendarPlus size={16} /> Generador <span className="text-[8px] font-bold text-purple-600">BETA</span>
-          </button>
-          <button
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
               tab === "otros" && "bg-[var(--surface)] shadow-sm",
             )}
             onClick={() => setTab("otros")}
@@ -1580,24 +1692,17 @@ export function ManagerHub({
           >
             <Star size={16} /> Otros
           </button>
-          <button
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
-              tab === "november" && "bg-[var(--surface)] shadow-sm",
-            )}
-            onClick={() => setTab("november")}
-            type="button"
-          >
-            <CalendarCheck size={16} /> Desde noviembre
-          </button>
         </div>
         <div className="hidden sm:block" />
       </div>
       {tab === "schedule" ? (
         <ScheduleManager
           initialColorLegend={shiftColorLegend}
+          initialColorLegends={shiftColorLegends ?? {}}
           initialDoctors={doctors}
           schedules={schedules}
+          onCallWeeks={novemberData.onCallWeeks}
+          onOnCallSaved={reloadNovember}
         />
       ) : tab === "scores" ? (
         <ScoreManager
@@ -1605,11 +1710,11 @@ export function ManagerHub({
           holidays={holidays}
           recent={replacements}
           types={types}
+          november={novemberData}
+          onNovemberUpdate={setNovemberData}
         />
-      ) : tab === "generator" ? (
-        <ShiftGeneratorManager holidays={holidays} />
       ) : tab === "november" ? (
-        <NovemberManager doctors={doctors} schedules={schedules} initial={november} />
+        <NovemberManager doctors={doctors} schedules={schedules} initial={novemberData} onUpdate={setNovemberData} />
       ) : (
         <OtrosManager initialHolidays={holidays} />
       )}

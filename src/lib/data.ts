@@ -7,6 +7,7 @@ import {
   replacementTypes,
   replacements,
   scheduleMonths,
+  scheduleShiftColorLegend,
   shiftAssignments,
   shiftColorLegend,
   shiftMarkers,
@@ -24,10 +25,14 @@ const seed = seedJson as SeedData;
 
 export async function getAppData(): Promise<SeedData> {
   if (!isDatabaseConfigured()) {
+    const shiftColorLegend = seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND;
     return {
       ...seed,
       schedules: seed.schedules.map((schedule) => ({ ...schedule, markers: schedule.markers ?? [] })),
-      shiftColorLegend: seed.shiftColorLegend ?? DEFAULT_SHIFT_COLOR_LEGEND,
+      shiftColorLegend,
+      shiftColorLegends: seed.shiftColorLegends ?? Object.fromEntries(
+        seed.schedules.map((schedule) => [schedule.id, shiftColorLegend]),
+      ),
       holidays: seed.holidays ?? [],
       protocols: [
         ...(seed.protocols ?? []).filter((item) => !DRIVE_PROTOCOL_CATALOG.some((catalog) => catalog.url === item.url)),
@@ -44,13 +49,14 @@ export async function getAppData(): Promise<SeedData> {
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows] =
+  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, scheduleLegendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
       db.select().from(shiftAssignments).orderBy(asc(shiftAssignments.shiftDate)),
       db.select().from(shiftMarkers).orderBy(asc(shiftMarkers.shiftDate)),
       db.select().from(shiftColorLegend).orderBy(asc(shiftColorLegend.colorKey)),
+      db.select().from(scheduleShiftColorLegend).orderBy(asc(scheduleShiftColorLegend.scheduleId), asc(scheduleShiftColorLegend.colorKey)),
       db
         .select()
         .from(replacements)
@@ -71,6 +77,23 @@ export async function getAppData(): Promise<SeedData> {
         .limit(1),
     ]);
 
+  const globalShiftColorLegend = DEFAULT_SHIFT_COLOR_LEGEND.map((fallback) => {
+    const stored = legendRows.find((item) => item.colorKey === fallback.key);
+    return stored ? { key: fallback.key, label: stored.label } : fallback;
+  });
+  const monthlyLegendLabels = new Map(
+    scheduleLegendRows.map((item) => [`${item.scheduleId}:${item.colorKey}`, item.label]),
+  );
+  const shiftColorLegends = Object.fromEntries(monthRows.map((month) => [
+    month.id,
+    DEFAULT_SHIFT_COLOR_LEGEND.map((fallback) => {
+      const label = monthlyLegendLabels.get(`${month.id}:${fallback.key}`)
+        ?? globalShiftColorLegend.find((item) => item.key === fallback.key)?.label
+        ?? fallback.label;
+      return { key: fallback.key, label };
+    }),
+  ]));
+
   return {
     ...seed,
     doctors: doctorRows.map((row) => ({
@@ -79,10 +102,6 @@ export async function getAppData(): Promise<SeedData> {
       longName: row.longName,
       active: row.active,
       sortOrder: row.sortOrder,
-      onlyVolunteer: row.onlyVolunteer,
-      allowDay: row.allowDay,
-      allowNight: row.allowNight,
-      allowFridaySaturday24: row.allowFridaySaturday24,
     })),
     schedules: monthRows.map((month) => ({
       id: month.id,
@@ -109,10 +128,8 @@ export async function getAppData(): Promise<SeedData> {
           colorKey: marker.colorKey as ShiftColorKey,
         })),
     })),
-    shiftColorLegend: DEFAULT_SHIFT_COLOR_LEGEND.map((fallback) => {
-      const stored = legendRows.find((item) => item.colorKey === fallback.key);
-      return stored ? { key: fallback.key, label: stored.label } : fallback;
-    }),
+    shiftColorLegend: globalShiftColorLegend,
+    shiftColorLegends,
     replacements: replacementRows.map((row) => ({
       id: row.id,
       date: row.replacementDate,

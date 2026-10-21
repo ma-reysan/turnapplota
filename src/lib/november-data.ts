@@ -1,6 +1,6 @@
 import { getDb, isDatabaseConfigured } from "@/db";
 import { baseCorrections, doctorAbsences, onCallWeeks, pointFreezes } from "@/db/schema";
-import { generateOnCallWeeks } from "@/lib/november-system";
+import { manualOnCallWeek, prepareOnCallWeeks } from "@/lib/november-system";
 import type { BaseCorrection, DoctorAbsence, OnCallWeek, PointFreeze } from "@/lib/november-system";
 import type { SeedData } from "@/lib/types";
 
@@ -11,7 +11,7 @@ export interface NovemberData {
   corrections: BaseCorrection[];
 }
 
-export async function readNovemberData(data: Pick<SeedData, "doctors" | "schedules">): Promise<NovemberData> {
+export async function readNovemberData(data: Pick<SeedData, "schedules">): Promise<NovemberData> {
   if (!isDatabaseConfigured()) {
     return { onCallWeeks: [], absences: [], freezes: [], corrections: [] };
   }
@@ -21,8 +21,10 @@ export async function readNovemberData(data: Pick<SeedData, "doctors" | "schedul
     getDb().select().from(pointFreezes),
     getDb().select().from(baseCorrections),
   ]);
-  const stored: OnCallWeek[] = weeks.map((item) => ({
-    weekStart: item.weekStart, doctorIds: item.doctorIds,
+  const stored: OnCallWeek[] = weeks.map((item) => manualOnCallWeek({
+    weekStart: item.weekStart,
+    doctorIds: item.doctorIds,
+    colorKeys: item.colorKeys,
     manual: item.manual, needsReview: item.needsReview,
   }));
   const absenceRows: DoctorAbsence[] = absences.map((item) => ({
@@ -32,16 +34,9 @@ export async function readNovemberData(data: Pick<SeedData, "doctors" | "schedul
   }));
   const generated = data.schedules.filter((item) => item.id >= "2026-11")
     .sort((a, b) => a.id.localeCompare(b.id)).reduce((current, month) => {
-      try {
-        const next = generateOnCallWeeks({
-          monthId: month.id, doctors: data.doctors, schedules: data.schedules,
-          absences: absenceRows, existing: current,
-        });
-        return [...current, ...next.filter((week) =>
-          !current.some((item) => item.weekStart === week.weekStart))];
-      } catch {
-        return current;
-      }
+      const next = prepareOnCallWeeks(month.id, current);
+      return [...current, ...next.filter((week) =>
+        !current.some((item) => item.weekStart === week.weekStart))];
     }, stored);
   return {
     onCallWeeks: generated.sort((a, b) => a.weekStart.localeCompare(b.weekStart)),

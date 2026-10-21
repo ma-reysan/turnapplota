@@ -18,6 +18,7 @@ export default async function TurnosPage() {
         doctors={data.doctors}
         schedules={published}
         shiftColorLegend={data.shiftColorLegend}
+        shiftColorLegends={data.shiftColorLegends}
         onCallWeeks={november.onCallWeeks}
       />
     </>

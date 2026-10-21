@@ -111,6 +111,10 @@ export const shiftColorLegendSchema = z.object({
   ).length(10),
 });
 
+export const scheduleShiftColorLegendSchema = shiftColorLegendSchema.extend({
+  scheduleId: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+});
+
 export const doctorInputSchema = z.object({
   id: z.string().min(1),
   shortName: z.string().trim().min(2).max(20),

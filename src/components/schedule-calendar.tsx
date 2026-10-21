@@ -14,7 +14,8 @@ import type {
   ShiftMarker,
 } from "@/lib/types";
 import { calendarDays, cn, monthKey, monthLabel } from "@/lib/utils";
-import { appliesOnCall, weekStart, type OnCallWeek } from "@/lib/november-system";
+import { appliesOnCall, weekStart } from "@/lib/november-system";
+import type { OnCallWeek } from "@/lib/november-system";
 
 const weekdayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -60,11 +61,13 @@ export function ScheduleCalendar({
   doctors,
   schedules,
   shiftColorLegend,
+  shiftColorLegends,
   onCallWeeks = [],
 }: {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
   shiftColorLegend: ShiftColorLegendItem[];
+  shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   onCallWeeks?: OnCallWeek[];
 }) {
   const sortedSchedules = useMemo(
@@ -75,7 +78,8 @@ export function ScheduleCalendar({
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const schedule = sortedSchedules.find((item) => item.id === selectedId) ?? sortedSchedules[0];
-  const showOnCall = Boolean(schedule && schedule.id >= "2026-11");
+  const currentColorLegend = shiftColorLegends?.[selectedId] ?? shiftColorLegend;
+  const showOnCall = schedule?.id >= "2026-11";
   const onCallByWeek = new Map(onCallWeeks.map((item) => [item.weekStart, item]));
   const doctorsById = useMemo(
     () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
@@ -106,8 +110,19 @@ export function ScheduleCalendar({
     [schedules],
   );
   const usedColorKeys = useMemo(
-    () => new Set(schedule?.markers?.map((marker) => marker.colorKey) ?? []),
-    [schedule],
+    () => {
+      const keys = new Set(schedule?.markers?.map((marker) => marker.colorKey) ?? []);
+      if (schedule && showOnCall) {
+        const visibleWeeks = new Set(calendarDays(schedule.year, schedule.month).map((date) =>
+          weekStart(`${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`)));
+        for (const week of onCallWeeks) {
+          if (!visibleWeeks.has(week.weekStart)) continue;
+          for (const colorKey of week.colorKeys) if (colorKey) keys.add(colorKey);
+        }
+      }
+      return keys;
+    },
+    [schedule, showOnCall, onCallWeeks],
   );
   const conflicts = useMemo(
     () => findNightToDayConflicts(schedules.flatMap((item) => item.assignments)),
@@ -118,10 +133,10 @@ export function ScheduleCalendar({
     [conflicts, schedules],
   );
   const visibleDateKeys = useMemo(
-    () => new Set(schedule ? calendarDays(schedule.year, schedule.month).map((date) =>
+    () => new Set(calendarDays(schedule.year, schedule.month).map((date) =>
       `${monthKey(date.getFullYear(), date.getMonth() + 1)}-${String(date.getDate()).padStart(2, "0")}`,
-    ) : []),
-    [schedule],
+    )),
+    [schedule.month, schedule.year],
   );
 
   const visibleDoctors = useMemo(() => {
@@ -240,7 +255,7 @@ export function ScheduleCalendar({
 
         <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
           <div
-            className="min-w-[680px] border border-[var(--line)] bg-[var(--surface)] p-3"
+            className={cn("border border-[var(--line)] bg-[var(--surface)] p-3", showOnCall ? "min-w-[900px]" : "min-w-[680px]")}
             ref={exportRef}
           >
             <div className="mb-2 flex items-end justify-between">
@@ -278,6 +293,7 @@ export function ScheduleCalendar({
                       "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
+                    key={dateKey}
                   >
                     <span className="block text-right text-[9px] font-semibold leading-3 text-[var(--muted)]">
                       {date.getDate()}
@@ -313,10 +329,13 @@ export function ScheduleCalendar({
                       <span className="text-center text-[9px] text-[var(--muted)]">
                         {appliesOnCall(start) ? `Semana ${start.slice(8)}` : "Desde 1 nov"}
                       </span>
-                      {week?.doctorIds.map((doctorId) => (
-                        <span className="truncate rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-1 text-center text-[10px] font-semibold"
-                          key={doctorId}>{doctorsById.get(doctorId)?.shortName ?? doctorId}</span>
-                      )) ?? <span className="text-center text-[10px] text-[var(--muted)]">Pendiente</span>}
+                      {[0, 1, 2].map((slot) => {
+                        const doctorId = week?.doctorIds[slot] ?? "";
+                        return <span className="truncate rounded border border-[var(--shift-border)] bg-[var(--shift-normal)] px-1 text-center text-[10px] font-semibold text-[var(--shift-normal-text)]"
+                          key={slot} style={shiftColorStyle(week?.colorKeys[slot] ?? undefined)}>
+                          {doctorsById.get(doctorId)?.shortName ?? "—"}
+                        </span>;
+                      })}
                     </div>
                   ) : null}
                   </div>
@@ -368,7 +387,7 @@ export function ScheduleCalendar({
               </h4>
             </div>
             <div className="mt-2 grid gap-1 sm:grid-cols-2 xl:grid-cols-1">
-              {shiftColorLegend
+              {currentColorLegend
                 .filter((item) => usedColorKeys.has(item.key))
                 .map((item) => (
                   <div className="flex items-center gap-2 text-[10px]" key={item.key}>

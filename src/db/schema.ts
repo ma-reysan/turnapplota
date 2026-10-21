@@ -5,11 +5,13 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { ShiftColorKey } from "@/lib/types";
 
 export const shiftKind = pgEnum("shift_kind", ["DAY", "NIGHT"]);
 export const scheduleStatus = pgEnum("schedule_status", ["draft", "published"]);
@@ -108,6 +110,19 @@ export const shiftColorLegend = pgTable("shift_color_legend", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const scheduleShiftColorLegend = pgTable(
+  "schedule_shift_color_legend",
+  {
+    scheduleId: text("schedule_id")
+      .notNull()
+      .references(() => scheduleMonths.id, { onDelete: "cascade" }),
+    colorKey: text("color_key").notNull(),
+    label: text("label").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.scheduleId, table.colorKey] })],
+);
+
 export const replacementTypes = pgTable("replacement_types", {
   code: text("code").primaryKey(),
   label: text("label").notNull(),
@@ -136,6 +151,7 @@ export const replacements = pgTable("replacements", {
 export const onCallWeeks = pgTable("on_call_weeks", {
   weekStart: date("week_start").primaryKey(),
   doctorIds: jsonb("doctor_ids").$type<string[]>().notNull(),
+  colorKeys: jsonb("color_keys").$type<Array<ShiftColorKey | null>>().notNull().default([null, null, null]),
   manual: boolean("manual").notNull().default(false),
   needsReview: boolean("needs_review").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

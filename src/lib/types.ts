@@ -8,10 +8,6 @@ export interface Doctor {
   longName: string;
   active: boolean;
   sortOrder: number;
-  onlyVolunteer?: boolean;
-  allowDay?: boolean;
-  allowNight?: boolean;
-  allowFridaySaturday24?: boolean;
 }
 
 export interface ShiftAssignment {
@@ -239,6 +235,7 @@ export interface SeedData {
   doctors: Doctor[];
   schedules: ScheduleMonth[];
   shiftColorLegend: ShiftColorLegendItem[];
+  shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   replacements: Replacement[];
   replacementTypes: ReplacementType[];
   holidays: Holiday[];

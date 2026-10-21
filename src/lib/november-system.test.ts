@@ -1,19 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   availableFichas, basePointRecords, canVolunteer, frozenExpiry,
-  generateOnCallWeeks, restIssues, santiagoParts, santiagoTime, shiftEnd,
+  manualOnCallWeek, prepareOnCallWeeks, restIssues, santiagoParts, santiagoTime, shiftEnd,
   shiftStart,
 } from "@/lib/november-system";
-import type { Doctor, Replacement, ScheduleMonth, ShiftAssignment } from "@/lib/types";
+import type { Replacement, ScheduleMonth, ShiftAssignment } from "@/lib/types";
 
 const assignment = (id: string, date: string, kind: "DAY" | "NIGHT", doctorId = "a"): ShiftAssignment =>
   ({ id, date, kind, slot: 1, doctorId });
 const month = (id: string, assignments: ShiftAssignment[]): ScheduleMonth => ({
   id, year: Number(id.slice(0, 4)), month: Number(id.slice(5)), status: "published", assignments,
 });
-const doctors: Doctor[] = ["a", "b", "c", "d"].map((id, sortOrder) => ({
-  id, shortName: id, longName: id, active: true, sortOrder,
-}));
 const replacement = (id: string, date: string, mode: "voluntary" | "invoked", typeCode = "DAY_MON"): Replacement =>
   ({ id, date, doctorId: "a", typeCode, points: 2, mode, superhero: false, expiresAt: "2027-03-01" });
 
@@ -79,25 +76,26 @@ describe("cambio del 1 de noviembre", () => {
     ])).toEqual([]);
   });
 
-  it("prepara la semana compartida sin usar ausencias que terminaron en octubre", () => {
-    const weeks = generateOnCallWeeks({
-      monthId: "2026-11", doctors, schedules: [month("2026-11", [])], existing: [],
-      absences: [{ id: "old", doctorId: "a", startDate: "2026-10-26",
-        endDate: "2026-10-31", reason: "vacaciones" }],
+  it("prepara tres cupos vacíos por semana sin asignar médicos automáticamente", () => {
+    const weeks = prepareOnCallWeeks("2026-11", []);
+    expect(weeks.find((item) => item.weekStart === "2026-10-26")).toMatchObject({
+      doctorIds: ["", "", ""], colorKeys: [null, null, null], manual: false,
     });
-    expect(weeks.find((item) => item.weekStart === "2026-10-26")?.doctorIds).toContain("a");
-    expect(generateOnCallWeeks({
-      monthId: "2026-10", doctors, schedules: [], existing: [], absences: [],
-    })).toEqual([]);
+    expect(prepareOnCallWeeks("2026-10", [])).toEqual([]);
   });
 
-  it("excluye del llamado a quien tiene condición de solo voluntariado", () => {
-    const eligible = doctors.map((doctor) => doctor.id === "a" ? { ...doctor, onlyVolunteer: true } : doctor);
-    const weeks = generateOnCallWeeks({
-      monthId: "2026-11", doctors: eligible, schedules: [month("2026-11", [])],
-      existing: [], absences: [],
-    });
-    expect(weeks.every((item) => !item.doctorIds.includes("a"))).toBe(true);
+  it("conserva una selección manual parcial y sus colores", () => {
+    const stored = { weekStart: "2026-11-02", doctorIds: ["a", "", ""],
+      colorKeys: ["sky" as const, null, null], manual: true, needsReview: false };
+    expect(prepareOnCallWeeks("2026-11", [stored]).find((item) => item.weekStart === stored.weekStart))
+      .toEqual(stored);
+  });
+
+  it("no presenta como manual una selección creada por el algoritmo anterior", () => {
+    const old = { weekStart: "2026-11-02", doctorIds: ["a", "b", "c"],
+      colorKeys: [null, null, null], manual: false, needsReview: false };
+    expect(manualOnCallWeek(old).doctorIds).toEqual(["", "", ""]);
+    expect(old.doctorIds).toEqual(["a", "b", "c"]);
   });
 
   it("pausa vencimientos sin duplicar intervalos superpuestos", () => {

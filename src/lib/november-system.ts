@@ -1,5 +1,5 @@
 import { addDays, differenceInCalendarDays, format, startOfWeek } from "date-fns";
-import type { Doctor, Replacement, ScheduleMonth, ShiftAssignment } from "@/lib/types";
+import type { Replacement, ScheduleMonth, ShiftAssignment, ShiftColorKey } from "@/lib/types";
 
 export const NEW_SYSTEM_START = "2026-11-01";
 const SANTIAGO = "America/Santiago";
@@ -8,8 +8,13 @@ const HOUR = 60 * 60 * 1000;
 export interface OnCallWeek {
   weekStart: string;
   doctorIds: string[];
+  colorKeys: Array<ShiftColorKey | null>;
   manual: boolean;
   needsReview: boolean;
+}
+
+export function manualOnCallWeek(week: OnCallWeek): OnCallWeek {
+  return week.manual ? week : { ...week, doctorIds: ["", "", ""] };
 }
 export interface DoctorAbsence {
   id: string;
@@ -190,34 +195,14 @@ export function appliesOnCall(date: string) {
   return date >= NEW_SYSTEM_START;
 }
 
-export function generateOnCallWeeks({
-  monthId, doctors, schedules, absences, existing,
-}: {
-  monthId: string; doctors: Doctor[]; schedules: ScheduleMonth[];
-  absences: DoctorAbsence[]; existing: OnCallWeek[];
-}): OnCallWeek[] {
+export function prepareOnCallWeeks(monthId: string, existing: OnCallWeek[]): OnCallWeek[] {
   if (monthId < NEW_SYSTEM_START.slice(0, 7)) return [];
   const [year, month] = monthId.split("-").map(Number);
   const last = format(new Date(year, month, 0, 12), "yyyy-MM-dd");
   const weeks = new Set<string>();
   for (let date = monthId + "-01"; date <= last; date = nextDate(date)) weeks.add(weekStart(date));
-  const result = [...existing];
-  for (const start of weeks) {
-    if (result.some((item) => item.weekStart === start)) continue;
-    const end = format(addDays(new Date(start + "T12:00:00"), 6), "yyyy-MM-dd");
-    const eligible = doctors.filter((doctor) => doctor.active && !doctor.onlyVolunteer &&
-      !absences.some((absence) => absence.doctorId === doctor.id &&
-        absence.startDate <= end && absence.endDate >= (start < NEW_SYSTEM_START ? NEW_SYSTEM_START : start)))
-      .sort((a, b) => {
-        const count = (id: string) => result.filter((item) => item.weekStart < start && item.doctorIds.includes(id)).length;
-        const shifts = (id: string) => schedules.filter((item) => item.status === "published")
-          .flatMap((item) => item.assignments).filter((item) => item.doctorId === id &&
-            item.date >= start && item.date <= end).length;
-        return count(a.id) - count(b.id) || shifts(a.id) - shifts(b.id) || a.sortOrder - b.sortOrder;
-      });
-    if (eligible.length < 3) throw new Error("No hay tres médicos disponibles para la semana " + start);
-    result.push({ weekStart: start, doctorIds: eligible.slice(0, 3).map((item) => item.id),
-      manual: false, needsReview: false });
-  }
-  return result.filter((item) => weeks.has(item.weekStart));
+  return [...weeks].map((start) => existing.find((item) => item.weekStart === start) ?? {
+    weekStart: start, doctorIds: ["", "", ""], colorKeys: [null, null, null],
+    manual: false, needsReview: false,
+  });
 }

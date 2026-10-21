@@ -1,6 +1,6 @@
 import { getSql, isDatabaseConfigured } from "@/db";
 import { hasJefaturaSession } from "@/lib/auth";
-import { shiftColorLegendSchema } from "@/lib/validation";
+import { scheduleShiftColorLegendSchema } from "@/lib/validation";
 
 export async function PUT(request: Request) {
   if (!(await hasJefaturaSession())) {
@@ -13,7 +13,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const parsed = shiftColorLegendSchema.safeParse(await request.json().catch(() => null));
+  const parsed = scheduleShiftColorLegendSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return Response.json(
       { error: parsed.error.issues[0]?.message ?? "Leyenda inválida" },
@@ -25,14 +25,14 @@ export async function PUT(request: Request) {
   await sql.transaction(
     parsed.data.items.map(
       (item) => sql`
-        INSERT INTO shift_color_legend (color_key, label)
-        VALUES (${item.key}, ${item.label})
-        ON CONFLICT (color_key) DO UPDATE SET
+        INSERT INTO schedule_shift_color_legend (schedule_id, color_key, label)
+        VALUES (${parsed.data.scheduleId}, ${item.key}, ${item.label})
+        ON CONFLICT (schedule_id, color_key) DO UPDATE SET
           label = EXCLUDED.label,
           updated_at = now()
       `,
     ),
   );
 
-  return Response.json({ ok: true, items: parsed.data.items });
+  return Response.json({ ok: true, scheduleId: parsed.data.scheduleId, items: parsed.data.items });
 }
