@@ -73,7 +73,7 @@ html[data-color-theme="christmas"] .seasonal-month-art {
   position: absolute;
   top: 0;
   bottom: auto;
-  right: 12px;
+  right: -6px;
   z-index: 2;
   transform: rotate(16deg);
   transform-origin: center;
@@ -88,7 +88,7 @@ html[data-color-theme="christmas"] .agenda-banner {
 }
 html[data-color-theme="christmas"] .seasonal-replacements-frame {
   position: relative;
-  padding-top: 112px;
+  padding-top: 40px;
 }
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
   display: block;
@@ -100,10 +100,10 @@ html[data-color-theme="christmas"] .seasonal-replacements-corner {
   pointer-events: none;
 }
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
-  top: 6px;
+  top: -94px;
   right: 12px;
-  width: 260px;
-  height: 112px;
+  width: 325px;
+  height: 140px;
   background-position: center bottom;
   background-image: url("/images/christmas-gifts.webp");
 }
@@ -145,9 +145,10 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
     pointer-events: none;
   }
   html[data-color-theme="christmas"] .seasonal-aps-left {
-    top: 210px;
+    top: 300px;
     left: 8px;
     aspect-ratio: 476 / 720;
+    transform: scaleX(-1);
     background-image: url("/images/christmas-snowman.webp");
   }
   html[data-color-theme="christmas"] .seasonal-aps-right {
@@ -184,15 +185,16 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
     width: min(200px, 55%);
     height: 68px;
     top: 44px;
-    right: 4px;
+    right: -2px;
     bottom: auto;
   }
   html[data-color-theme="christmas"] .seasonal-replacements-corner {
+    top: 0;
     right: 4px;
-    width: 140px;
-    height: 61px;
+    width: 175px;
+    height: 76px;
   }
-  html[data-color-theme="christmas"] .seasonal-replacements-frame { padding-top: 61px; }
+  html[data-color-theme="christmas"] .seasonal-replacements-frame { padding-top: 72px; }
   html[data-color-theme="christmas"] .seasonal-lunch-art { height: 170px; }
 }
 @media print {
