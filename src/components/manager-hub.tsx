@@ -1883,6 +1883,7 @@ export function ManagerHub({
   types: ReplacementType[];
   replacements: Replacement[];
   holidays: Holiday[];
+  pearls: { current: string[]; future: string[] };
   shiftColorLegend: ShiftColorLegendItem[];
   shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   november: NovemberData;
