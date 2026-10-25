@@ -180,6 +180,12 @@ export const baseCorrections = pgTable("base_corrections", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const pearlVersions = pgTable("pearl_versions", {
+  version: text("version").primaryKey(),
+  lines: jsonb("lines").$type<string[]>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const holidays = pgTable("holidays", {
   holidayDate: date("holiday_date").primaryKey(),
   label: text("label"),
