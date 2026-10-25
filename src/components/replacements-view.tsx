@@ -258,7 +258,7 @@ export function ReplacementsView({
 
   return (
     <div className="space-y-3">
-      <section className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+      <section className="halloween-bats overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
         <div className="flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
