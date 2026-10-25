@@ -67,7 +67,6 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
   const [editorOpen, setEditorOpen] = useState(false);
   const [savingPearls, setSavingPearls] = useState(false);
   const appearance = useAccentTheme();
-  const themeLabel = (theme: ThemeChoice) => theme === "auto" ? "Automático (tema de temporada)" : ACCENT_THEME_OPTIONS.find((option) => option.value === theme)?.label;
 
   async function publishTheme() {
     try {
@@ -161,7 +160,7 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
           <div>
             <h2 className="text-sm font-semibold">Temática</h2>
             <p className="text-[11px] text-[var(--muted)]">
-              Al seleccionar un tema lo ves inmediatamente solo en este navegador. Pulsa «Publicar para todos» para activar ese tema para todos los usuarios.
+              El tema se ve inmediatamente de forma local. Debes publicarlo para que se active para todos
             </p>
           </div>
         </div>
@@ -182,10 +181,6 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
             </option>
           ))}
         </select>
-        <p className="mt-2 text-[11px] text-[var(--muted)]" role="status">
-          Publicado para todos: {themeLabel(appearance.published)}.
-          {appearance.localPreview ? " Estás viendo una prueba local sin publicar." : " Estás viendo el tema publicado."}
-        </p>
         {appearance.error ? <p role="alert" className="mt-2 text-xs text-[var(--danger)]">{appearance.error}</p> : null}
         <div className="mt-3 flex flex-wrap gap-2">
           <button type="button" className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs disabled:opacity-50"
@@ -197,7 +192,6 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
             {appearance.publishing ? "Publicando…" : "Publicar para todos"}
           </button>
         </div>
-        <p className="mt-2 text-[11px] text-[var(--muted)]">Al publicar, los navegadores abiertos adoptan el tema en hasta 30 segundos o al volver a la aplicación. Se conserva el modo claro u oscuro.</p>
       </section>
       <section className="mb-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <div className="flex items-center justify-between gap-2">
@@ -284,25 +278,22 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
             Guardar
           </button>
         </form>
-        <p className="mt-2 text-[11px] text-[var(--muted)]">
-          Calendario oficial de Chile y días especiales agregados por el equipo.
-        </p>
         <div className="mt-3 border-b border-[var(--line)] pb-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h3 className="text-xs font-semibold">Próximos feriados</h3>
             <span className="text-[11px] text-[var(--muted)]">Desde hoy</span>
           </div>
           {nextHolidays.length ? (
-            <div className="grid gap-1.5 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+            <div className="grid gap-1.5">
               {nextHolidays.map((item) => (
                 <div
-                  className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-xs"
+                  className="flex items-baseline gap-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-xs"
                   key={item.date}
                 >
-                  <strong className="block text-[var(--foreground)]">
+                  <strong className="shrink-0 text-[var(--foreground)]">
                     {formatHolidayDate(item.date)}
                   </strong>
-                  <span className="mt-0.5 block truncate text-[11px] text-[var(--muted)]">
+                  <span className="truncate text-[11px] text-[var(--muted)]">
                     {item.label || "Feriado"}
                   </span>
                 </div>
