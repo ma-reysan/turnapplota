@@ -388,7 +388,7 @@ html[data-color-theme="halloween"] aside::before {
   content: "";
   position: absolute;
   top: 0; right: 0;
-  width: 96px; height: 96px;
+  width: 128px; height: 128px;
   pointer-events: none;
   opacity: .65;
   background: url("/images/halloween-cobweb.webp") top right / contain no-repeat;
@@ -447,4 +447,23 @@ html[data-color-theme="halloween"] .brand-halloween-icon {
   display: block;
   font-size: 24px;
   line-height: 1;
+}
+
+.halloween-turnos-spiders { display: none; }
+html[data-color-theme="halloween"] .halloween-turnos-spiders {
+  display: block;
+  flex: 0 0 116px;
+  margin-top: auto;
+  background: url("/images/halloween-cartoon-spiders.webp") center bottom / 320px auto no-repeat;
+  opacity: .8;
+  pointer-events: none;
+}
+@media (max-width: 639px) {
+  html[data-color-theme="halloween"] .halloween-turnos-spiders {
+    flex-basis: 96px;
+    background-size: 260px auto;
+  }
+}
+@media print {
+  html[data-color-theme="halloween"] .halloween-turnos-spiders { display: none; }
 }

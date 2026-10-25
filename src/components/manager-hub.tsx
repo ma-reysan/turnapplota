@@ -769,13 +769,16 @@ function ScheduleManager({
   }
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(PENDING_ONCALL_STORAGE_KEY) ?? "{}") as Record<string, Pick<OnCallWeek, "doctorIds" | "colorKeys">>;
-      if (stored && typeof stored === "object" && !Array.isArray(stored)) setWeekEdits(stored);
-    } catch {
-      // Los cambios siguen disponibles en memoria.
-    }
-    setDraftsLoaded(true);
+    const timer = window.setTimeout(() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem(PENDING_ONCALL_STORAGE_KEY) ?? "{}") as Record<string, Pick<OnCallWeek, "doctorIds" | "colorKeys">>;
+        if (stored && typeof stored === "object" && !Array.isArray(stored)) setWeekEdits(stored);
+      } catch {
+        // Los cambios siguen disponibles en memoria.
+      }
+      setDraftsLoaded(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
