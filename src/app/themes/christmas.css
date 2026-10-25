@@ -64,17 +64,6 @@ html[data-color-theme="christmas"] .seasonal-sidebar-art {
   background: url("/images/christmas-tree.webp") center / contain no-repeat;
   pointer-events: none;
 }
-html[data-color-theme="christmas"] .seasonal-sidebar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 80px;
-  height: 38px;
-  opacity: .35;
-  background: url("/images/christmas-garland.webp") top right / contain no-repeat;
-  pointer-events: none;
-}
 html[data-color-theme="christmas"] .seasonal-month-bar {
   position: relative;
   margin-top: 0;
