@@ -90,10 +90,6 @@ html[data-color-theme="christmas"] .seasonal-replacements-frame {
   position: relative;
   padding-top: 72px;
 }
-html[data-color-theme="christmas"] .seasonal-replacements-heading {
-  padding-top: 44px;
-}
-html[data-color-theme="christmas"] .seasonal-replacements-grip,
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
   display: block;
   position: absolute;
@@ -102,13 +98,6 @@ html[data-color-theme="christmas"] .seasonal-replacements-corner {
   background-size: contain;
   background-repeat: no-repeat;
   pointer-events: none;
-}
-html[data-color-theme="christmas"] .seasonal-replacements-grip {
-  top: 14px;
-  left: 24px;
-  width: 240px;
-  height: 92px;
-  background-image: url("/images/christmas-gloves.webp");
 }
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
   top: 0;
@@ -197,12 +186,6 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
     right: 4px;
     bottom: auto;
   }
-  html[data-color-theme="christmas"] .seasonal-replacements-heading { padding-top: 32px; }
-  html[data-color-theme="christmas"] .seasonal-replacements-grip {
-    left: 8px;
-    width: 144px;
-    height: 80px;
-  }
   html[data-color-theme="christmas"] .seasonal-replacements-corner {
     right: 4px;
     width: 140px;
@@ -213,13 +196,11 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
 @media print {
   html[data-color-theme="christmas"] .seasonal-sidebar-art,
   html[data-color-theme="christmas"] .seasonal-month-art,
-  html[data-color-theme="christmas"] .seasonal-replacements-grip,
   html[data-color-theme="christmas"] .seasonal-replacements-corner,
   html[data-color-theme="christmas"] .seasonal-lunch-art,
   html[data-color-theme="christmas"] .seasonal-aps-layer { display: none !important; }
   html[data-color-theme="christmas"] .seasonal-month-bar { margin-top: 0; }
   html[data-color-theme="christmas"] .seasonal-replacements-frame { padding-top: 0; }
-  html[data-color-theme="christmas"] .seasonal-replacements-heading { padding-top: 12px; }
   html[data-color-theme="christmas"] .seasonal-aps-frame { width: auto; }
   :root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table { background-image: none; }
 }
