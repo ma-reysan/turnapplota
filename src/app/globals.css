@@ -430,23 +430,33 @@ html[data-color-theme="halloween"] .brand-halloween-icon {
   line-height: 1;
 }
 
-.halloween-turnos-spiders { display: none; }
-html[data-color-theme="halloween"] .halloween-turnos-spiders {
+.halloween-month-spiders { display: none; }
+html[data-color-theme="halloween"] .halloween-month-bar {
+  position: relative;
+  margin-top: 64px;
+}
+html[data-color-theme="halloween"] .halloween-month-spiders {
   display: block;
-  flex: 0 0 116px;
-  margin-top: auto;
-  background: url("/images/halloween-black-cartoon-spiders.webp") center bottom / 320px auto no-repeat;
+  position: absolute;
+  bottom: calc(100% - 2px);
+  right: 16px;
+  width: 210px;
+  height: 68px;
+  background: url("/images/halloween-black-cartoon-spiders.webp") center bottom / contain no-repeat;
   opacity: .8;
   pointer-events: none;
 }
 @media (max-width: 639px) {
-  html[data-color-theme="halloween"] .halloween-turnos-spiders {
-    flex-basis: 96px;
-    background-size: 260px auto;
+  html[data-color-theme="halloween"] .halloween-month-bar { margin-top: 52px; }
+  html[data-color-theme="halloween"] .halloween-month-spiders {
+    right: 8px;
+    width: 170px;
+    height: 55px;
   }
 }
 @media print {
-  html[data-color-theme="halloween"] .halloween-turnos-spiders { display: none; }
+  html[data-color-theme="halloween"] .halloween-month-bar { margin-top: 0; }
+  html[data-color-theme="halloween"] .halloween-month-spiders { display: none; }
 }
 
 .halloween-lunch-decor { display: none; }

@@ -173,11 +173,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex min-h-screen min-w-0 flex-col pb-24 lg:col-start-2 lg:pb-0">
+      <main className="min-w-0 pb-24 lg:col-start-2 lg:pb-0">
         <div className="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-5 lg:px-5 lg:py-5">
           {children}
         </div>
-        {showingSchedule ? <div aria-hidden="true" className="halloween-turnos-spiders no-print" /> : null}
       </main>
 
       <nav
