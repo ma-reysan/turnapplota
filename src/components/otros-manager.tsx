@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, CalendarOff, Palette, Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ACCENT_THEME_OPTIONS, type ThemeChoice } from "@/lib/accent-theme";
@@ -62,7 +62,12 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
   const [holidayDate, setHolidayDate] = useState(chileDateKey());
   const [holidayLabel, setHolidayLabel] = useState("");
   const [showYearHolidays, setShowYearHolidays] = useState(false);
-  const [pearlVersion, setPearlVersion] = useState<"current" | "future">("current");
+  const [pearlDate, setPearlDate] = useState(chileDateKey);
+  const pearlVersion = pearlDate >= "2026-11-01" ? "future" : "current";
+  useEffect(() => {
+    const timer = window.setInterval(() => setPearlDate(chileDateKey()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [pearlDrafts, setPearlDrafts] = useState(() => ({ current: groupPearlLines(initialPearls.current), future: groupPearlLines(initialPearls.future) }));
   const [editorOpen, setEditorOpen] = useState(false);
   const [savingPearls, setSavingPearls] = useState(false);
@@ -202,14 +207,6 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
           </button>
         </div>
         {editorOpen && <div id="pearl-editor">
-          <p className="mt-2 text-[11px] text-[var(--muted)]">Las perlas futuras se mostrarán desde el 1 de noviembre de 2026.</p>
-          <div className="mt-3 flex flex-wrap gap-2" aria-label="Versión de perlas">
-            {(["current", "future"] as const).map((version) => (
-              <button key={version} type="button" aria-pressed={pearlVersion === version}
-                className={`rounded-lg border px-3 py-2 text-xs ${pearlVersion === version ? "border-[var(--brand)] bg-[var(--surface-soft)] font-semibold" : "border-[var(--line)]"}`}
-                onClick={() => setPearlVersion(version)}>{version === "current" ? "Actuales" : "Desde el 1 de noviembre"}</button>
-            ))}
-          </div>
           <form className="mt-3 space-y-3" onSubmit={savePearls}>
             {PEARL_CATEGORIES.filter((category) => pearlVersion === "current"
               ? ["Perlas", "Puntos", "Superhéroe", "Comodín de Apoyo"].includes(category)
