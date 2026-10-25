@@ -1581,15 +1581,6 @@ function ScoreManager({
     })),
   ].sort((a, b) => b.date.localeCompare(a.date));
 
-  function toggleShift(item: "day" | "night") {
-    const nextShift: ReplacementShift = shift === "both"
-      ? (item === "day" ? "night" : "day")
-      : shift === item
-        ? shift
-        : "both";
-    selectShift(nextShift);
-  }
-
   function selectShift(nextShift: ReplacementShift, nextDate = date) {
     setShift(nextShift);
     const nextType = getAutomaticReplacementType({
@@ -1729,23 +1720,29 @@ function ScoreManager({
           {scoreType === "replacement" ? <>
             <fieldset className="w-full text-xs text-[var(--muted)] sm:w-[170px]">
               <legend>Turno</legend>
-              <div className="mt-1 grid h-[31px] grid-cols-2 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
-                {(["day", "night"] as const).map((item) => (
+              <div className="mt-1 grid h-[31px] grid-cols-3 overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)]">
+                {([
+                  ["day", "Día"],
+                  ["night", "Noche"],
+                  ["both", "24 horas"],
+                ] as const).map(([value, label]) => (
                   <label
                     className={cn(
-                      "flex cursor-pointer items-center justify-center gap-1.5 px-2 text-[10px] font-medium transition",
-                      item === "night" && "border-l border-[var(--line)]",
-                      (shift === item || shift === "both") && "bg-[var(--brand)] text-white",
+                      "flex cursor-pointer items-center justify-center whitespace-nowrap text-[10px] font-medium transition",
+                      value !== "day" && "border-l border-[var(--line)]",
+                      shift === value && "bg-[var(--brand)] text-white",
                     )}
-                    key={item}
+                    key={value}
                   >
                     <input
-                      checked={shift === item || shift === "both"}
+                      checked={shift === value}
                       className="sr-only"
-                      onChange={() => toggleShift(item)}
-                      type="checkbox"
+                      name="replacement-shift"
+                      onChange={() => selectShift(value)}
+                      type="radio"
+                      value={value}
                     />
-                    {item === "day" ? "Día" : "Noche"}
+                    {label}
                   </label>
                 ))}
               </div>
