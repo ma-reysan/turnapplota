@@ -8,7 +8,6 @@ import { getReplacementTypeLabel } from "@/lib/replacement-scoring";
 import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
 import { availableFichas, basePointRecords, NEW_SYSTEM_START, replacementPointRecords, santiagoParts } from "@/lib/november-system";
-import { NOVEMBER_PEARLS } from "@/lib/november-pearls";
 import type { ScheduleMonth } from "@/lib/types";
 
 const pearlSectionLabels = {
@@ -158,6 +157,7 @@ export function ReplacementsView({
   replacements,
   types,
   pearls,
+  futurePearls,
   lastInvokedDoctorId,
   schedules = [],
   november,
@@ -167,6 +167,7 @@ export function ReplacementsView({
   replacements: Replacement[];
   types: ReplacementType[];
   pearls: string[];
+  futurePearls: string[];
   lastInvokedDoctorId?: string;
   schedules?: ScheduleMonth[];
   november?: {
@@ -213,7 +214,7 @@ export function ReplacementsView({
   const lastInvokedDoctor = lastInvokedDoctorId
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
-  const pearlSections = groupPearls(newSystem ? NOVEMBER_PEARLS : pearls);
+  const pearlSections = groupPearls(newSystem ? futurePearls : pearls);
   const sortedReplacements = [...displayReplacements].sort((a, b) => b.date.localeCompare(a.date));
   const active = displayReplacements.filter((replacement) =>
     newSystem ? replacement.expiresAt >= currentDate : isActiveReplacement(replacement.date));
