@@ -454,7 +454,7 @@ html[data-color-theme="halloween"] .halloween-turnos-spiders {
   display: block;
   flex: 0 0 116px;
   margin-top: auto;
-  background: url("/images/halloween-cartoon-spiders.webp") center bottom / 320px auto no-repeat;
+  background: url("/images/halloween-black-cartoon-spiders.webp") center bottom / 320px auto no-repeat;
   opacity: .8;
   pointer-events: none;
 }
