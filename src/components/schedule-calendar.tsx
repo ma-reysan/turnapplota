@@ -1,6 +1,6 @@
 "use client";
 
-import { Palette, UsersRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, Palette, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
@@ -78,6 +78,7 @@ export function ScheduleCalendar({
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const schedule = sortedSchedules.find((item) => item.id === selectedId) ?? sortedSchedules[0];
+  const selectedIndex = sortedSchedules.findIndex((item) => item.id === schedule?.id);
   const currentColorLegend = shiftColorLegends?.[selectedId] ?? shiftColorLegend;
   const showOnCall = schedule?.id >= "2026-11";
   const onCallByWeek = new Map(onCallWeeks.map((item) => [item.weekStart, item]));
@@ -234,21 +235,40 @@ export function ScheduleCalendar({
   return (
     <div className="grid gap-3 xl:grid-cols-[minmax(680px,70%)_220px]">
       <section className="min-w-0">
-        <div className="no-print mb-2 flex items-center rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-[var(--muted)]">Mes</span>
-            <select
-              className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs font-medium capitalize outline-none focus:ring-2 focus:ring-[var(--brand)]"
-              onChange={(event) => setSelectedId(event.target.value)}
-              value={schedule.id}
-            >
-              {sortedSchedules.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {monthLabel(item.year, item.month)}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="no-print mb-2 flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
+          <span className="text-sm text-[var(--muted)]">Mes</span>
+          <button
+            aria-label="Mes anterior"
+            className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1.5 transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={selectedIndex >= sortedSchedules.length - 1}
+            onClick={() => setSelectedId(sortedSchedules[selectedIndex + 1].id)}
+            title="Mes anterior"
+            type="button"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <select
+            aria-label="Mes"
+            className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs font-medium capitalize outline-none focus:ring-2 focus:ring-[var(--brand)]"
+            onChange={(event) => setSelectedId(event.target.value)}
+            value={schedule.id}
+          >
+            {sortedSchedules.map((item) => (
+              <option key={item.id} value={item.id}>
+                {monthLabel(item.year, item.month)}
+              </option>
+            ))}
+          </select>
+          <button
+            aria-label="Mes siguiente"
+            className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1.5 transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={selectedIndex <= 0}
+            onClick={() => setSelectedId(sortedSchedules[selectedIndex - 1].id)}
+            title="Mes siguiente"
+            type="button"
+          >
+            <ChevronRight size={16} />
+          </button>
         </div>
 
         <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
