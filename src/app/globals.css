@@ -438,11 +438,11 @@ html[data-color-theme="halloween"] .halloween-month-bar {
 html[data-color-theme="halloween"] .halloween-month-spiders {
   display: block;
   position: absolute;
-  bottom: calc(100% - 2px);
+  bottom: calc(100% - 16px);
   right: 16px;
   width: 210px;
-  height: 68px;
-  background: url("/images/halloween-black-cartoon-spiders.webp") center bottom / contain no-repeat;
+  height: 76px;
+  background: url("/images/halloween-cartoon-spiders.webp") center bottom / contain no-repeat;
   opacity: .8;
   pointer-events: none;
 }
@@ -451,7 +451,8 @@ html[data-color-theme="halloween"] .halloween-month-spiders {
   html[data-color-theme="halloween"] .halloween-month-spiders {
     right: 8px;
     width: 170px;
-    height: 55px;
+    height: 62px;
+    bottom: calc(100% - 13px);
   }
 }
 @media print {
