@@ -345,3 +345,75 @@ html.dark[data-color-theme="dieciocho"] .dieciocho-bunting {
     display: none;
   }
 }
+
+
+/* Optional Halloween palette. Shift markers retain their semantic colors. */
+:root[data-color-theme="halloween"] {
+  --background: #eee7f5;
+  --surface: #fcf8ff;
+  --surface-soft: #e4d6ee;
+  --foreground: #2b163d;
+  --muted: #665174;
+  --line: #c7afd8;
+  --brand: #ad440b;
+  --brand-strong: #873007;
+  --shift-normal: #c9e8da;
+  --shift-normal-text: #163b31;
+  --shift-border: #8f76a4;
+  --shift-divider: #ad92be;
+  --day-border: #ad440b;
+  --night-border: #7253a4;
+  --shadow-rgb: 31 14 48;
+}
+:root.dark[data-color-theme="halloween"] {
+  --background: #160e25;
+  --surface: #241735;
+  --surface-soft: #342346;
+  --foreground: #fff4e5;
+  --muted: #c3afd3;
+  --line: #59406c;
+  --brand: #c45110;
+  --brand-strong: #f4a261;
+  --shift-normal: #a6d9c4;
+  --shift-normal-text: #163b31;
+  --shift-border: #806195;
+  --shift-divider: #795c8e;
+  --day-border: #f4a261;
+  --night-border: #b49ae5;
+}
+.halloween-banner { display: none; }
+html[data-color-theme="halloween"] .halloween-banner {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: #fff4e5;
+  background: radial-gradient(circle at 75% 20%, #713727, transparent 50%), linear-gradient(120deg, #211232, #402354);
+  border-bottom: 1px solid #805194;
+  text-align: center;
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: 700;
+}
+.halloween-banner small { display: block; margin-top: .25rem; font-size: .7rem; font-weight: 400; }
+html[data-color-theme="halloween"] body {
+  background: radial-gradient(ellipse at top right, rgb(226 111 30 / 12%), transparent 35rem), var(--background);
+}
+html[data-color-theme="halloween"] aside::before {
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 64px; height: 64px;
+  pointer-events: none;
+  opacity: .35;
+  background:
+    repeating-radial-gradient(circle at 100% 0, transparent 0 14px, #b59acb 15px 16px, transparent 17px 18px),
+    linear-gradient(135deg, transparent 49%, #b59acb 50%, transparent 52%);
+}
+html[data-color-theme="halloween"] .agenda-banner {
+  background: linear-gradient(135deg, #2b173f, #58326f, #9b4519);
+}
+@media print {
+  .halloween-banner { display: none !important; }
+}

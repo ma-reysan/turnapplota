@@ -3,6 +3,7 @@ export const ACCENT_THEME_OPTIONS = [
   { value: "red", label: "Rojo" },
   { value: "blue", label: "Azul" },
   { value: "gold", label: "Dorado" },
+  { value: "halloween", label: "Halloween 🎃" },
   { value: "dieciocho", label: "Dieciocho" },
 ] as const;
 
@@ -47,4 +48,15 @@ export function isDieciochoSeason(date = new Date()) {
     const { start, end } = weekRangeFor(year, 9, day);
     return today >= start && today <= end;
   });
+}
+
+
+
+export type ThemeChoice = AccentTheme | "auto";
+export type PublishedTheme = { theme: ThemeChoice; revision: string };
+export function isThemeChoice(value: unknown): value is ThemeChoice {
+  return value === "auto" || (typeof value === "string" && isAccentTheme(value));
+}
+export function resolveAccentTheme(choice: ThemeChoice, date = new Date()): AccentTheme {
+  return choice === "auto" ? isDieciochoSeason(date) ? "dieciocho" : "green" : choice;
 }
