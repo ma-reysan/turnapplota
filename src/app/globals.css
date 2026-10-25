@@ -357,8 +357,8 @@ html.dark[data-color-theme="dieciocho"] .dieciocho-bunting {
   --line: #c7afd8;
   --brand: #ad440b;
   --brand-strong: #873007;
-  --shift-normal: #c9e8da;
-  --shift-normal-text: #163b31;
+  --shift-normal: #dac9ec;
+  --shift-normal-text: #352047;
   --shift-border: #8f76a4;
   --shift-divider: #ad92be;
   --day-border: #ad440b;
@@ -374,29 +374,13 @@ html.dark[data-color-theme="dieciocho"] .dieciocho-bunting {
   --line: #59406c;
   --brand: #c45110;
   --brand-strong: #f4a261;
-  --shift-normal: #a6d9c4;
-  --shift-normal-text: #163b31;
+  --shift-normal: #493257;
+  --shift-normal-text: #fff3e7;
   --shift-border: #806195;
   --shift-divider: #795c8e;
   --day-border: #f4a261;
   --night-border: #b49ae5;
 }
-.halloween-banner { display: none; }
-html[data-color-theme="halloween"] .halloween-banner {
-  display: flex;
-  grid-column: 1 / -1;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  color: #fff4e5;
-  background: radial-gradient(circle at 75% 20%, #713727, transparent 50%), linear-gradient(120deg, #211232, #402354);
-  border-bottom: 1px solid #805194;
-  text-align: center;
-  font-size: clamp(1rem, 2vw, 1.5rem);
-  font-weight: 700;
-}
-.halloween-banner small { display: block; margin-top: .25rem; font-size: .7rem; font-weight: 400; }
 html[data-color-theme="halloween"] body {
   background: radial-gradient(ellipse at top right, rgb(226 111 30 / 12%), transparent 35rem), var(--background);
 }
@@ -413,7 +397,4 @@ html[data-color-theme="halloween"] aside::before {
 }
 html[data-color-theme="halloween"] .agenda-banner {
   background: linear-gradient(135deg, #2b173f, #58326f, #9b4519);
-}
-@media print {
-  .halloween-banner { display: none !important; }
 }

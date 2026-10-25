@@ -86,9 +86,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[216px_1fr]">
       <DieciochoBunting />
-      <div aria-hidden="true" className="halloween-banner no-print">
-        <span>🎃</span><span>Edición Halloween<small>¡Un octubre de miedo, un equipo de primera!</small></span><span>👻</span>
-      </div>
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col border-r border-[var(--line)] bg-[var(--surface)] px-3 py-4 lg:flex">
         <Link className="flex items-center gap-2.5 px-2 py-1.5" href="/turnos">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--brand)] text-white">
