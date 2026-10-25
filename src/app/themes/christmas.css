@@ -88,7 +88,7 @@ html[data-color-theme="christmas"] .agenda-banner {
 }
 html[data-color-theme="christmas"] .seasonal-replacements-frame {
   position: relative;
-  padding-top: 72px;
+  padding-top: 112px;
 }
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
   display: block;
@@ -100,11 +100,12 @@ html[data-color-theme="christmas"] .seasonal-replacements-corner {
   pointer-events: none;
 }
 html[data-color-theme="christmas"] .seasonal-replacements-corner {
-  top: 0;
+  top: 6px;
   right: 12px;
   width: 260px;
-  height: 84px;
-  background-image: url("/images/christmas-garland.webp");
+  height: 112px;
+  background-position: center bottom;
+  background-image: url("/images/christmas-gifts.webp");
 }
 html[data-color-theme="christmas"] .seasonal-lunch-art {
   display: block;
@@ -189,8 +190,9 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
   html[data-color-theme="christmas"] .seasonal-replacements-corner {
     right: 4px;
     width: 140px;
-    height: 70px;
+    height: 61px;
   }
+  html[data-color-theme="christmas"] .seasonal-replacements-frame { padding-top: 61px; }
   html[data-color-theme="christmas"] .seasonal-lunch-art { height: 170px; }
 }
 @media print {
