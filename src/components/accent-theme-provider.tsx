@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { isAccentTheme, isDieciochoSeason, type AccentTheme } from "@/lib/accent-theme";
+import { resolveAccentTheme, type AccentTheme } from "@/lib/accent-theme";
 
 const STORAGE_KEY = "turnapp:accent-theme";
 
@@ -12,14 +12,17 @@ function applyAccentTheme(theme: AccentTheme) {
 }
 
 function savedAccentTheme() {
-  const savedTheme = window.localStorage.getItem(STORAGE_KEY);
-  return isAccentTheme(savedTheme) ? savedTheme : "green";
+  try {
+    return resolveAccentTheme(window.localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return resolveAccentTheme(null);
+  }
 }
 
 export function AccentThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncAccentTheme = () => {
-      applyAccentTheme(isDieciochoSeason() ? "dieciocho" : savedAccentTheme());
+      applyAccentTheme(savedAccentTheme());
     };
     const syncOnPreferenceChange = () => syncAccentTheme();
     const reschedule = () => {
@@ -31,11 +34,14 @@ export function AccentThemeProvider({ children }: { children: React.ReactNode })
 
     let timer = window.setTimeout(reschedule, 0);
     window.addEventListener("turnapp:accent-theme-change", syncOnPreferenceChange);
+    window.addEventListener("storage", syncOnPreferenceChange);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("turnapp:accent-theme-change", syncOnPreferenceChange);
+      window.removeEventListener("storage", syncOnPreferenceChange);
     };
   }, []);
 
   return children;
 }
+
