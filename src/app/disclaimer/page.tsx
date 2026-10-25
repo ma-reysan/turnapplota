@@ -33,6 +33,8 @@ export default function DisclaimerPage() {
           Changelog
         </h2>
         <ul className="space-y-1.5">
+          <li><strong className="text-[var(--foreground)]">v2.1</strong> · Tema de Halloween (próximamente)</li>
+          <li><strong className="text-[var(--foreground)]">v2</strong> · Nuevo sistema de tabla + médicos de llamado + congelado de puntos</li>
           <li><strong className="text-[var(--foreground)]">v1.04</strong> · Añadido Modulo EDF</li>
           <li><strong className="text-[var(--foreground)]">v1.03</strong> · Añadido Buscador en Agenda APS</li>
           <li><strong className="text-[var(--foreground)]">v1.02</strong> · Añadido Almuerzo</li>
