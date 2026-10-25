@@ -4,6 +4,7 @@ export const ACCENT_THEME_OPTIONS = [
   { value: "blue", label: "Azul" },
   { value: "gold", label: "Dorado" },
   { value: "halloween", label: "Halloween 🎃" },
+  { value: "christmas", label: "Navidad 🎄" },
   { value: "dieciocho", label: "Dieciocho" },
 ] as const;
 

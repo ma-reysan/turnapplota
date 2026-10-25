@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./themes/christmas.css";
 
 :root {
   --background: #d8e1df;

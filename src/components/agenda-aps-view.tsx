@@ -229,10 +229,10 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
     setSelectedFile(file);
   }
 
-  return <div className="halloween-aps-frame mx-auto max-w-6xl">
-    <div aria-hidden="true" className="halloween-aps-ghost-layer no-print">
-      <div className="halloween-aps-ghost halloween-aps-ghost-left" />
-      <div className="halloween-aps-ghost halloween-aps-ghost-right" />
+  return <div className="halloween-aps-frame seasonal-aps-frame mx-auto max-w-6xl">
+    <div aria-hidden="true" className="halloween-aps-ghost-layer seasonal-aps-layer no-print">
+      <div className="halloween-aps-ghost halloween-aps-ghost-left seasonal-aps-left" />
+      <div className="halloween-aps-ghost halloween-aps-ghost-right seasonal-aps-right" />
     </div>
     <section className="agenda-banner mb-4 rounded-2xl p-4 text-white shadow-lg shadow-black/10">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)] lg:items-center">

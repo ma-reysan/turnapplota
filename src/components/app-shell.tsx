@@ -91,6 +91,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--brand)] text-white">
             <Stethoscope aria-hidden="true" className="brand-default-icon" size={19} />
             <span aria-hidden="true" className="brand-halloween-icon">💀</span>
+            <span aria-hidden="true" className="brand-christmas-icon">🎄</span>
           </span>
           <span>
             <strong className="block tracking-tight">TurnApp</strong>
@@ -117,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div aria-hidden="true" className="halloween-sidebar-pumpkin no-print" />
+        <div aria-hidden="true" className="halloween-sidebar-pumpkin seasonal-sidebar-art no-print" />
         <div className="mt-auto space-y-2">
           {showingSchedule ? (
             <div className="rounded-xl border border-[var(--line)] p-2">

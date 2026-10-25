@@ -258,11 +258,11 @@ export function ReplacementsView({
 
   return (
     <div className="space-y-3">
-      <div className="halloween-replacements-frame">
-        <div aria-hidden="true" className="halloween-gripping-hand no-print" />
-        <div aria-hidden="true" className="halloween-replacements-bats no-print" />
+      <div className="halloween-replacements-frame seasonal-replacements-frame">
+        <div aria-hidden="true" className="halloween-gripping-hand seasonal-replacements-grip no-print" />
+        <div aria-hidden="true" className="halloween-replacements-bats seasonal-replacements-corner no-print" />
       <section className="halloween-replacements-card overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
-        <div className="halloween-replacements-heading flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="halloween-replacements-heading seasonal-replacements-heading flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
             <p className="mt-0.5 text-[10px] text-[var(--muted)]">

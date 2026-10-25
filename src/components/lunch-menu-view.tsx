@@ -65,7 +65,7 @@ export function LunchMenuView({ initialMenu }: { initialMenu: LunchMenu | null }
       <button className="flex items-center gap-2 rounded-xl bg-[var(--brand)] px-3 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-70" disabled={updating} onClick={refresh} type="button">{updating ? <LoaderCircle className="animate-spin" size={16} /> : <RefreshCw size={16} />} Actualizar</button>
     </header>
 
-    <div aria-hidden="true" className="halloween-lunch-decor no-print" />
+    <div aria-hidden="true" className="halloween-lunch-decor seasonal-lunch-art no-print" />
 
     <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3">
