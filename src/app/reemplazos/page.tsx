@@ -1,11 +1,12 @@
 import { PageHeader } from "@/components/page-header";
 import { ReplacementsView } from "@/components/replacements-view";
 import { getAppData } from "@/lib/data";
+import { getPearlVersions } from "@/lib/pearls";
 import { readNovemberData } from "@/lib/november-data";
 
 export default async function ReemplazosPage() {
   const data = await getAppData();
-  const november = await readNovemberData(data);
+  const [november, pearls] = await Promise.all([readNovemberData(data), getPearlVersions()]);
   return (
     <>
       <PageHeader
@@ -16,7 +17,8 @@ export default async function ReemplazosPage() {
       <ReplacementsView
         doctors={data.doctors}
         lastInvokedDoctorId={data.lastInvokedDoctorId}
-        pearls={data.pearls}
+        pearls={pearls.current}
+        futurePearls={pearls.future}
         replacements={data.replacements}
         types={data.replacementTypes}
         schedules={data.schedules.filter((item) => item.id >= "2026-11")}
