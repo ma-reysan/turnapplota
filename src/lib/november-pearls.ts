@@ -22,6 +22,7 @@ export const NOVEMBER_PEARLS: string[] = [
   "Cada turno propio del rol mensual que se trabaje efectivamente suma un punto base por cada 12 horas. Un turno propio de 24 horas suma dos puntos.",
   "Un turno propio con licencia, vacaciones o pasantía registrada no suma punto base automáticamente. Jefatura puede corregirlo con un motivo si el turno sí se trabajó.",
   "Los puntos base se suman a los puntos por reemplazos para ordenar la tabla. Vencen a los 120 días, al igual que los puntos por reemplazo.",
+  "En caso de pasantías, vacaciones o licencias de más de 14 días, se congelarán los puntos del médico durante la ausencia. Esto significa que no correrá el plazo de vencimiento de sus puntos, protegiéndolos durante ese período.",
   "Puntos por reemplazo:",
   "Los turnos extra suman los puntos de la Tablita de días, ya se cubran voluntariamente, por convocatoria de la tabla o por activación del llamado.",
   "Superhéroe:",
