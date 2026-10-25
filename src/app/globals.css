@@ -388,13 +388,17 @@ html[data-color-theme="halloween"] aside::before {
   content: "";
   position: absolute;
   top: 0; right: 0;
-  width: 64px; height: 64px;
+  width: 96px; height: 96px;
   pointer-events: none;
-  opacity: .35;
-  background:
-    repeating-radial-gradient(circle at 100% 0, transparent 0 14px, #b59acb 15px 16px, transparent 17px 18px),
-    linear-gradient(135deg, transparent 49%, #b59acb 50%, transparent 52%);
+  opacity: .65;
+  background: url("/images/halloween-cobweb.webp") top right / contain no-repeat;
+  filter: brightness(.5);
 }
 html[data-color-theme="halloween"] .agenda-banner {
   background: linear-gradient(135deg, #2b173f, #58326f, #9b4519);
+}
+
+html.dark[data-color-theme="halloween"] aside::before {
+  opacity: .75;
+  filter: none;
 }
