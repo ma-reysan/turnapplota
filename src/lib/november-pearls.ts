@@ -2,7 +2,7 @@ export const NOVEMBER_PEARLS: string[] = [
   "Estas reglas rigen para turnos iniciados desde el 1 de noviembre de 2026. Los anteriores conservan el sistema previo.",
   "Tabla:",
   "Ante una ausencia, la jefatura solicitará voluntarios y establecerá el plazo para ofrecerse. Lo cubrirá el primer médico que se ofrezca y pueda cumplir las condiciones para ir al turno.",
-  "Si no hay voluntarios de lunes a jueves, se revisará al médico con menor puntaje. Si está exento, se activará a los médicos de llamado; no se saltará al siguiente de la tabla.",
+  "Si no hay voluntarios de lunes a jueves, se revisará al médico con menor puntaje. Si está exento, se hará un segundo llamado al siguiente médico con menor puntaje que pueda cubrir. Si tampoco puede cubrir, se activará a los médicos de llamado.",
   "Si no hay voluntarios desde el viernes hasta el domingo, se activará a los médicos de llamado. La tabla se usará si ninguno de ellos puede cubrir.",
   "Queda exento quien no pueda cumplir el descanso obligatorio o figure como “Último Convocado/a”.",
   "Descanso:",
