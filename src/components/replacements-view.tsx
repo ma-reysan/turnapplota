@@ -63,7 +63,7 @@ function ReplacementSequence() {
       title: "Fin de semana · viernes a domingo",
       steps: [
         ["Voluntarios", "Jefatura solicita voluntarios y fija un plazo para ofrecerse."],
-        ["Médicos de llamado · 1, 2 y 3", "Acuerdan quién cubre. Sin acuerdo, corresponde al de menor puntaje que cumpla el descanso."],
+        ["Médicos de llamado", "Acuerdan quién cubre. Sin acuerdo, corresponde al de menor puntaje que cumpla el descanso."],
         ["Tabla según puntos", "Si ninguno puede cubrir, convocar por menor puntaje verificando las exenciones."],
       ],
     },
@@ -76,23 +76,21 @@ function ReplacementSequence() {
           <div key={route.title}>
             <h3 className="mb-2 text-xs font-semibold text-[var(--brand)]">{route.title}</h3>
             <div tabIndex={0} role="region" aria-label={route.title} className="overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-[var(--brand)]">
-              <ol className="flex min-w-max items-stretch gap-2">
+              <ul className="flex min-w-max items-stretch gap-2">
                 {route.steps.map(([title, description], index) => (
                   <li key={title} className="flex items-center gap-2">
                     {index > 0 && <span aria-hidden="true" className="text-xl font-semibold text-[var(--brand)]">→</span>}
                     <article className="h-full w-44 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
-                      <span className="mb-2 flex size-6 items-center justify-center rounded-full border border-[var(--line)] text-[10px] font-bold text-[var(--brand)]">{index + 1}</span>
                       <h4 className="text-xs font-semibold text-[var(--brand)]">{title}</h4>
                       <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted)]">{description}</p>
                     </article>
                   </li>
                 ))}
-              </ol>
+              </ul>
             </div>
           </div>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-[var(--muted)]">En móvil, desliza cada fila para recorrer el mapa. El descanso obligatorio se verifica antes de asignar cualquier reemplazo.</p>
     </section>
   );
 }
