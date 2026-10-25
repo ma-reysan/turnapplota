@@ -553,35 +553,46 @@ html[data-color-theme="halloween"] .halloween-replacements-bats {
   :root:not(.dark) .analysis-cemetery-table { background-image: none; background-color: #fff; }
 }
 
+.halloween-aps-ghost-layer,
 .halloween-aps-ghost { display: none; }
 @media (min-width: 1440px) {
   html[data-color-theme="halloween"] .halloween-aps-frame {
     position: relative;
+    isolation: isolate;
     width: calc(100% - 240px);
+  }
+  html[data-color-theme="halloween"] .halloween-aps-ghost-layer {
+    display: block;
+    position: absolute;
+    inset: 0 -120px;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
   }
   html[data-color-theme="halloween"] .halloween-aps-ghost {
     display: block;
     position: absolute;
-    width: 108px;
-    height: 220px;
+    width: 432px;
+    height: 880px;
     background-position: center;
     background-size: contain;
     background-repeat: no-repeat;
-    opacity: .75;
+    opacity: .6;
     pointer-events: none;
   }
   html[data-color-theme="halloween"] .halloween-aps-ghost-left {
-    top: 210px;
-    left: -120px;
+    top: 80px;
+    left: -180px;
     background-image: url("/images/halloween-aps-ghost-left.webp");
   }
   html[data-color-theme="halloween"] .halloween-aps-ghost-right {
-    top: 340px;
-    right: -120px;
+    top: 180px;
+    right: -240px;
     background-image: url("/images/halloween-aps-ghost-right.webp");
   }
 }
 @media print {
   html[data-color-theme="halloween"] .halloween-aps-frame { width: auto; }
+  html[data-color-theme="halloween"] .halloween-aps-ghost-layer,
   html[data-color-theme="halloween"] .halloween-aps-ghost { display: none; }
 }
