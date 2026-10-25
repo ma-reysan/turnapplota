@@ -15,6 +15,7 @@ import {
   apsAgendas,
   protocols,
   phoneContacts,
+  pearlVersions,
 } from "@/db/schema";
 import type { PhoneContact, SeedData, ShiftColorKey } from "@/lib/types";
 import { defaultPhoneContacts } from "@/lib/phone-directory";
@@ -49,7 +50,7 @@ export async function getAppData(): Promise<SeedData> {
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, scheduleLegendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows] =
+  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, scheduleLegendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows, pearlRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
@@ -75,6 +76,7 @@ export async function getAppData(): Promise<SeedData> {
         .where(isNull(apsAgendas.archivedAt))
         .orderBy(desc(apsAgendas.createdAt))
         .limit(1),
+      db.select().from(pearlVersions),
     ]);
 
   const globalShiftColorLegend = DEFAULT_SHIFT_COLOR_LEGEND.map((fallback) => {
@@ -96,6 +98,7 @@ export async function getAppData(): Promise<SeedData> {
 
   return {
     ...seed,
+    pearls: pearlRows.find((row) => row.version === "current")?.lines ?? seed.pearls,
     doctors: doctorRows.map((row) => ({
       id: row.id,
       shortName: row.shortName,
