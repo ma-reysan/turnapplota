@@ -3,6 +3,7 @@ export const ACCENT_THEME_OPTIONS = [
   { value: "red", label: "Rojo" },
   { value: "blue", label: "Azul" },
   { value: "gold", label: "Dorado" },
+  { value: "halloween", label: "Halloween 🎃" },
   { value: "dieciocho", label: "Dieciocho" },
 ] as const;
 
@@ -47,4 +48,10 @@ export function isDieciochoSeason(date = new Date()) {
     const { start, end } = weekRangeFor(year, 9, day);
     return today >= start && today <= end;
   });
+}
+
+
+// An explicit browser preference takes priority over seasonal defaults.
+export function resolveAccentTheme(saved: string | null, date = new Date()): AccentTheme {
+  return isAccentTheme(saved) ? saved : isDieciochoSeason(date) ? "dieciocho" : "green";
 }
