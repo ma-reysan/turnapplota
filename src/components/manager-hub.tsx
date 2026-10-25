@@ -1528,6 +1528,7 @@ function ScoreManager({
   types: ReplacementType[];
   recent: Replacement[];
   holidays: Holiday[];
+  pearls: { current: string[]; future: string[] };
   november: NovemberData;
   onNovemberUpdate: (data: NovemberData) => void;
 }) {
@@ -1872,6 +1873,7 @@ export function ManagerHub({
   types,
   replacements,
   holidays,
+  pearls,
   shiftColorLegend,
   shiftColorLegends,
   november,
@@ -1968,7 +1970,7 @@ export function ManagerHub({
       ) : tab === "november" ? (
         <NovemberManager doctors={doctors} schedules={schedules} initial={novemberData} onUpdate={setNovemberData} />
       ) : (
-        <OtrosManager initialHolidays={holidays} />
+        <OtrosManager initialHolidays={holidays} initialPearls={pearls} />
       )}
     </div>
   );
