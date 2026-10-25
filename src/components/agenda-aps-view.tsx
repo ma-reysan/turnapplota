@@ -229,7 +229,9 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
     setSelectedFile(file);
   }
 
-  return <div className="mx-auto max-w-6xl">
+  return <div className="halloween-aps-frame mx-auto max-w-6xl">
+    <div aria-hidden="true" className="halloween-aps-ghost halloween-aps-ghost-left no-print" />
+    <div aria-hidden="true" className="halloween-aps-ghost halloween-aps-ghost-right no-print" />
     <section className="agenda-banner mb-4 rounded-2xl p-4 text-white shadow-lg shadow-black/10">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)] lg:items-center">
         <div>

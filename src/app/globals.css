@@ -552,3 +552,36 @@ html[data-color-theme="halloween"] .halloween-replacements-bats {
 @media print {
   :root:not(.dark) .analysis-cemetery-table { background-image: none; background-color: #fff; }
 }
+
+.halloween-aps-ghost { display: none; }
+@media (min-width: 1440px) {
+  html[data-color-theme="halloween"] .halloween-aps-frame {
+    position: relative;
+    width: calc(100% - 240px);
+  }
+  html[data-color-theme="halloween"] .halloween-aps-ghost {
+    display: block;
+    position: absolute;
+    width: 108px;
+    height: 220px;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: .75;
+    pointer-events: none;
+  }
+  html[data-color-theme="halloween"] .halloween-aps-ghost-left {
+    top: 210px;
+    left: -120px;
+    background-image: url("/images/halloween-aps-ghost-left.webp");
+  }
+  html[data-color-theme="halloween"] .halloween-aps-ghost-right {
+    top: 340px;
+    right: -120px;
+    background-image: url("/images/halloween-aps-ghost-right.webp");
+  }
+}
+@media print {
+  html[data-color-theme="halloween"] .halloween-aps-frame { width: auto; }
+  html[data-color-theme="halloween"] .halloween-aps-ghost { display: none; }
+}
