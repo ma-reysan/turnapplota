@@ -323,7 +323,7 @@ export function ReplacementsView({
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <span className="flex h-8 w-full items-center justify-center rounded-lg border border-amber-200 bg-[#fff8e8] px-2 text-[10px] font-semibold text-[#5d4822] sm:w-[190px]">
+            <span className="flex h-8 w-full shrink-0 items-center justify-center whitespace-nowrap rounded-lg border border-amber-200 bg-[#fff8e8] px-2 text-[10px] font-semibold text-[#5d4822] sm:w-auto sm:min-w-[190px]">
               🪽 Último Convocado/a: {lastInvokedDoctor?.shortName ?? "—"}
             </span>
             <div className="flex h-8 w-full rounded-lg bg-[var(--surface-soft)] p-0.5 sm:w-[190px]">
