@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, CalendarOff, Palette, Trash2 } from "lucide-react";
+import { BookOpen, CalendarOff, Palette, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -214,17 +214,18 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
                     <div className="flex items-start gap-1.5" key={index}>
                       <label className="sr-only" htmlFor={`pearl-${pearlVersion}-${category}-${index}`}>{category}, perla {index + 1}</label>
                       <textarea id={`pearl-${pearlVersion}-${category}-${index}`} rows={1} maxLength={1000}
-                        className="min-h-9 w-full resize-y rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1.5 text-xs leading-5"
+                        ref={(node) => { if (node) { node.style.height = "auto"; node.style.height = `${node.scrollHeight}px`; } }}
+                        className="min-h-9 w-full resize-none overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-1.5 text-xs leading-5"
                         value={line} onChange={(event) => setPearlDrafts((current) => ({
                           ...current, [pearlVersion]: { ...current[pearlVersion], [category]:
                             (current[pearlVersion][category] ?? []).map((item, i) => i === index ? event.target.value : item) },
                         }))} />
                       <button type="button" aria-label={`Eliminar perla ${index + 1} de ${category}`}
-                        className="rounded-lg border border-[var(--line)] p-2"
+                        className="shrink-0 p-1 text-[var(--muted)] hover:text-[var(--danger)]"
                         onClick={() => setPearlDrafts((current) => ({
                           ...current, [pearlVersion]: { ...current[pearlVersion], [category]:
                             (current[pearlVersion][category] ?? []).filter((_, i) => i !== index) },
-                        }))}><Trash2 size={14} /></button>
+                        }))}><X size={14} /></button>
                     </div>
                   ))}
                 </div>
