@@ -29,7 +29,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { AbsenceFreezeManager } from "@/components/absence-freeze-manager";
-import { NovemberManager } from "@/components/november-manager";
 import type { NovemberData } from "@/lib/november-data";
 import { availableFichas, basePointRecords, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
 import type { OnCallWeek } from "@/lib/november-system";
@@ -1887,7 +1886,7 @@ export function ManagerHub({
   shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   november: NovemberData;
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "november" | "otros">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "otros">("schedule");
   const [novemberData, setNovemberData] = useState(november);
   const reloadNovember = useCallback(async () => {
     const response = await fetch("/api/november", { cache: "no-store" });
@@ -1905,16 +1904,6 @@ export function ManagerHub({
           <h1 className="text-2xl font-semibold tracking-tight">Jefe de Urgencias</h1>
         </div>
         <div className="flex flex-wrap justify-center justify-self-center rounded-xl bg-[var(--surface-soft)] p-0.5">
-          <button
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
-              tab === "november" && "bg-[var(--surface)] shadow-sm",
-            )}
-            onClick={() => setTab("november")}
-            type="button"
-          >
-            <CalendarCheck size={16} /> Desde noviembre
-          </button>
           <button
             className={cn(
               "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
@@ -1967,8 +1956,6 @@ export function ManagerHub({
           november={novemberData}
           onNovemberUpdate={setNovemberData}
         />
-      ) : tab === "november" ? (
-        <NovemberManager doctors={doctors} schedules={schedules} initial={novemberData} onUpdate={setNovemberData} />
       ) : (
         <OtrosManager initialHolidays={holidays} initialPearls={pearls} />
       )}
