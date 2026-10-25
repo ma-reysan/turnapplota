@@ -48,106 +48,52 @@ function groupPearls(pearls: string[]) {
   return (Object.entries(sections) as [PearlSectionKey, string[]][]).filter(([, lines]) => lines.length);
 }
 
-function ReplacementSequence({ newSystem }: { newSystem: boolean }) {
-  const [weekend, setWeekend] = useState(false);
-  const [visibleSteps, setVisibleSteps] = useState(1);
-  const volunteer = {
-    title: "Solicitar voluntarios",
-    description: newSystem
-      ? "Jefatura avisa la ausencia y fija un plazo para ofrecerse. Cubre el primero que se ofrezca y cumpla las condiciones, incluido el descanso obligatorio y las fichas disponibles: una por 12 horas o dos por 24 horas."
-      : "Jefatura solicita voluntarios al equipo. Antes de asignar, se verifica que el médico pueda cubrir y cumpla el descanso obligatorio.",
-    next: newSystem ? "Si no hay voluntarios al vencer el plazo, continuar." : "Si no hay voluntarios, continuar.",
-  };
-  const onCall = {
-    title: "Activar a los tres médicos de llamado",
-    description: "Se contacta al grupo asignado para esa semana. Los tres pueden acordar quién cubre; si no hay acuerdo, corresponde al de menor puntaje que cumpla el descanso obligatorio.",
-    next: "Si ninguno puede cubrir, volver a la tabla.",
-  };
-  const fallback = {
-    title: "Volver a la tabla",
-    description: "Revisar la tabla por menor puntaje, verificando el descanso obligatorio y la exención del Último Convocado/a antes de asignar el reemplazo.",
-    next: "No tener fichas no impide una convocatoria por tabla o llamado.",
-  };
-  const steps = !newSystem ? [
-    volunteer,
+function ReplacementSequence() {
+  const routes = [
     {
-      title: "Revisar la tabla por menor puntaje",
-      description: "Se convoca al médico con menos puntos. Se comprueba que no esté en turno, preturno incompatible, posturno con descanso de 24 horas ni figure como Último Convocado/a.",
-      next: "Si está exento, revisar al siguiente con menor puntaje hasta encontrar quien pueda cubrir.",
+      title: "Días de semana · lunes a jueves",
+      steps: [
+        ["Voluntarios", "Jefatura solicita voluntarios y fija un plazo para ofrecerse."],
+        ["Tabla según puntos", "Primer llamado al médico con menor puntaje, verificando las exenciones."],
+        ["Segundo llamado por tabla", "Si el primero está exento, revisar al siguiente con menor puntaje."],
+        ["Médicos de llamado", "Activar a los tres médicos asignados para esa semana."],
+      ],
     },
     {
-      title: "Asignar y registrar el reemplazo",
-      description: "El médico que cubra suma los puntos de la Tablita de días, tanto si fue voluntario como si fue convocado. Para una ausencia de 24 horas en fin de semana, se solicita cubrir las 24 horas.",
-      next: "Si no se consigue un tercer médico en una contingencia de fin de semana, puede consultarse la disponibilidad de un internista para pasar visita.",
-    },
-  ] : [
-    volunteer,
-    ...(weekend ? [onCall, fallback] : [
-      {
-        title: "Revisar al médico con menor puntaje",
-        description: "Si cumple el descanso obligatorio y no figura como Último Convocado/a, le corresponde cubrir. Si está exento, se activa al grupo de llamado: no se salta al siguiente de la tabla.",
-        next: "Continuar solo si el médico con menor puntaje está exento.",
-      },
-      onCall,
-      fallback,
-    ]),
-    {
-      title: "Asignar y registrar el reemplazo",
-      description: "Todos los reemplazos suman los puntos de la Tablita de días. El bono Superhéroe de +1 corresponde solo a voluntarios de viernes a domingo cuando el turno comienza en menos de 12 horas desde el aviso.",
-      next: "El descanso es obligatorio para todos y nadie debe trabajar más de 24 horas seguidas.",
+      title: "Fin de semana · viernes a domingo",
+      steps: [
+        ["Voluntarios", "Jefatura solicita voluntarios y fija un plazo para ofrecerse."],
+        ["Médicos de llamado · 1, 2 y 3", "Acuerdan quién cubre. Sin acuerdo, corresponde al de menor puntaje que cumpla el descanso."],
+        ["Tabla según puntos", "Si ninguno puede cubrir, convocar por menor puntaje verificando las exenciones."],
+      ],
     },
   ];
   return (
-    <section aria-labelledby="replacement-sequence-title" className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+    <section aria-labelledby="replacement-sequence-title" className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
       <h2 id="replacement-sequence-title" className="text-sm font-semibold">Secuencia de reemplazo</h2>
-      <p className="mt-1 text-xs text-[var(--muted)]">
-        Sigue las tarjetas en orden y detente cuando se consiga cobertura. {newSystem ? "Reglas desde el 1 de noviembre de 2026." : "Reglas para turnos iniciados antes del 1 de noviembre de 2026."}
-      </p>
-      {newSystem && (
-        <div aria-label="Días del turno a reemplazar" className="mt-3 flex flex-wrap gap-2">
-          {[false, true].map((value) => (
-            <button
-              key={String(value)}
-              type="button"
-              aria-pressed={weekend === value}
-              onClick={() => { setWeekend(value); setVisibleSteps(1); }}
-              className={cn(
-                "min-h-11 rounded-lg border px-3 py-2 text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]",
-                weekend === value ? "border-[var(--brand)] bg-[var(--surface-soft)] text-[var(--brand)]" : "border-[var(--line)]",
-              )}
-            >
-              {value ? "Viernes a domingo" : "Lunes a jueves"}
-            </button>
-          ))}
-        </div>
-      )}
-      <p className="mt-3 text-xs text-[var(--muted)]">Paso {visibleSteps} de {steps.length}</p>
-      <ol aria-live="polite" aria-relevant="additions" className="mt-2 space-y-2">
-        {steps.slice(0, visibleSteps).map((step, index) => (
-          <li key={step.title} className="rounded-xl bg-[var(--surface-soft)] p-3">
-            <div className="flex items-start gap-3">
-              <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-xs font-bold text-[var(--brand)]">{index + 1}</span>
-              <div>
-                <h3 className="text-xs font-semibold text-[var(--brand)]">{step.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed">{step.description}</p>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{step.next}</p>
-              </div>
+      <p className="mt-1 text-xs text-[var(--muted)]">Desde el 1 de noviembre de 2026. Sigue las flechas de izquierda a derecha; continúa solo si no se consigue cobertura.</p>
+      <div className="mt-4 space-y-5">
+        {routes.map((route) => (
+          <div key={route.title}>
+            <h3 className="mb-2 text-xs font-semibold text-[var(--brand)]">{route.title}</h3>
+            <div tabIndex={0} role="region" aria-label={route.title} className="overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-[var(--brand)]">
+              <ol className="flex min-w-max items-stretch gap-2">
+                {route.steps.map(([title, description], index) => (
+                  <li key={title} className="flex items-center gap-2">
+                    {index > 0 && <span aria-hidden="true" className="text-xl font-semibold text-[var(--brand)]">→</span>}
+                    <article className="h-full w-44 rounded-xl border border-[var(--line)] bg-[var(--surface-soft)] p-3">
+                      <span className="mb-2 flex size-6 items-center justify-center rounded-full border border-[var(--line)] text-[10px] font-bold text-[var(--brand)]">{index + 1}</span>
+                      <h4 className="text-xs font-semibold text-[var(--brand)]">{title}</h4>
+                      <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted)]">{description}</p>
+                    </article>
+                  </li>
+                ))}
+              </ol>
             </div>
-          </li>
+          </div>
         ))}
-      </ol>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {visibleSteps < steps.length && (
-          <button type="button" onClick={() => setVisibleSteps((count) => Math.min(count + 1, steps.length))} className="min-h-11 rounded-lg bg-[var(--brand)] px-3 py-2 text-xs font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
-            Ver siguiente paso
-          </button>
-        )}
-        {visibleSteps > 1 && (
-          <button type="button" onClick={() => setVisibleSteps(1)} className="min-h-11 rounded-lg border border-[var(--line)] px-3 py-2 text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]">
-            Volver al inicio
-          </button>
-        )}
       </div>
+      <p className="mt-2 text-[11px] text-[var(--muted)]">En móvil, desliza cada fila para recorrer el mapa. El descanso obligatorio se verifica antes de asignar cualquier reemplazo.</p>
     </section>
   );
 }
@@ -478,7 +424,7 @@ export function ReplacementsView({
               ))}
             </div>
           </section>
-          <ReplacementSequence key={String(newSystem)} newSystem={newSystem} />
+          <ReplacementSequence />
         </div>
         <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
           <div className="flex items-center gap-2">
