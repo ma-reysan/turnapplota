@@ -170,10 +170,13 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
     if (!result) return [];
     return result.days.flatMap((day, index) => {
       const hasNight = result.schedule[day.col]?.some((activity) => activity.activity === "TURNO NOCHE");
+      const date = agendaDate(day.date);
+      const isLastDayOfMonth = date !== null && date.getDate() === new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+      if (hasNight && isLastDayOfMonth) return [];
       const nextDay = result.days[index + 1];
       const nextHasHandover = nextDay && result.schedule[nextDay.col]?.some((activity) => activity.activity.toUpperCase().includes("ENTREGA"));
       const isWeekend = nextDay && /SAB|SÁB|DOM/i.test(nextDay.label);
-      return hasNight && (!nextDay || (!nextHasHandover && !isWeekend)) ? [nextDay ? `${nextDay.label} ${nextDay.date}` : "día siguiente"] : [];
+      return hasNight && (!nextDay || (!nextHasHandover && !isWeekend)) ? [nextDay ? `${nextDay.label} ${nextDay.date}` : "siguiente"] : [];
     });
   }, [result]);
 
