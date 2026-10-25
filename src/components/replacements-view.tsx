@@ -421,7 +421,7 @@ export function ReplacementsView({
               ))}
             </div>
           </section>
-          <ReplacementSequence />
+          {newSystem ? <ReplacementSequence /> : null}
         </div>
         <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
           <div className="flex items-center gap-2">
