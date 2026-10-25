@@ -403,10 +403,22 @@ html.dark[data-color-theme="halloween"] aside::before {
   filter: none;
 }
 
-/* Illustrated Halloween backgrounds stay below the content and shift markers. */
-html[data-color-theme="halloween"] .halloween-pumpkin,
+/* Halloween decorations: sidebar pumpkin and replacement-table bats. */
+.halloween-sidebar-pumpkin { display: none; }
+html[data-color-theme="halloween"] .halloween-sidebar-pumpkin {
+  display: block;
+  flex: 1 1 120px;
+  min-height: 0;
+  max-height: 150px;
+  margin: 12px 0;
+  background: url("/images/halloween-sidebar-pumpkin.webp") center / contain no-repeat;
+  pointer-events: none;
+}
 html[data-color-theme="halloween"] .halloween-bats {
   --halloween-veil: 74%;
+  --halloween-art: url("/images/halloween-bats.webp");
+  --halloween-art-size: 440px auto;
+  --halloween-art-position: right 18px top 66px;
   background-image:
     linear-gradient(color-mix(in srgb, var(--surface) var(--halloween-veil), transparent), color-mix(in srgb, var(--surface) var(--halloween-veil), transparent)),
     var(--halloween-art);
@@ -414,42 +426,13 @@ html[data-color-theme="halloween"] .halloween-bats {
   background-size: 100% 100%, var(--halloween-art-size);
   background-position: center, var(--halloween-art-position);
 }
-html[data-color-theme="halloween"] .halloween-pumpkin {
-  --halloween-art: url("/images/halloween-pumpkin.webp");
-  --halloween-art-size: 340px auto;
-  --halloween-art-position: right 12px top 10px;
-}
-html[data-color-theme="halloween"] .halloween-calendar-day {
-  background-color: color-mix(in srgb, var(--surface-soft) 68%, transparent);
-}
-html[data-color-theme="halloween"] .halloween-bats {
-  --halloween-art: url("/images/halloween-bats.webp");
-  --halloween-art-size: 440px auto;
-  --halloween-art-position: right 18px top 66px;
-}
-html[data-color-theme="halloween"] .agenda-banner.halloween-ghost {
-  background-color: #2b173f;
-  background-image:
-    linear-gradient(110deg, rgb(43 23 63 / 92%), rgb(88 50 111 / 58%), rgb(155 69 25 / 85%)),
-    url("/images/halloween-ghost.webp");
-  background-repeat: no-repeat;
-  background-size: 100% 100%, 270px auto;
-  background-position: center, 42% center;
-}
-html.dark[data-color-theme="halloween"] .halloween-pumpkin,
 html.dark[data-color-theme="halloween"] .halloween-bats {
   --halloween-veil: 62%;
 }
 @media (max-width: 639px) {
-  html[data-color-theme="halloween"] .halloween-pumpkin { --halloween-art-size: 230px auto; }
   html[data-color-theme="halloween"] .halloween-bats { --halloween-art-size: 280px auto; }
-  html[data-color-theme="halloween"] .agenda-banner.halloween-ghost {
-    background-size: 100% 100%, 210px auto;
-    background-position: center, right top;
-  }
 }
 @media print {
-  html[data-color-theme="halloween"] .halloween-pumpkin,
-  html[data-color-theme="halloween"] .halloween-bats,
-  html[data-color-theme="halloween"] .agenda-banner.halloween-ghost { background-image: none; }
+  html[data-color-theme="halloween"] .halloween-bats { background-image: none; }
+  .halloween-sidebar-pumpkin { display: none !important; }
 }

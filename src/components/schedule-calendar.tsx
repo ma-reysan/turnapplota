@@ -255,7 +255,7 @@ export function ScheduleCalendar({
 
         <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
           <div
-            className={cn("halloween-pumpkin border border-[var(--line)] bg-[var(--surface)] p-3", showOnCall ? "min-w-[900px]" : "min-w-[680px]")}
+            className={cn("border border-[var(--line)] bg-[var(--surface)] p-3", showOnCall ? "min-w-[900px]" : "min-w-[680px]")}
             ref={exportRef}
           >
             <div className="mb-2 flex items-end justify-between">
@@ -290,7 +290,7 @@ export function ScheduleCalendar({
                   <div className="contents" key={dateKey}>
                   <div
                     className={cn(
-                      "halloween-calendar-day min-h-[105px] rounded-lg border border-[var(--line)] p-1",
+                      "min-h-[105px] rounded-lg border border-[var(--line)] p-1",
                       inMonth ? "bg-[var(--surface-soft)]" : "bg-[var(--surface-soft)] opacity-55",
                     )}
                     key={dateKey}

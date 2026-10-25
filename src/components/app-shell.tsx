@@ -116,6 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        <div aria-hidden="true" className="halloween-sidebar-pumpkin no-print" />
         <div className="mt-auto space-y-2">
           {showingSchedule ? (
             <div className="rounded-xl border border-[var(--line)] p-2">
