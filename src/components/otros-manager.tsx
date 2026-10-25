@@ -61,6 +61,7 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
   );
   const [holidayDate, setHolidayDate] = useState(chileDateKey());
   const [holidayLabel, setHolidayLabel] = useState("");
+  const [showYearHolidays, setShowYearHolidays] = useState(false);
   const [pearlVersion, setPearlVersion] = useState<"current" | "future">("current");
   const [pearlDrafts, setPearlDrafts] = useState(() => ({ current: groupPearlLines(initialPearls.current), future: groupPearlLines(initialPearls.future) }));
   const [editorOpen, setEditorOpen] = useState(false);
@@ -316,11 +317,22 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
         <div className="mt-3">
           <div className="mb-1 flex items-center justify-between gap-2">
             <h3 className="text-xs font-semibold">Próximos 365 días</h3>
-            <span className="text-[11px] text-[var(--muted)]">
-              {yearHolidays.length} fechas
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-[var(--muted)]">
+                {yearHolidays.length} fechas
+              </span>
+              <button
+                aria-controls="year-holidays"
+                aria-expanded={showYearHolidays}
+                className="rounded-lg border border-[var(--line)] px-2.5 py-1.5 text-xs font-medium"
+                onClick={() => setShowYearHolidays((shown) => !shown)}
+                type="button"
+              >
+                {showYearHolidays ? "Ocultar" : "Mostrar"}
+              </button>
+            </div>
           </div>
-          <div className="divide-y divide-[var(--line)]">
+          {showYearHolidays && <div id="year-holidays" className="divide-y divide-[var(--line)]">
           {yearHolidays.length ? (
             yearHolidays.map((item) => (
               <div
@@ -350,7 +362,7 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
               No hay feriados durante los próximos 365 días.
             </p>
           )}
-          </div>
+          </div>}
         </div>
       </section>
     </div>
