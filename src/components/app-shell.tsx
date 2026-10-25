@@ -89,7 +89,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-[216px] flex-col border-r border-[var(--line)] bg-[var(--surface)] px-3 py-4 lg:flex">
         <Link className="flex items-center gap-2.5 px-2 py-1.5" href="/turnos">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--brand)] text-white">
-            <Stethoscope size={19} />
+            <Stethoscope aria-hidden="true" className="brand-default-icon" size={19} />
+            <span aria-hidden="true" className="brand-halloween-icon">💀</span>
           </span>
           <span>
             <strong className="block tracking-tight">TurnApp</strong>
