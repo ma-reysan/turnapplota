@@ -418,26 +418,7 @@ html[data-color-theme="halloween"] .halloween-sidebar-pumpkin {
   background: url("/images/halloween-sidebar-pumpkin.webp") center / contain no-repeat;
   pointer-events: none;
 }
-html[data-color-theme="halloween"] .halloween-bats {
-  --halloween-veil: 74%;
-  --halloween-art: url("/images/halloween-bats.webp");
-  --halloween-art-size: 440px auto;
-  --halloween-art-position: right 18px top 66px;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--surface) var(--halloween-veil), transparent), color-mix(in srgb, var(--surface) var(--halloween-veil), transparent)),
-    var(--halloween-art);
-  background-repeat: no-repeat;
-  background-size: 100% 100%, var(--halloween-art-size);
-  background-position: center, var(--halloween-art-position);
-}
-html.dark[data-color-theme="halloween"] .halloween-bats {
-  --halloween-veil: 62%;
-}
-@media (max-width: 639px) {
-  html[data-color-theme="halloween"] .halloween-bats { --halloween-art-size: 280px auto; }
-}
 @media print {
-  html[data-color-theme="halloween"] .halloween-bats { background-image: none; }
   .halloween-sidebar-pumpkin { display: none !important; }
 }
 
@@ -483,4 +464,54 @@ html[data-color-theme="halloween"] .halloween-lunch-decor {
 }
 @media print {
   html[data-color-theme="halloween"] .halloween-lunch-decor { display: none; }
+}
+
+.halloween-gripping-hand,
+.halloween-replacements-bats { display: none; }
+html[data-color-theme="halloween"] .halloween-replacements-frame {
+  position: relative;
+  padding-top: 56px;
+}
+html[data-color-theme="halloween"] .halloween-replacements-heading {
+  padding-top: 48px;
+}
+html[data-color-theme="halloween"] .halloween-gripping-hand,
+html[data-color-theme="halloween"] .halloween-replacements-bats {
+  display: block;
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+html[data-color-theme="halloween"] .halloween-gripping-hand {
+  top: 4px;
+  left: 24px;
+  width: 144px;
+  height: 100px;
+  background-image: url("/images/halloween-gripping-hand.webp");
+}
+html[data-color-theme="halloween"] .halloween-replacements-bats {
+  top: 0;
+  right: 12px;
+  width: 240px;
+  height: 80px;
+  background-image: url("/images/halloween-bats.webp");
+}
+@media (max-width: 639px) {
+  html[data-color-theme="halloween"] .halloween-gripping-hand {
+    left: 8px;
+    width: 116px;
+  }
+  html[data-color-theme="halloween"] .halloween-replacements-bats {
+    right: 4px;
+    width: 164px;
+  }
+}
+@media print {
+  html[data-color-theme="halloween"] .halloween-replacements-frame { padding-top: 0; }
+  html[data-color-theme="halloween"] .halloween-replacements-heading { padding-top: 12px; }
+  html[data-color-theme="halloween"] .halloween-gripping-hand,
+  html[data-color-theme="halloween"] .halloween-replacements-bats { display: none; }
 }
