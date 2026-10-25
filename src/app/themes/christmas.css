@@ -137,43 +137,45 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
   background: url("/images/christmas-treats.webp") center / contain no-repeat;
   pointer-events: none;
 }
-/* Use the existing side-margin layer, with large art below the agenda cards. */
+/* Give each figure its own responsive gutter so no part is clipped or hidden by cards. */
 @media (min-width: 1440px) {
   html[data-color-theme="christmas"] .seasonal-aps-frame {
+    --aps-art-space: clamp(200px, calc((100vw - 1200px) / 2), 340px);
     position: relative;
     isolation: isolate;
-    width: calc(100% - 240px);
+    width: calc(100% - 2 * var(--aps-art-space));
   }
   html[data-color-theme="christmas"] .seasonal-aps-layer {
     display: block;
     position: absolute;
-    inset: 0 -120px;
+    inset: 0 calc(-1 * var(--aps-art-space));
     z-index: -1;
-    overflow: hidden;
+    overflow: visible;
     pointer-events: none;
   }
   html[data-color-theme="christmas"] .seasonal-aps-left,
   html[data-color-theme="christmas"] .seasonal-aps-right {
     display: block;
     position: absolute;
-    background-position: center;
+    width: calc(var(--aps-art-space) - 16px);
+    height: auto;
+    background-position: center top;
     background-size: contain;
     background-repeat: no-repeat;
     opacity: .5;
     pointer-events: none;
   }
   html[data-color-theme="christmas"] .seasonal-aps-left {
-    top: 140px;
-    left: -85px;
-    width: 300px;
-    height: 620px;
+    top: 210px;
+    left: 8px;
+    aspect-ratio: 476 / 720;
     background-image: url("/images/christmas-snowman.webp");
   }
   html[data-color-theme="christmas"] .seasonal-aps-right {
-    top: 260px;
-    right: -180px;
-    width: 360px;
-    height: 620px;
+    top: 300px;
+    right: 8px;
+    aspect-ratio: 436 / 720;
+    transform: scaleX(-1);
     background-image: url("/images/christmas-reindeer.webp");
   }
 }
