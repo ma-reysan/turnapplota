@@ -227,7 +227,7 @@ export function AgendaApsView({ initialAgenda }: { initialAgenda?: ApsAgenda }) 
   }
 
   return <div className="mx-auto max-w-6xl">
-    <section className="agenda-banner mb-4 rounded-2xl p-4 text-white shadow-lg shadow-black/10">
+    <section className="agenda-banner halloween-ghost mb-4 rounded-2xl p-4 text-white shadow-lg shadow-black/10">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,.9fr)] lg:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Agenda APS</h1>
