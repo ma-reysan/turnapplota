@@ -436,3 +436,11 @@ html.dark[data-color-theme="halloween"] .halloween-bats {
   html[data-color-theme="halloween"] .halloween-bats { background-image: none; }
   .halloween-sidebar-pumpkin { display: none !important; }
 }
+
+.brand-halloween-icon { display: none; }
+html[data-color-theme="halloween"] .brand-default-icon { display: none; }
+html[data-color-theme="halloween"] .brand-halloween-icon {
+  display: block;
+  font-size: 24px;
+  line-height: 1;
+}
