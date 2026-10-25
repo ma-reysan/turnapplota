@@ -23,9 +23,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const navigation = [
   { href: "/turnos", label: "Turnos", icon: CalendarDays },
   { href: "/reemplazos", label: "Tabla de Reemplazos", icon: TableProperties },
+  { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
   { href: "/analisis", label: "Análisis", icon: BarChart3 },
   { href: "/edf", label: "EDF", icon: Stethoscope },
-  { href: "/agenda-aps", label: "Agenda APS", icon: CalendarDays },
   { href: "/protocolos", label: "Protocolos", icon: BookOpen },
   { href: "/telefonos", label: "Teléfonos", icon: Phone },
   { href: "/almuerzo", label: "Almuerzo", icon: Utensils },
