@@ -434,7 +434,7 @@ html[data-color-theme="halloween"] .brand-halloween-icon {
 .halloween-month-spiders { display: none; }
 html[data-color-theme="halloween"] .halloween-month-bar {
   position: relative;
-  margin-top: 64px;
+  margin-top: 0;
 }
 html[data-color-theme="halloween"] .halloween-month-spiders {
   display: block;
@@ -448,7 +448,7 @@ html[data-color-theme="halloween"] .halloween-month-spiders {
   pointer-events: none;
 }
 @media (max-width: 639px) {
-  html[data-color-theme="halloween"] .halloween-month-bar { margin-top: 52px; }
+  html[data-color-theme="halloween"] .halloween-month-bar { margin-top: 0; }
   html[data-color-theme="halloween"] .halloween-month-spiders {
     right: 8px;
     width: 170px;
@@ -464,15 +464,15 @@ html[data-color-theme="halloween"] .halloween-month-spiders {
 .halloween-lunch-decor { display: none; }
 html[data-color-theme="halloween"] .halloween-lunch-decor {
   display: block;
-  height: 180px;
+  height: 220px;
   width: 100%;
-  max-width: 440px;
+  max-width: 520px;
   margin: 0 auto 16px;
-  background: url("/images/halloween-lunch-garlic-candy.webp") center / contain no-repeat;
+  background: url("/images/halloween-lunch-sweets.webp") center / contain no-repeat;
   pointer-events: none;
 }
 @media (max-width: 639px) {
-  html[data-color-theme="halloween"] .halloween-lunch-decor { height: 140px; }
+  html[data-color-theme="halloween"] .halloween-lunch-decor { height: 160px; }
 }
 @media print {
   html[data-color-theme="halloween"] .halloween-lunch-decor { display: none; }
