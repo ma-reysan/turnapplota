@@ -29,9 +29,9 @@ describe("global appearance", () => {
     expect(response.headers.get("Cache-Control")).toBe("no-store");
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
-  it("returns only the published theme and its revision", async () => {
-    mocks.query.mockResolvedValue([{ theme: "halloween", id: "publication-2" }]);
-    expect(await (await GET()).json()).toEqual({ theme: "halloween", revision: "publication-2" });
+  it.each(["halloween", "christmas"])("returns the published %s theme and revision", async (theme) => {
+    mocks.query.mockResolvedValue([{ theme, id: "publication-2" }]);
+    expect(await (await GET()).json()).toEqual({ theme, revision: "publication-2" });
   });
   it("requires Jefatura before writing", async () => {
     mocks.authorized = false;
@@ -43,8 +43,8 @@ describe("global appearance", () => {
     expect((await PUT(request("invalid"))).status).toBe(400);
     expect(mocks.transaction).not.toHaveBeenCalled();
   });
-  it("publishes an authenticated choice with a new global revision", async () => {
-    expect(await (await PUT(request("halloween"))).json()).toEqual({ theme: "halloween", revision: "publication-1" });
+  it.each(["halloween", "christmas"])("publishes authenticated %s with a new revision", async (theme) => {
+    expect(await (await PUT(request(theme))).json()).toEqual({ theme, revision: "publication-1" });
     expect(mocks.transaction).toHaveBeenCalledOnce();
   });
   it("does not report success when the database fails", async () => {

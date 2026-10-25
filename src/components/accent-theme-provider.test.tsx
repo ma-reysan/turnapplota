@@ -8,6 +8,7 @@ function Controls() {
   return <div>
     <span>{theme.loaded ? "loaded" : "loading"}</span>
     <button onClick={() => theme.select("halloween")}>Preview</button>
+    <button onClick={() => theme.select("christmas")}>Preview Christmas</button>
     <button onClick={theme.discard}>Discard</button>
     <button onClick={() => void theme.publish().catch(() => undefined)}>Publish</button>
     <span>{theme.localPreview ? "local" : "global"}</span>
@@ -34,6 +35,19 @@ describe("local preview and global publication", () => {
     fireEvent.click(screen.getByText("Preview"));
     expect(document.documentElement.dataset.colorTheme).toBe("halloween");
     expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ theme: "halloween", revision: "published-1" });
+    expect(vi.mocked(fetch).mock.calls.every((call) => call[1]?.method !== "PUT")).toBe(true);
+    fireEvent.click(screen.getByText("Discard"));
+    expect(document.documentElement.dataset.colorTheme).toBe("blue");
+  });
+  it("previews Christmas immediately and restores it after a reload without publishing", async () => {
+    await mount();
+    fireEvent.click(screen.getByText("Preview Christmas"));
+    expect(document.documentElement.dataset.colorTheme).toBe("christmas");
+    expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ theme: "christmas", revision: "published-1" });
+    cleanup();
+    render(<AccentThemeProvider><Controls /></AccentThemeProvider>);
+    await screen.findByText("loaded");
+    expect(document.documentElement.dataset.colorTheme).toBe("christmas");
     expect(vi.mocked(fetch).mock.calls.every((call) => call[1]?.method !== "PUT")).toBe(true);
     fireEvent.click(screen.getByText("Discard"));
     expect(document.documentElement.dataset.colorTheme).toBe("blue");

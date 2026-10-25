@@ -235,8 +235,8 @@ export function ScheduleCalendar({
   return (
     <div className="grid gap-3 xl:grid-cols-[minmax(680px,70%)_220px]">
       <section className="min-w-0">
-        <div className="halloween-month-bar no-print mb-2 flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
-          <div aria-hidden="true" className="halloween-month-spiders" />
+        <div className="halloween-month-bar seasonal-month-bar no-print mb-2 flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
+          <div aria-hidden="true" className="halloween-month-spiders seasonal-month-art" />
           <span className="text-sm text-[var(--muted)]">Mes</span>
           <button
             aria-label="Mes anterior"

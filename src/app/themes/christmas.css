@@ -1,0 +1,229 @@
+/* Christmas is an optional theme; marked shifts keep their semantic colors. */
+:root[data-color-theme="christmas"] {
+  --background: #f3eddf;
+  --surface: #fffaf0;
+  --surface-soft: #e9dfcc;
+  --foreground: #26382d;
+  --muted: #586254;
+  --line: #c9bea8;
+  --brand: #9f2f3d;
+  --brand-strong: #6f1e29;
+  --shift-normal: #eee2c7;
+  --shift-normal-text: #233a2b;
+  --shift-border: #ac9472;
+  --shift-divider: #b19a76;
+  --day-border: #9f2f3d;
+  --night-border: #295a43;
+  --danger: #a52a38;
+  --shadow-rgb: 28 49 35;
+}
+:root.dark[data-color-theme="christmas"] {
+  --background: #101d18;
+  --surface: #17271f;
+  --surface-soft: #23382b;
+  --foreground: #fff4df;
+  --muted: #bdc6b9;
+  --line: #48644d;
+  --brand: #ae3442;
+  --brand-strong: #f2cb84;
+  --shift-normal: #314d3b;
+  --shift-normal-text: #fff4df;
+  --shift-border: #8d7959;
+  --shift-divider: #82704f;
+  --day-border: #df9b80;
+  --night-border: #b9d0ae;
+  --danger: #ffb0b7;
+}
+html[data-color-theme="christmas"] body {
+  background:
+    radial-gradient(ellipse at 90% 0%, rgb(170 129 43 / 10%), transparent 36rem),
+    radial-gradient(ellipse at 0% 50%, rgb(38 83 56 / 7%), transparent 32rem),
+    var(--background);
+}
+html.dark[data-color-theme="christmas"] [class~="text-[var(--brand)]"] {
+  color: var(--brand-strong);
+}
+.brand-christmas-icon { display: none; }
+html[data-color-theme="christmas"] .brand-default-icon { display: none; }
+html[data-color-theme="christmas"] .brand-christmas-icon {
+  display: block;
+  font-size: 24px;
+  line-height: 1;
+}
+/* The tree sits behind the navigation and is clipped by the sidebar. */
+html[data-color-theme="christmas"] .seasonal-sidebar-art {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 300px;
+  height: 490px;
+  transform: translate(-50%, -50%);
+  opacity: .22;
+  background: url("/images/christmas-tree.webp") center / contain no-repeat;
+  pointer-events: none;
+}
+html[data-color-theme="christmas"] .seasonal-sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 38px;
+  opacity: .35;
+  background: url("/images/christmas-garland.webp") top right / contain no-repeat;
+  pointer-events: none;
+}
+html[data-color-theme="christmas"] .seasonal-month-bar {
+  position: relative;
+  margin-top: 102px;
+}
+html[data-color-theme="christmas"] .seasonal-month-art {
+  display: block;
+  position: absolute;
+  bottom: calc(100% - 6px);
+  right: 12px;
+  width: min(340px, 70%);
+  height: 110px;
+  background: url("/images/christmas-garland.webp") center bottom / contain no-repeat;
+  opacity: .9;
+  pointer-events: none;
+}
+html[data-color-theme="christmas"] .agenda-banner {
+  background: linear-gradient(120deg, #173e2c, #295a3f 65%, #7b2937);
+}
+html[data-color-theme="christmas"] .seasonal-replacements-frame {
+  position: relative;
+  padding-top: 72px;
+}
+html[data-color-theme="christmas"] .seasonal-replacements-heading {
+  padding-top: 44px;
+}
+html[data-color-theme="christmas"] .seasonal-replacements-grip,
+html[data-color-theme="christmas"] .seasonal-replacements-corner {
+  display: block;
+  position: absolute;
+  z-index: 2;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+html[data-color-theme="christmas"] .seasonal-replacements-grip {
+  top: 14px;
+  left: 24px;
+  width: 240px;
+  height: 92px;
+  background-image: url("/images/christmas-gloves.webp");
+}
+html[data-color-theme="christmas"] .seasonal-replacements-corner {
+  top: 0;
+  right: 12px;
+  width: 260px;
+  height: 84px;
+  background-image: url("/images/christmas-garland.webp");
+}
+html[data-color-theme="christmas"] .seasonal-lunch-art {
+  display: block;
+  height: 220px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 16px;
+  background: url("/images/christmas-treats.webp") center / contain no-repeat;
+  pointer-events: none;
+}
+/* Use the existing side-margin layer, with large art below the agenda cards. */
+@media (min-width: 1440px) {
+  html[data-color-theme="christmas"] .seasonal-aps-frame {
+    position: relative;
+    isolation: isolate;
+    width: calc(100% - 240px);
+  }
+  html[data-color-theme="christmas"] .seasonal-aps-layer {
+    display: block;
+    position: absolute;
+    inset: 0 -120px;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  html[data-color-theme="christmas"] .seasonal-aps-left,
+  html[data-color-theme="christmas"] .seasonal-aps-right {
+    display: block;
+    position: absolute;
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: .5;
+    pointer-events: none;
+  }
+  html[data-color-theme="christmas"] .seasonal-aps-left {
+    top: 140px;
+    left: -85px;
+    width: 300px;
+    height: 620px;
+    background-image: url("/images/christmas-snowman.webp");
+  }
+  html[data-color-theme="christmas"] .seasonal-aps-right {
+    top: 260px;
+    right: -180px;
+    width: 360px;
+    height: 620px;
+    background-image: url("/images/christmas-reindeer.webp");
+  }
+}
+/* The analysis table gets a faint tree watermark instead of the cemetery. */
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table {
+  --foreground: #26382d;
+  --muted: #586254;
+  --line: #c9bea8;
+  color: #26382d;
+  background-color: #fffaf0;
+  background-image:
+    linear-gradient(rgb(255 250 240 / 92%), rgb(255 250 240 / 92%)),
+    url("/images/christmas-tree.webp");
+  background-size: cover, 280px auto;
+  background-position: center, right bottom;
+}
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table thead {
+  color: #3e5142;
+  background-color: #e9dfcc;
+}
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-positive { color: #7a3a18; }
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-negative { color: #164f7b; }
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-balanced { color: #1d5740; }
+@media (max-width: 639px) {
+  html[data-color-theme="christmas"] .seasonal-month-bar { margin-top: 72px; }
+  html[data-color-theme="christmas"] .seasonal-month-art {
+    width: min(230px, 70%);
+    height: 78px;
+    right: 8px;
+    bottom: calc(100% - 4px);
+  }
+  html[data-color-theme="christmas"] .seasonal-replacements-heading { padding-top: 32px; }
+  html[data-color-theme="christmas"] .seasonal-replacements-grip {
+    left: 8px;
+    width: 144px;
+    height: 80px;
+  }
+  html[data-color-theme="christmas"] .seasonal-replacements-corner {
+    right: 4px;
+    width: 140px;
+    height: 70px;
+  }
+  html[data-color-theme="christmas"] .seasonal-lunch-art { height: 170px; }
+}
+@media print {
+  html[data-color-theme="christmas"] .seasonal-sidebar-art,
+  html[data-color-theme="christmas"] .seasonal-month-art,
+  html[data-color-theme="christmas"] .seasonal-replacements-grip,
+  html[data-color-theme="christmas"] .seasonal-replacements-corner,
+  html[data-color-theme="christmas"] .seasonal-lunch-art,
+  html[data-color-theme="christmas"] .seasonal-aps-layer { display: none !important; }
+  html[data-color-theme="christmas"] .seasonal-month-bar { margin-top: 0; }
+  html[data-color-theme="christmas"] .seasonal-replacements-frame { padding-top: 0; }
+  html[data-color-theme="christmas"] .seasonal-replacements-heading { padding-top: 12px; }
+  html[data-color-theme="christmas"] .seasonal-aps-frame { width: auto; }
+  :root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table { background-image: none; }
+}
