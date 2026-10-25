@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import seed from "@/data/seed.json";
 import { getDb, isDatabaseConfigured } from "@/db";
 import { pearlVersions } from "@/db/schema";
