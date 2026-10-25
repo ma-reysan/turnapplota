@@ -190,9 +190,9 @@ html[data-color-theme="christmas"] .seasonal-lunch-art {
   color: #3e5142;
   background-color: #e9dfcc;
 }
-:root[data-color-theme="christmas"]:not(.dark) .analysis-difference-positive { color: #7a3a18; }
-:root[data-color-theme="christmas"]:not(.dark) .analysis-difference-negative { color: #164f7b; }
-:root[data-color-theme="christmas"]:not(.dark) .analysis-difference-balanced { color: #1d5740; }
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-positive { color: #7a3a18; }
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-negative { color: #164f7b; }
+:root[data-color-theme="christmas"]:not(.dark) .analysis-cemetery-table .analysis-difference-balanced { color: #1d5740; }
 @media (max-width: 639px) {
   html[data-color-theme="christmas"] .seasonal-month-bar { margin-top: 72px; }
   html[data-color-theme="christmas"] .seasonal-month-art {
