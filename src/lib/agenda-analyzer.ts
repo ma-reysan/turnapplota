@@ -60,6 +60,14 @@ export function findAgendaDoctors(raw: unknown[][]): AgendaDoctor[] {
   });
 }
 
+function isExcelDateSerial(value: unknown) {
+  if (typeof value !== "number" && !(typeof value === "string" && /^\\d{5}$/.test(value.trim()))) return false;
+  const serial = Number(value);
+  if (serial < 20000 || serial > 80000) return false;
+  const parsed = XLSX.SSF.parse_date_code(serial);
+  return Boolean(parsed && validDateParts(parsed.y, parsed.m, parsed.d));
+}
+
 export function parseAgendaWorkbook(workbook: XLSX.WorkBook, sheetName: string, requestedRow?: number): AgendaResult | null {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return null;
@@ -88,12 +96,12 @@ export function parseAgendaWorkbook(workbook: XLSX.WorkBook, sheetName: string, 
   raw.slice(doctor.rowIdx + 1, nextDoctorRow).forEach((row, offset) => {
     const time = String(row[0] ?? "").trim();
     const hasTime = /\b\d{1,2}:\d{2}\b/.test(time);
-    const rowHasContent = days.some(({ col }) => String(row[col] ?? "").trim() && String(row[col]).trim() !== "-");
+    const rowHasContent = days.some(({ col }) => String(row[col] ?? "").trim() && String(row[col]).trim() !== "-" && !isExcelDateSerial(row[col]));
     const isNightRecord = !hasTime && days.some(({ col }) => /TURNO/.test(normal(row[col])) && /(NOCHE|20\s*:?\s*00)/.test(normal(row[col])));
     if (!hasTime && !rowHasContent) return;
     days.forEach(({ col }) => {
       let activity = String(row[col] ?? "").trim();
-      if (!activity || activity === "-" || normal(activity) === "X") return;
+      if (!activity || activity === "-" || normal(activity) === "X" || isExcelDateSerial(row[col])) return;
       if (!hasTime && /TURNO/.test(normal(activity)) && /(NOCHE|20\s*:?\s*00)/.test(normal(activity))) {
         schedule[col].push({ time: "20:00-08:00", activity: "TURNO NOCHE" });
         return;
