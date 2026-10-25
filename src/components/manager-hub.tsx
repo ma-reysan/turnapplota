@@ -1528,7 +1528,6 @@ function ScoreManager({
   types: ReplacementType[];
   recent: Replacement[];
   holidays: Holiday[];
-  pearls: { current: string[]; future: string[] };
   november: NovemberData;
   onNovemberUpdate: (data: NovemberData) => void;
 }) {
