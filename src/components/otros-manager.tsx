@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarOff, Palette, Trash2 } from "lucide-react";
+import { BookOpen, CalendarOff, Palette, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -26,13 +26,16 @@ function formatHolidayDate(date: string) {
   }).format(new Date(`${date}T12:00:00`));
 }
 
-export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }) {
+export function OtrosManager({ initialHolidays, initialPearls }: { initialHolidays: Holiday[]; initialPearls: { current: string[]; future: string[] } }) {
   const router = useRouter();
   const [holidays, setHolidays] = useState(() =>
     [...initialHolidays].sort((a, b) => a.date.localeCompare(b.date)),
   );
   const [holidayDate, setHolidayDate] = useState(chileDateKey());
   const [holidayLabel, setHolidayLabel] = useState("");
+  const [pearlVersion, setPearlVersion] = useState<"current" | "future">("current");
+  const [pearlDrafts, setPearlDrafts] = useState(initialPearls);
+  const [savingPearls, setSavingPearls] = useState(false);
   const [accentTheme, setAccentTheme] = useState<AccentTheme>("green");
 
   useEffect(() => {
@@ -64,6 +67,29 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
       yearHolidays: upcoming.filter((holiday) => holiday.date <= limit),
     };
   }, [holidays]);
+
+  async function savePearls(event: React.FormEvent) {
+    event.preventDefault();
+    const lines = pearlDrafts[pearlVersion].map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return toast.error("Añade al menos una perla");
+    setSavingPearls(true);
+    try {
+      const response = await fetch("/api/pearls", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version: pearlVersion, lines }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "No fue posible guardar las perlas");
+      setPearlDrafts((current) => ({ ...current, [pearlVersion]: lines }));
+      router.refresh();
+      toast.success("Perlas guardadas");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible guardar las perlas");
+    } finally {
+      setSavingPearls(false);
+    }
+  }
 
   async function saveHoliday(event: React.FormEvent) {
     event.preventDefault();
@@ -130,6 +156,62 @@ export function OtrosManager({ initialHolidays }: { initialHolidays: Holiday[] }
             </option>
           ))}
         </select>
+      </section>
+      <section className="mb-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+        <div className="flex items-center gap-2">
+          <BookOpen size={17} className="text-[var(--brand)]" />
+          <h2 className="text-sm font-semibold">Editor de Perlas</h2>
+        </div>
+        <p className="mt-1 text-[11px] text-[var(--muted)]">
+          Edita cada instrucción por separado. Las perlas futuras se mostrarán automáticamente desde el 1 de noviembre de 2026.
+        </p>
+        <div className="mt-3 flex gap-2" aria-label="Versión de perlas">
+          {(["current", "future"] as const).map((version) => (
+            <button
+              key={version}
+              type="button"
+              aria-pressed={pearlVersion === version}
+              className={`rounded-lg border px-3 py-2 text-xs ${pearlVersion === version ? "border-[var(--brand)] bg-[var(--surface-soft)] font-semibold" : "border-[var(--line)]"}`}
+              onClick={() => setPearlVersion(version)}
+            >
+              {version === "current" ? "Actuales" : "Desde el 1 de noviembre"}
+            </button>
+          ))}
+        </div>
+        <form className="mt-3 space-y-2" onSubmit={savePearls}>
+          {pearlDrafts[pearlVersion].map((line, index) => (
+            <div className="flex gap-2" key={index}>
+              <label className="sr-only" htmlFor={`pearl-${pearlVersion}-${index}`}>Perla {index + 1}</label>
+              <textarea
+                id={`pearl-${pearlVersion}-${index}`}
+                className="min-h-16 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-2 text-xs"
+                value={line}
+                maxLength={1000}
+                onChange={(event) => setPearlDrafts((current) => ({
+                  ...current,
+                  [pearlVersion]: current[pearlVersion].map((item, i) => i === index ? event.target.value : item),
+                }))}
+              />
+              <button
+                type="button"
+                aria-label={`Eliminar perla ${index + 1}`}
+                className="self-start rounded-lg border border-[var(--line)] p-2"
+                onClick={() => setPearlDrafts((current) => ({
+                  ...current,
+                  [pearlVersion]: current[pearlVersion].filter((_, i) => i !== index),
+                }))}
+              ><Trash2 size={15} /></button>
+            </div>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="rounded-lg border border-[var(--line)] px-3 py-2 text-xs" onClick={() => setPearlDrafts((current) => ({
+              ...current, [pearlVersion]: [...current[pearlVersion], ""],
+            }))}>Añadir perla</button>
+            <button type="submit" disabled={savingPearls} className="rounded-lg bg-[var(--brand)] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+              {savingPearls ? "Guardando…" : "Guardar perlas"}
+            </button>
+          </div>
+        </form>
       </section>
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <div className="flex items-center gap-2">
