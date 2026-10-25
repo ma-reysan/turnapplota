@@ -61,7 +61,7 @@ export function findAgendaDoctors(raw: unknown[][]): AgendaDoctor[] {
 }
 
 function isExcelDateSerial(value: unknown) {
-  if (typeof value !== "number" && !(typeof value === "string" && /^\\d{5}$/.test(value.trim()))) return false;
+  if (typeof value !== "number" && !(typeof value === "string" && /^\d{5}$/.test(value.trim()))) return false;
   const serial = Number(value);
   if (serial < 20000 || serial > 80000) return false;
   const parsed = XLSX.SSF.parse_date_code(serial);
@@ -71,7 +71,7 @@ function isExcelDateSerial(value: unknown) {
 export function parseAgendaWorkbook(workbook: XLSX.WorkBook, sheetName: string, requestedRow?: number): AgendaResult | null {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return null;
-  const raw = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "" });
+  const raw = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: "", blankrows: true });
   const doctors = findAgendaDoctors(raw);
   if (!doctors.length) return null;
   const doctor = doctors.find((item) => item.rowIdx === requestedRow) ?? doctors[0];
@@ -97,12 +97,12 @@ export function parseAgendaWorkbook(workbook: XLSX.WorkBook, sheetName: string, 
     const time = String(row[0] ?? "").trim();
     const hasTime = /\b\d{1,2}:\d{2}\b/.test(time);
     const rowHasContent = days.some(({ col }) => String(row[col] ?? "").trim() && String(row[col]).trim() !== "-" && !isExcelDateSerial(row[col]));
-    const isNightRecord = !hasTime && days.some(({ col }) => /TURNO/.test(normal(row[col])) && /(NOCHE|20\s*:?\s*00)/.test(normal(row[col])));
+    const isNightRecord = !hasTime && days.some(({ col }) => /TURNO/.test(normal(row[col])) && /(NOCHE|20\s*:?\s*00|20\s*[-–]\s*0?8)/.test(normal(row[col])));
     if (!hasTime && !rowHasContent) return;
     days.forEach(({ col }) => {
       let activity = String(row[col] ?? "").trim();
       if (!activity || activity === "-" || normal(activity) === "X" || isExcelDateSerial(row[col])) return;
-      if (!hasTime && /TURNO/.test(normal(activity)) && /(NOCHE|20\s*:?\s*00)/.test(normal(activity))) {
+      if (!hasTime && /TURNO/.test(normal(activity)) && /(NOCHE|20\s*:?\s*00|20\s*[-–]\s*0?8)/.test(normal(activity))) {
         schedule[col].push({ time: "20:00-08:00", activity: "TURNO NOCHE" });
         return;
       }
