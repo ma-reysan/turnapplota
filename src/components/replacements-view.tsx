@@ -71,7 +71,6 @@ function ReplacementSequence() {
   return (
     <section aria-labelledby="replacement-sequence-title" className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
       <h2 id="replacement-sequence-title" className="text-sm font-semibold">Secuencia de reemplazo</h2>
-      <p className="mt-1 text-xs text-[var(--muted)]">Desde el 1 de noviembre de 2026. Sigue las flechas de izquierda a derecha; continúa solo si no se consigue cobertura.</p>
       <div className="mt-4 space-y-5">
         {routes.map((route) => (
           <div key={route.title}>
