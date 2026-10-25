@@ -526,3 +526,29 @@ html[data-color-theme="halloween"] .halloween-replacements-bats {
   html[data-color-theme="halloween"] .halloween-gripping-hand,
   html[data-color-theme="halloween"] .halloween-replacements-bats { display: none; }
 }
+
+/* Keep the supplied photograph decorative and the numbers fully opaque. */
+:root:not(.dark) .analysis-cemetery-table {
+  --foreground: #21182b;
+  --muted: #50455c;
+  --line: #c0b8ca;
+  color: #21182b;
+  background-color: #fff;
+  background-image: linear-gradient(rgb(255 255 255 / 84%), rgb(255 255 255 / 84%)), url("/images/lota-cemetery-analysis.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+:root:not(.dark) .analysis-cemetery-table thead {
+  color: #42394c;
+  background-color: #eee9f4;
+}
+:root:not(.dark) .analysis-cemetery-table tbody tr:nth-child(even) {
+  background-color: rgb(255 255 255 / 18%);
+}
+:root:not(.dark) .analysis-cemetery-table .analysis-difference-positive { color: #804300; }
+:root:not(.dark) .analysis-cemetery-table .analysis-difference-negative { color: #075477; }
+:root:not(.dark) .analysis-cemetery-table .analysis-difference-balanced { color: #4c3064; }
+@media print {
+  :root:not(.dark) .analysis-cemetery-table { background-image: none; background-color: #fff; }
+}
