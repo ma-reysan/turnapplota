@@ -467,3 +467,20 @@ html[data-color-theme="halloween"] .halloween-turnos-spiders {
 @media print {
   html[data-color-theme="halloween"] .halloween-turnos-spiders { display: none; }
 }
+
+.halloween-lunch-decor { display: none; }
+html[data-color-theme="halloween"] .halloween-lunch-decor {
+  display: block;
+  height: 180px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto 16px;
+  background: url("/images/halloween-lunch-garlic-candy.webp") center / contain no-repeat;
+  pointer-events: none;
+}
+@media (max-width: 639px) {
+  html[data-color-theme="halloween"] .halloween-lunch-decor { height: 140px; }
+}
+@media print {
+  html[data-color-theme="halloween"] .halloween-lunch-decor { display: none; }
+}
