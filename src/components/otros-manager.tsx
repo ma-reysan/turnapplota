@@ -64,22 +64,28 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
   const [pearlDrafts, setPearlDrafts] = useState(() => ({ current: groupPearlLines(initialPearls.current), future: groupPearlLines(initialPearls.future) }));
   const [editorOpen, setEditorOpen] = useState(false);
   const [savingPearls, setSavingPearls] = useState(false);
-  const [accentTheme, setAccentTheme] = useState<AccentTheme>("green");
+  const [accentTheme, setAccentTheme] = useState<AccentTheme | "auto">("auto");
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem("turnapp:accent-theme");
-    const theme = isAccentTheme(savedTheme) ? savedTheme : "green";
+    let savedTheme: string | null = null;
+    try { savedTheme = window.localStorage.getItem("turnapp:accent-theme"); } catch { /* Storage unavailable. */ }
+    const theme = isAccentTheme(savedTheme) ? savedTheme : "auto";
     const timer = window.setTimeout(() => {
       setAccentTheme(theme);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
-  function changeAccentTheme(theme: AccentTheme) {
-    setAccentTheme(theme);
-    window.localStorage.setItem("turnapp:accent-theme", theme);
-    window.dispatchEvent(new Event("turnapp:accent-theme-change"));
-    toast.success(`Tema ${ACCENT_THEME_OPTIONS.find((option) => option.value === theme)?.label ?? theme} guardado`);
+  function changeAccentTheme(theme: AccentTheme | "auto") {
+    try {
+      if (theme === "auto") window.localStorage.removeItem("turnapp:accent-theme");
+      else window.localStorage.setItem("turnapp:accent-theme", theme);
+      setAccentTheme(theme);
+      window.dispatchEvent(new Event("turnapp:accent-theme-change"));
+      toast.success(theme === "auto" ? "Apariencia automática restablecida" : "Tema guardado solo en este navegador");
+    } catch {
+      toast.error("El navegador no permite guardar la apariencia. Habilita el almacenamiento local.");
+    }
   }
   const { nextHolidays, yearHolidays } = useMemo(() => {
     const today = chileDateKey();
@@ -165,7 +171,7 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
           <div>
             <h2 className="text-sm font-semibold">Temática</h2>
             <p className="text-[11px] text-[var(--muted)]">
-              Se aplica a toda la aplicación y mantiene el modo claro u oscuro.
+              Vista previa local: se aplica solo en este navegador, también al navegar y recargar. No se publica ni cambia la apariencia de otros usuarios.
             </p>
           </div>
         </div>
@@ -175,15 +181,21 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
         <select
           className="mt-1.5 w-full rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-2 text-xs"
           id="accent-theme"
-          onChange={(event) => changeAccentTheme(event.target.value as AccentTheme)}
+          onChange={(event) => changeAccentTheme(event.target.value as AccentTheme | "auto")}
           value={accentTheme}
         >
+          <option value="auto">Automático (tema de temporada)</option>
           {ACCENT_THEME_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </select>
+        <button type="button" className="mt-2 rounded-lg border border-[var(--line)] px-3 py-1.5 text-xs"
+          onClick={() => changeAccentTheme("auto")} disabled={accentTheme === "auto"}>
+          Restablecer apariencia automática
+        </button>
+        <p className="mt-2 text-[11px] text-[var(--muted)]">Halloween incluye calabazas, fantasmas y telarañas. Puedes combinarlo con el modo claro u oscuro.</p>
       </section>
       <section className="mb-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
         <div className="flex items-center justify-between gap-2">
@@ -343,3 +355,4 @@ export function OtrosManager({ initialHolidays, initialPearls }: { initialHolida
     </div>
   );
 }
+
