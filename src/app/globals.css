@@ -407,10 +407,14 @@ html.dark[data-color-theme="halloween"] aside::before {
 .halloween-sidebar-pumpkin { display: none; }
 html[data-color-theme="halloween"] .halloween-sidebar-pumpkin {
   display: block;
-  flex: 1 1 120px;
-  min-height: 0;
-  max-height: 150px;
-  margin: 12px 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 300px;
+  height: 280px;
+  transform: translate(-50%, -50%);
+  opacity: .22;
   background: url("/images/halloween-sidebar-pumpkin.webp") center / contain no-repeat;
   pointer-events: none;
 }
