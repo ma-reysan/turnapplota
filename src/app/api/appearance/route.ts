@@ -13,7 +13,7 @@ export async function GET() {
     const sql = getSql();
     const rows = await sql`SELECT id, after->>'theme' AS theme FROM audit_events
       WHERE action = 'appearance.published' AND entity_type = 'appearance' AND entity_id = 'global'
-      ORDER BY created_at DESC, id DESC LIMIT 1`;
+      ORDER BY created_at DESC, id DESC LIMIT 1` as Array<{ id: string; theme: string }>;
     const row = rows[0];
     return Response.json(row && isThemeChoice(row.theme)
       ? { theme: row.theme, revision: row.id }
@@ -38,7 +38,7 @@ export async function PUT(request: Request) {
         VALUES ('appearance.published', 'appearance', 'global', ${JSON.stringify({ theme: input.theme })}::jsonb, clock_timestamp())
         RETURNING id`,
     ]);
-    return Response.json({ theme: input.theme, revision: results[1][0].id }, { headers });
+    return Response.json({ theme: input.theme, revision: (results[1] as Array<{ id: string }>)[0].id }, { headers });
   } catch {
     return Response.json({ error: "No se pudo publicar el tema. La vista previa sigue siendo local." }, { status: 503, headers });
   }
