@@ -51,7 +51,12 @@ export function isDieciochoSeason(date = new Date()) {
 }
 
 
-// An explicit browser preference takes priority over seasonal defaults.
-export function resolveAccentTheme(saved: string | null, date = new Date()): AccentTheme {
-  return isAccentTheme(saved) ? saved : isDieciochoSeason(date) ? "dieciocho" : "green";
+
+export type ThemeChoice = AccentTheme | "auto";
+export type PublishedTheme = { theme: ThemeChoice; revision: string };
+export function isThemeChoice(value: unknown): value is ThemeChoice {
+  return value === "auto" || (typeof value === "string" && isAccentTheme(value));
+}
+export function resolveAccentTheme(choice: ThemeChoice, date = new Date()): AccentTheme {
+  return choice === "auto" ? isDieciochoSeason(date) ? "dieciocho" : "green" : choice;
 }
