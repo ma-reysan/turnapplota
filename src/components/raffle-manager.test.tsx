@@ -13,11 +13,11 @@ describe("Sorteos", () => {
     expect(random).toHaveBeenCalledTimes(2);
     expect(() => randomParticipantIndex(0)).toThrow();
   });
-  it("incluye solo activos del mes chileno publicado y respeta exclusiones", () => {
+  it("incluye activos sin depender de turnos y respeta exclusiones", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-11-01T01:00:00Z"));
     const doctors = ["Ana", "Bea", "Caro"].map((name, i) => ({ id: name, longName: name, shortName: name, active: i !== 2, sortOrder: i }));
-    render(<RaffleManager doctors={doctors} schedules={[{ id: "oct", year: 2026, month: 10, status: "published", assignments: doctors.map((d, i) => ({ id: d.id, doctorId: d.id, date: "2026-10-28", kind: "DAY", slot: i })) }]} />);
+    render(<RaffleManager doctors={doctors} />);
     expect(screen.queryByLabelText("Caro")).toBeNull();
     fireEvent.click(screen.getByLabelText("Ana"));
     fireEvent.click(screen.getByRole("button", { name: "Sortear" }));
