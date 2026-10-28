@@ -33,6 +33,7 @@ import type { NovemberData } from "@/lib/november-data";
 import { availableFichas, basePointRecords, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
 import type { OnCallWeek } from "@/lib/november-system";
 import { ScheduleConflictNotice } from "@/components/schedule-conflict-notice";
+import { RaffleManager } from "@/components/raffle-manager";
 import { OtrosManager } from "@/components/otros-manager";
 import { buildScheduleManagerAnalysis } from "@/lib/analysis";
 import {
@@ -1898,7 +1899,7 @@ export function ManagerHub({
   shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   november: NovemberData;
 }) {
-  const [tab, setTab] = useState<"schedule" | "scores" | "otros">("schedule");
+  const [tab, setTab] = useState<"schedule" | "scores" | "otros" | "raffles">("schedule");
   const [novemberData, setNovemberData] = useState(november);
   const reloadNovember = useCallback(async () => {
     const response = await fetch("/api/november", { cache: "no-store" });
@@ -1946,6 +1947,7 @@ export function ManagerHub({
           >
             <Star size={16} /> Otros
           </button>
+          <button type="button" className={cn("rounded-lg px-3 py-1.5 text-xs font-medium", tab === "raffles" && "bg-[var(--surface)] shadow-sm")} onClick={() => setTab("raffles")}>Sorteos</button>
         </div>
         <div className="hidden sm:block" />
       </div>
@@ -1968,6 +1970,8 @@ export function ManagerHub({
           november={novemberData}
           onNovemberUpdate={setNovemberData}
         />
+      ) : tab === "raffles" ? (
+        <RaffleManager doctors={doctors} schedules={schedules} />
       ) : (
         <OtrosManager initialHolidays={holidays} initialPearls={pearls} />
       )}
