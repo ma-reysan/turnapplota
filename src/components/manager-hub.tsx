@@ -1971,7 +1971,7 @@ export function ManagerHub({
           onNovemberUpdate={setNovemberData}
         />
       ) : tab === "raffles" ? (
-        <RaffleManager doctors={doctors} schedules={schedules} />
+        <RaffleManager doctors={doctors} />
       ) : (
         <OtrosManager initialHolidays={holidays} initialPearls={pearls} />
       )}
