@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { RaffleManager, randomParticipantIndex } from "./raffle-manager";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
@@ -24,5 +24,26 @@ describe("Sorteos", () => {
     expect(screen.getByRole("status").textContent).toContain("Bea");
     fireEvent.click(screen.getByRole("button", { name: "Quitar todos" }));
     expect((screen.getByRole("button", { name: "Sortear" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe("Suspenso", () => {
+  it("espera tres segundos, bloquea cambios y limpia el timer al salir", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-28T12:00:00Z"));
+    const props = { doctors: [{ id: "a", longName: "Ana", shortName: "ANA", active: true, sortOrder: 0 }], schedules: [{ id: "m", year: 2026, month: 10, status: "published" as const, assignments: [{ id: "s", doctorId: "a", date: "2026-10-28", kind: "DAY" as const, slot: 0 }] }] };
+    const { unmount } = render(<RaffleManager {...props} />);
+    fireEvent.click(screen.getByRole("button", { name: /Suspenso 3 s/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Sortear" }));
+    expect(screen.getByRole("status").textContent).toBe("3");
+    expect((screen.getByRole("button", { name: "Sorteando…" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByLabelText("Ana").closest("fieldset")?.disabled).toBe(true);
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(screen.getByRole("status").textContent).toBe("1");
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(screen.getByRole("status").textContent).toContain("Ana");
+    fireEvent.click(screen.getByRole("button", { name: "Sortear" }));
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
