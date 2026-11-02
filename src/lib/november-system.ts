@@ -154,7 +154,7 @@ export function basePointRecords({
     .map((item) => ({
       assignmentId: item.id,
       doctorId: item.doctorId,
-      date: item.kind === "NIGHT" ? nextDate(item.date) : item.date,
+      date: item.date,
       points: 1,
       source: "base" as const,
       expiresAt: frozenExpiry(

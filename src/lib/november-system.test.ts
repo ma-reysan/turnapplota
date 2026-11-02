@@ -39,6 +39,23 @@ describe("cambio del 1 de noviembre", () => {
     expect(shiftEnd(night) - shiftStart(night)).toBe(13 * 60 * 60 * 1000);
   });
 
+  it("muestra el 1 de noviembre para los cinco médicos asignados ese día", () => {
+    const assignments = [
+      assignment("day-a", "2026-11-01", "DAY", "a"),
+      assignment("day-b", "2026-11-01", "DAY", "b"),
+      assignment("day-c", "2026-11-01", "DAY", "c"),
+      assignment("night-d", "2026-11-01", "NIGHT", "d"),
+      assignment("night-e", "2026-11-01", "NIGHT", "e"),
+    ];
+    const input = { schedules: [month("2026-11", assignments)], absences: [], corrections: [], freezes: [] };
+    const beforeNightEnds = new Date(shiftEnd(assignments[3]) - 1).toISOString();
+    expect(basePointRecords({ ...input, at: beforeNightEnds })).toHaveLength(3);
+    const records = basePointRecords({ ...input, at: new Date(shiftEnd(assignments[3])).toISOString() });
+    expect(records).toHaveLength(5);
+    expect(records.map((item) => item.date)).toEqual(Array(5).fill("2026-11-01"));
+    expect(records.map((item) => item.doctorId)).toEqual(["a", "b", "c", "d", "e"]);
+  });
+
   it("cuenta dos bloques de un 24 horas, respeta ausencia nocturna y corrección", () => {
     const schedules = [month("2026-11", [
       assignment("day", "2026-11-01", "DAY"), assignment("night", "2026-11-01", "NIGHT"),
@@ -46,7 +63,7 @@ describe("cambio del 1 de noviembre", () => {
     const at = "2026-11-02T12:00:00.000Z";
     expect(basePointRecords({ schedules, absences: [], corrections: [], freezes: [], at })).toHaveLength(2);
     expect(basePointRecords({ schedules, absences: [], corrections: [], freezes: [], at })
-      .map((item) => item.date)).toEqual(["2026-11-01", "2026-11-02"]);
+      .map((item) => item.date)).toEqual(["2026-11-01", "2026-11-01"]);
     const absences = [{ doctorId: "a", startDate: "2026-11-02", endDate: "2026-11-02" }];
     expect(basePointRecords({ schedules, absences, corrections: [], freezes: [], at })).toHaveLength(1);
     expect(basePointRecords({ schedules, absences, corrections: [
