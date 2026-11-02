@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpen, List, Sparkles, Table2 } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
@@ -324,7 +325,17 @@ export function ReplacementsView({
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
                     <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface)] px-3 py-2 text-left">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold">{doctor.shortName}{fichas ? <small className="ml-1 text-[9px] text-[var(--muted)]">{fichas[doctor.id]} fichas</small> : null}</span>
+                        <span className="inline-flex items-center gap-1 font-semibold">
+                          {doctor.shortName}
+                          {fichas ? fichas[doctor.id] > 0 ? (
+                            <Image
+                              alt={`${fichas[doctor.id]} ${fichas[doctor.id] === 1 ? "ficha disponible" : "fichas disponibles"}`}
+                              height={20}
+                              src={fichas[doctor.id] === 1 ? "/images/ficha-1-moneda.png" : "/images/ficha-2-monedas.png"}
+                              width={fichas[doctor.id] === 1 ? 20 : 32}
+                            />
+                          ) : <small className="text-[9px] text-[var(--muted)]">0 fichas</small> : null}
+                        </span>
                         <span className="text-base font-bold leading-none text-[var(--brand)]">{points}</span>
                       </div>
                     </th>
