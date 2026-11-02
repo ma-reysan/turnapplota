@@ -59,6 +59,14 @@ export interface ReplacementType {
   defaultPoints: number;
 }
 
+export interface TokenAdjustment {
+  id: string;
+  doctorId: string;
+  weekStart: string;
+  delta: 1 | -1;
+  createdAt: string;
+}
+
 export interface Replacement {
   id: string;
   date: string;
@@ -237,6 +245,7 @@ export interface SeedData {
   shiftColorLegend: ShiftColorLegendItem[];
   shiftColorLegends?: Record<string, ShiftColorLegendItem[]>;
   replacements: Replacement[];
+  tokenAdjustments?: TokenAdjustment[];
   replacementTypes: ReplacementType[];
   holidays: Holiday[];
   protocols: Protocol[];

@@ -1,5 +1,5 @@
 import { addDays, differenceInCalendarDays, format, startOfWeek } from "date-fns";
-import type { Replacement, ScheduleMonth, ShiftAssignment, ShiftColorKey } from "@/lib/types";
+import type { Replacement, ScheduleMonth, ShiftAssignment, ShiftColorKey, TokenAdjustment } from "@/lib/types";
 
 export const NEW_SYSTEM_START = "2026-11-01";
 const SANTIAGO = "America/Santiago";
@@ -177,7 +177,7 @@ export function replacementPointRecords(replacements: Replacement[], freezes: Po
   })).filter((item) => item.expiresAt >= today);
 }
 
-export function availableFichas(replacements: Replacement[], doctorId: string, date: string) {
+export function availableFichas(replacements: Replacement[], doctorId: string, date: string, adjustments: TokenAdjustment[] = []) {
   if (date < NEW_SYSTEM_START) return null;
   const monday = weekStart(date);
   const following = format(addDays(new Date(monday + "T12:00:00"), 7), "yyyy-MM-dd");
@@ -185,11 +185,13 @@ export function availableFichas(replacements: Replacement[], doctorId: string, d
     item.mode === "voluntary" && item.typeCode !== "BASE" && item.date >= monday && item.date < following &&
     item.date >= NEW_SYSTEM_START)
     .reduce((sum, item) => sum + (item.typeCode === "FULL_24" || item.typeCode === "SAT_HOLIDAY_24" ? 2 : 1), 0);
-  return Math.max(0, 2 - spent);
+  const manual = adjustments.filter((item) => item.doctorId === doctorId && item.weekStart === monday)
+    .reduce((sum, item) => sum + item.delta, 0);
+  return Math.max(0, Math.min(2, 2 - spent + manual));
 }
 
-export function canVolunteer(replacements: Replacement[], doctorId: string, date: string, hours: 12 | 24) {
-  const fichas = availableFichas(replacements, doctorId, date);
+export function canVolunteer(replacements: Replacement[], doctorId: string, date: string, hours: 12 | 24, adjustments: TokenAdjustment[] = []) {
+  const fichas = availableFichas(replacements, doctorId, date, adjustments);
   return fichas === null || fichas >= (hours === 24 ? 2 : 1);
 }
 

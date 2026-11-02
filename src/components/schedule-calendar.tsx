@@ -14,7 +14,7 @@ import type {
   ShiftMarker,
 } from "@/lib/types";
 import { calendarDays, cn, monthKey, monthLabel } from "@/lib/utils";
-import { appliesOnCall, weekStart } from "@/lib/november-system";
+import { appliesOnCall, santiagoParts, weekStart } from "@/lib/november-system";
 import type { OnCallWeek } from "@/lib/november-system";
 
 const weekdayLabels = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -74,7 +74,11 @@ export function ScheduleCalendar({
     () => [...schedules].sort((a, b) => b.id.localeCompare(a.id)),
     [schedules],
   );
-  const [selectedId, setSelectedId] = useState(sortedSchedules[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState(() => {
+    const currentMonth = santiagoParts(new Date()).date.slice(0, 7);
+    return sortedSchedules.find((item) => item.id === currentMonth)?.id ?? sortedSchedules[0]?.id ?? "";
+  });
+  const [calendarZoom, setCalendarZoom] = useState(1);
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
   const schedule = sortedSchedules.find((item) => item.id === selectedId) ?? sortedSchedules[0];
@@ -235,12 +239,12 @@ export function ScheduleCalendar({
   return (
     <div className="grid gap-3 xl:grid-cols-[minmax(680px,70%)_220px]">
       <section className="min-w-0">
-        <div className="halloween-month-bar seasonal-month-bar no-print mb-2 flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2">
+        <div className="halloween-month-bar seasonal-month-bar no-print mb-2 flex items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2 sm:justify-start">
           <div aria-hidden="true" className="halloween-month-spiders seasonal-month-art" />
-          <span className="text-sm text-[var(--muted)]">Mes</span>
+          <span className="hidden text-sm text-[var(--muted)] sm:inline">Mes</span>
           <button
             aria-label="Mes anterior"
-            className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1.5 transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
             disabled={selectedIndex >= sortedSchedules.length - 1}
             onClick={() => setSelectedId(sortedSchedules[selectedIndex + 1].id)}
             title="Mes anterior"
@@ -250,7 +254,7 @@ export function ScheduleCalendar({
           </button>
           <select
             aria-label="Mes"
-            className="min-w-0 rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 py-1.5 text-xs font-medium capitalize outline-none focus:ring-2 focus:ring-[var(--brand)]"
+            className="h-9 min-w-0 w-[min(52vw,190px)] rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] px-2.5 text-center text-sm font-semibold capitalize outline-none focus:ring-2 focus:ring-[var(--brand)] sm:w-auto sm:text-xs"
             onChange={(event) => setSelectedId(event.target.value)}
             value={schedule.id}
           >
@@ -262,7 +266,7 @@ export function ScheduleCalendar({
           </select>
           <button
             aria-label="Mes siguiente"
-            className="rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] p-1.5 transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface-soft)] transition hover:border-[var(--brand)] disabled:cursor-not-allowed disabled:opacity-40"
             disabled={selectedIndex <= 0}
             onClick={() => setSelectedId(sortedSchedules[selectedIndex - 1].id)}
             title="Mes siguiente"
@@ -272,12 +276,19 @@ export function ScheduleCalendar({
           </button>
         </div>
 
+        <div className="no-print mb-2 flex items-center justify-center gap-2 sm:hidden">
+          <button aria-label="Alejar tabla" className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-base disabled:opacity-40" disabled={calendarZoom <= 0.3} onClick={() => setCalendarZoom((value) => Math.max(0.3, Math.round((value - 0.1) * 100) / 100))} type="button">−</button>
+          <span className="min-w-12 text-center text-xs tabular-nums text-[var(--muted)]">{Math.round(calendarZoom * 100)}%</span>
+          <button aria-label="Acercar tabla" className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-base disabled:opacity-40" disabled={calendarZoom >= 1} onClick={() => setCalendarZoom((value) => Math.min(1, Math.round((value + 0.1) * 100) / 100))} type="button">+</button>
+        </div>
+
         <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
 
         <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
           <div
             className={cn("border border-[var(--line)] bg-[var(--surface)] p-3", showOnCall ? "min-w-[900px]" : "min-w-[680px]")}
             ref={exportRef}
+            style={{ zoom: calendarZoom }}
           >
             <div className="mb-2 flex items-end justify-between">
               <div>

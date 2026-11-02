@@ -6,6 +6,7 @@ import {
   doctors,
   replacementTypes,
   replacements,
+  tokenAdjustments,
   scheduleMonths,
   scheduleShiftColorLegend,
   shiftAssignments,
@@ -50,7 +51,7 @@ export async function getAppData(): Promise<SeedData> {
 
   await connection();
   const db = getDb();
-  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, scheduleLegendRows, replacementRows, typeRows, holidayRows, protocolRows, agendaRows, pearlRows] =
+  const [doctorRows, monthRows, assignmentRows, markerRows, legendRows, scheduleLegendRows, replacementRows, adjustmentRows, typeRows, holidayRows, protocolRows, agendaRows, pearlRows] =
     await Promise.all([
       db.select().from(doctors).where(isNull(doctors.deletedAt)).orderBy(asc(doctors.sortOrder)),
       db.select().from(scheduleMonths).orderBy(asc(scheduleMonths.id)),
@@ -63,6 +64,7 @@ export async function getAppData(): Promise<SeedData> {
         .from(replacements)
         .where(isNull(replacements.deletedAt))
         .orderBy(asc(replacements.replacementDate)),
+      db.select().from(tokenAdjustments).orderBy(desc(tokenAdjustments.createdAt)),
       db
         .select()
         .from(replacementTypes)
@@ -143,6 +145,10 @@ export async function getAppData(): Promise<SeedData> {
       superhero: row.superhero,
       expiresAt: row.expiresAt,
       note: row.note ?? undefined,
+    })),
+    tokenAdjustments: adjustmentRows.map((row) => ({
+      id: row.id, doctorId: row.doctorId, weekStart: row.weekStart,
+      delta: row.delta as 1 | -1, createdAt: row.createdAt.toISOString(),
     })),
     lastInvokedDoctorId:
       [...replacementRows]

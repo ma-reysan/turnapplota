@@ -97,6 +97,21 @@ describe("cambio del 1 de noviembre", () => {
       "a", "2026-11-01")).toBe(1);
   });
 
+  it("descuenta fichas solo a voluntarios y las devuelve al eliminarlos", () => {
+    const invoked = replacement("invoked", "2026-11-03", "invoked");
+    const voluntary = replacement("voluntary", "2026-11-04", "voluntary");
+    const date = "2026-11-04";
+    expect(availableFichas([], "a", date)).toBe(2);
+    expect(availableFichas([invoked], "a", date)).toBe(2);
+    expect(availableFichas([invoked, voluntary], "a", date)).toBe(1);
+    expect(availableFichas([voluntary], "a", date)).toBe(1);
+    expect(availableFichas([], "a", date)).toBe(2);
+    const adjustment = { id: "fix", doctorId: "a", weekStart: "2026-11-02", delta: -1 as const, createdAt: "2026-11-04T12:00:00Z" };
+    expect(availableFichas([], "a", date, [adjustment])).toBe(1);
+    expect(availableFichas([voluntary], "a", date, [adjustment])).toBe(0);
+    expect(availableFichas([], "a", "2026-11-09", [adjustment])).toBe(2);
+  });
+
   it("aplica descanso entre meses y deja día más noche del mismo día como 24 horas", () => {
     const oldNight = assignment("old-night", "2026-10-31", "NIGHT");
     const nextDay = assignment("next-day", "2026-11-01", "DAY");

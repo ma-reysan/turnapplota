@@ -26,8 +26,8 @@ export async function POST(request: Request) {
   if (parsed.data.typeCode !== "BASE" && parsed.data.date >= NEW_SYSTEM_START && parsed.data.mode === "voluntary") {
     const data = await getAppData();
     const hours = parsed.data.typeCode === "FULL_24" || parsed.data.typeCode === "SAT_HOLIDAY_24" ? 24 : 12;
-    if (!canVolunteer(data.replacements, parsed.data.doctorId, parsed.data.date, hours)) {
-      return Response.json({ error: "Médico sin fichas para otro reemplazo voluntario" }, { status: 409 });
+    if (!canVolunteer(data.replacements, parsed.data.doctorId, parsed.data.date, hours, data.tokenAdjustments ?? [])) {
+      return Response.json({ error: "Médico sin fichas para este puntaje" }, { status: 409 });
     }
   }
   const expiresAt = addDays(new Date(`${parsed.data.date}T12:00:00Z`), 120)

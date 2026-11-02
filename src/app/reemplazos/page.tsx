@@ -20,6 +20,7 @@ export default async function ReemplazosPage() {
         pearls={pearls.current}
         futurePearls={pearls.future}
         replacements={data.replacements}
+        tokenAdjustments={data.tokenAdjustments ?? []}
         types={data.replacementTypes}
         schedules={data.schedules.filter((item) => item.id >= "2026-11")}
         november={{

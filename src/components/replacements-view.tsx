@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { getReplacementTypeLabel } from "@/lib/replacement-scoring";
-import type { Doctor, Replacement, ReplacementType } from "@/lib/types";
+import type { Doctor, Replacement, ReplacementType, TokenAdjustment } from "@/lib/types";
 import { cn, isActiveReplacement } from "@/lib/utils";
 import { availableFichas, basePointRecords, NEW_SYSTEM_START, replacementPointRecords, santiagoParts } from "@/lib/november-system";
 import type { ScheduleMonth } from "@/lib/types";
@@ -99,6 +99,7 @@ function ReplacementSequence() {
 export function ReplacementsView({
   doctors,
   replacements,
+  tokenAdjustments = [],
   types,
   pearls,
   futurePearls,
@@ -109,6 +110,7 @@ export function ReplacementsView({
 }: {
   doctors: Doctor[];
   replacements: Replacement[];
+  tokenAdjustments?: TokenAdjustment[];
   types: ReplacementType[];
   pearls: string[];
   futurePearls: string[];
@@ -147,25 +149,28 @@ export function ReplacementsView({
     })),
   ];
   const fichas = newSystem ? Object.fromEntries(doctors.map((doctor) =>
-    [doctor.id, availableFichas(replacements, doctor.id, currentDate) ?? 2])) : null;
+    [doctor.id, availableFichas(replacements, doctor.id, currentDate, tokenAdjustments) ?? 2])) : null;
   const [mode, setMode] = useState<"table" | "list">("table");
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const [exportingImage, setExportingImage] = useState(false);
+  const activeDoctors = doctors.filter((doctor) => doctor.active);
+  const activeDoctorIds = new Set(activeDoctors.map((doctor) => doctor.id));
   const doctorsById = useMemo(
-    () => new Map(doctors.map((doctor) => [doctor.id, doctor])),
+    () => new Map(doctors.filter((doctor) => doctor.active).map((doctor) => [doctor.id, doctor])),
     [doctors],
   );
   const lastInvokedDoctor = lastInvokedDoctorId
     ? doctorsById.get(lastInvokedDoctorId)
     : undefined;
   const pearlSections = groupPearls(newSystem ? futurePearls : pearls);
-  const sortedReplacements = [...displayReplacements].sort((a, b) => b.date.localeCompare(a.date));
-  const active = displayReplacements.filter((replacement) =>
+  const visibleReplacements = displayReplacements.filter((item) => activeDoctorIds.has(item.doctorId));
+  const sortedReplacements = [...visibleReplacements].sort((a, b) => b.date.localeCompare(a.date));
+  const active = visibleReplacements.filter((replacement) =>
     newSystem ? replacement.expiresAt >= currentDate : isActiveReplacement(replacement.date));
-  const dates = [...new Set(displayReplacements.map((replacement) => replacement.date))].sort((a, b) =>
+  const dates = [...new Set(visibleReplacements.map((replacement) => replacement.date))].sort((a, b) =>
     a.localeCompare(b),
   );
-  const rankedDoctors = doctors
+  const rankedDoctors = activeDoctors
     .map((doctor) => {
       const own = active.filter((replacement) => replacement.doctorId === doctor.id);
       // Los puntos caducan por fecha: el primer vencimiento es el que resta antes.
@@ -298,7 +303,7 @@ export function ReplacementsView({
             <table className="min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
-                  <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface-soft)] px-3 py-2 text-left">
+                  <th className="sticky left-0 z-10 w-48 min-w-48 bg-[var(--surface-soft)] px-3 py-2 text-left">
                     Médico · vigente
                   </th>
                   {dates.map((date) => (
@@ -323,12 +328,13 @@ export function ReplacementsView({
               <tbody>
                 {rankedDoctors.map(({ doctor, points, nextExpiry, expiringPoints }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
-                    <th className="sticky left-0 z-10 min-w-32 bg-[var(--surface)] px-3 py-2 text-left">
+                    <th className="sticky left-0 z-10 w-48 min-w-48 bg-[var(--surface)] px-3 py-2 text-left">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1 font-semibold">
-                          {doctor.shortName}
+                        <span className="inline-flex min-w-0 items-center gap-1 font-semibold">
+                          <span className="truncate" title={doctor.shortName}>{doctor.shortName}</span>
                           {fichas ? fichas[doctor.id] > 0 ? (
                             <Image
+                              className="shrink-0"
                               alt={`${fichas[doctor.id]} ${fichas[doctor.id] === 1 ? "ficha disponible" : "fichas disponibles"}`}
                               height={20}
                               src={fichas[doctor.id] === 1 ? "/images/ficha-1-moneda.png" : "/images/ficha-2-monedas.png"}
@@ -336,11 +342,11 @@ export function ReplacementsView({
                             />
                           ) : <small className="text-[9px] text-[var(--muted)]">0 fichas</small> : null}
                         </span>
-                        <span className="text-base font-bold leading-none text-[var(--brand)]">{points}</span>
+                        <span className="shrink-0 text-base font-bold leading-none text-[var(--brand)]">{points}</span>
                       </div>
                     </th>
                     {dates.map((date) => {
-                      const value = displayReplacements
+                      const value = visibleReplacements
                         .filter(
                           (replacement) =>
                             replacement.doctorId === doctor.id && replacement.date === date,

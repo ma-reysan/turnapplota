@@ -29,6 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ReplacementStatus } from "@/components/replacement-status";
 import { AbsenceFreezeManager } from "@/components/absence-freeze-manager";
+import { TokenManager } from "@/components/token-manager";
 import type { NovemberData } from "@/lib/november-data";
 import { availableFichas, basePointRecords, NEW_SYSTEM_START, santiagoParts, weekStart } from "@/lib/november-system";
 import type { OnCallWeek } from "@/lib/november-system";
@@ -45,6 +46,7 @@ import { SHIFT_COLOR_KEYS, shiftColorStyle } from "@/lib/shift-colors";
 import { findNightToDayConflicts, incompatibleAssignmentIds } from "@/lib/schedule-conflicts";
 import type {
   Doctor,
+  TokenAdjustment,
   Holiday,
   Replacement,
   ReplacementType,
@@ -1531,6 +1533,7 @@ function ScoreManager({
   schedules,
   types,
   recent,
+  initialTokenAdjustments,
   holidays,
   november,
   onNovemberUpdate,
@@ -1539,6 +1542,7 @@ function ScoreManager({
   schedules: ScheduleMonth[];
   types: ReplacementType[];
   recent: Replacement[];
+  initialTokenAdjustments: TokenAdjustment[];
   holidays: Holiday[];
   november: NovemberData;
   onNovemberUpdate: (data: NovemberData) => void;
@@ -1573,7 +1577,8 @@ function ScoreManager({
       .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
   );
   const [allRecords, setAllRecords] = useState(recent);
-  const fichas = date >= NEW_SYSTEM_START ? availableFichas(allRecords, doctorId, date) : null;
+  const [tokenAdjustments, setTokenAdjustments] = useState(initialTokenAdjustments);
+  const fichas = date >= NEW_SYSTEM_START ? availableFichas(allRecords, doctorId, date, tokenAdjustments) : null;
   const fichaCost = shift === "both" ? 2 : 1;
   const fichaBlocked = scoreType === "replacement" && mode === "voluntary" && fichas !== null && fichas < fichaCost;
   const doctorsById = new Map(doctors.map((doctor) => [doctor.id, doctor]));
@@ -1612,7 +1617,7 @@ function ScoreManager({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (fichaBlocked) {
-      toast.error("Médico sin fichas para otro reemplazo voluntario");
+      toast.error("Médico sin fichas para este puntaje");
       return;
     }
     const replacement = {
@@ -1806,7 +1811,7 @@ function ScoreManager({
             <Save size={14} /> Guardar
           </button>
         </div>
-        {scoreType === "replacement" && fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Las convocatorias no requieren fichas.</p> : null}
+        {scoreType === "replacement" && fichas !== null ? <p className="mt-2 text-xs text-[var(--muted)]">Fichas disponibles: {fichas}/2. Solo los voluntarios consumen fichas; los convocados con alitas no.</p> : null}
       </form>
       <div className="grid gap-3 xl:grid-cols-3">
       <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
@@ -1872,7 +1877,10 @@ function ScoreManager({
             {!baseEntries.length ? <p className="py-2 text-xs text-[var(--muted)]">Sin puntos base registrados.</p> : null}
           </div>
         </section>
-        <AbsenceFreezeManager data={november} doctors={doctors} onUpdate={onNovemberUpdate} />
+        <div className="space-y-3">
+          <AbsenceFreezeManager data={november} doctors={doctors} onUpdate={onNovemberUpdate} />
+          <TokenManager doctors={doctors} replacements={allRecords} adjustments={tokenAdjustments} onUpdate={setTokenAdjustments} />
+        </div>
       </div>
     </div>
   );
@@ -1883,6 +1891,7 @@ export function ManagerHub({
   schedules,
   types,
   replacements,
+  tokenAdjustments,
   holidays,
   pearls,
   shiftColorLegend,
@@ -1893,6 +1902,7 @@ export function ManagerHub({
   schedules: ScheduleMonth[];
   types: ReplacementType[];
   replacements: Replacement[];
+  tokenAdjustments: TokenAdjustment[];
   holidays: Holiday[];
   pearls: { current: string[]; future: string[] };
   shiftColorLegend: ShiftColorLegendItem[];
@@ -1966,6 +1976,7 @@ export function ManagerHub({
           schedules={schedules}
           holidays={holidays}
           recent={replacements}
+          initialTokenAdjustments={tokenAdjustments}
           types={types}
           november={novemberData}
           onNovemberUpdate={setNovemberData}

@@ -15,6 +15,7 @@ export default async function JefaturaPage() {
       pearls={pearls}
       doctors={data.doctors}
       replacements={data.replacements}
+      tokenAdjustments={data.tokenAdjustments ?? []}
       schedules={data.schedules}
       types={data.replacementTypes}
       holidays={data.holidays}

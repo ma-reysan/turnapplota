@@ -148,6 +148,14 @@ export const replacements = pgTable("replacements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const tokenAdjustments = pgTable("token_adjustments", {
+  id: text("id").primaryKey(),
+  doctorId: text("doctor_id").notNull().references(() => doctors.id),
+  weekStart: date("week_start").notNull(),
+  delta: integer("delta").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const onCallWeeks = pgTable("on_call_weeks", {
   weekStart: date("week_start").primaryKey(),
   doctorIds: jsonb("doctor_ids").$type<string[]>().notNull(),
