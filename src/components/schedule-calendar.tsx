@@ -79,8 +79,44 @@ export function ScheduleCalendar({
     return sortedSchedules.find((item) => item.id === currentMonth)?.id ?? sortedSchedules[0]?.id ?? "";
   });
   const [calendarZoom, setCalendarZoom] = useState(1);
+  const calendarZoomRef = useRef(1);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [highlightedDoctor, setHighlightedDoctor] = useState<string | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const surface = scrollRef.current;
+    if (!surface) return;
+    let pinch: { distance: number; zoom: number } | null = null;
+    const distance = (touches: TouchList) => Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY,
+    );
+    const start = (event: TouchEvent) => {
+      if (event.touches.length === 2) {
+        pinch = { distance: distance(event.touches), zoom: calendarZoomRef.current };
+        event.preventDefault();
+      }
+    };
+    const move = (event: TouchEvent) => {
+      if (event.touches.length !== 2) { pinch = null; return; }
+      event.preventDefault();
+      if (!pinch) pinch = { distance: distance(event.touches), zoom: calendarZoomRef.current };
+      const next = Math.max(0.3, Math.min(1.5, pinch.zoom * distance(event.touches) / Math.max(1, pinch.distance)));
+      calendarZoomRef.current = next;
+      setCalendarZoom(next);
+    };
+    const end = (event: TouchEvent) => { if (event.touches.length < 2) pinch = null; };
+    surface.addEventListener("touchstart", start, { passive: false });
+    surface.addEventListener("touchmove", move, { passive: false });
+    surface.addEventListener("touchend", end);
+    surface.addEventListener("touchcancel", end);
+    return () => {
+      surface.removeEventListener("touchstart", start);
+      surface.removeEventListener("touchmove", move);
+      surface.removeEventListener("touchend", end);
+      surface.removeEventListener("touchcancel", end);
+    };
+  }, []);
   const schedule = sortedSchedules.find((item) => item.id === selectedId) ?? sortedSchedules[0];
   const selectedIndex = sortedSchedules.findIndex((item) => item.id === schedule?.id);
   const currentColorLegend = shiftColorLegends?.[selectedId] ?? shiftColorLegend;
@@ -276,15 +312,9 @@ export function ScheduleCalendar({
           </button>
         </div>
 
-        <div className="no-print mb-2 flex items-center justify-center gap-2 sm:hidden">
-          <button aria-label="Alejar tabla" className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-base disabled:opacity-40" disabled={calendarZoom <= 0.3} onClick={() => setCalendarZoom((value) => Math.max(0.3, Math.round((value - 0.1) * 100) / 100))} type="button">−</button>
-          <span className="min-w-12 text-center text-xs tabular-nums text-[var(--muted)]">{Math.round(calendarZoom * 100)}%</span>
-          <button aria-label="Acercar tabla" className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] text-base disabled:opacity-40" disabled={calendarZoom >= 1} onClick={() => setCalendarZoom((value) => Math.min(1, Math.round((value + 0.1) * 100) / 100))} type="button">+</button>
-        </div>
-
         <ScheduleConflictNotice conflicts={conflicts} doctors={doctors} visibleDates={visibleDateKeys} />
 
-        <div className="scrollbar-subtle overflow-x-auto rounded-2xl">
+        <div className="scrollbar-subtle overflow-x-auto rounded-2xl" ref={scrollRef} style={{ touchAction: "pan-x pan-y" }}>
           <div
             className={cn("border border-[var(--line)] bg-[var(--surface)] p-3", showOnCall ? "min-w-[900px]" : "min-w-[680px]")}
             ref={exportRef}

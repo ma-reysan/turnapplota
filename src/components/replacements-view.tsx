@@ -70,13 +70,13 @@ function ReplacementSequence() {
     },
   ];
   return (
-    <section aria-labelledby="replacement-sequence-title" className="min-w-0 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+    <section aria-labelledby="replacement-sequence-title" className="min-w-0 max-w-full rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
       <h2 id="replacement-sequence-title" className="text-sm font-semibold">Secuencia de reemplazo</h2>
       <div className="mt-4 space-y-5">
         {routes.map((route) => (
           <div key={route.title}>
             <h3 className="mb-2 text-xs font-semibold text-[var(--brand)]">{route.title}</h3>
-            <div tabIndex={0} role="region" aria-label={route.title} className="overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-[var(--brand)]">
+            <div tabIndex={0} role="region" aria-label={route.title} className="max-w-full overflow-x-auto pb-2 focus-visible:outline-2 focus-visible:outline-[var(--brand)]">
               <ul className="flex min-w-max items-stretch gap-2">
                 {route.steps.map(([title, description], index) => (
                   <li key={title} className="flex items-center gap-2">
@@ -263,11 +263,11 @@ export function ReplacementsView({
   }, [exportingImage, rankedDoctors]);
 
   return (
-    <div className="space-y-3">
-      <div className="halloween-replacements-frame seasonal-replacements-frame">
+    <div className="min-w-0 max-w-full overflow-x-clip space-y-3">
+      <div className="halloween-replacements-frame seasonal-replacements-frame min-w-0 max-w-full">
         <div aria-hidden="true" className="halloween-gripping-hand seasonal-replacements-grip no-print" />
         <div aria-hidden="true" className="halloween-replacements-bats seasonal-replacements-corner no-print" />
-      <section className="halloween-replacements-card overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
+      <section className="halloween-replacements-card min-w-0 max-w-full overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
         <div className="halloween-replacements-heading seasonal-replacements-heading flex flex-col gap-2 border-b border-[var(--line)] p-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-sm font-semibold">Puntajes vigentes</h2>
@@ -299,11 +299,11 @@ export function ReplacementsView({
         </div>
 
         {mode === "table" ? (
-          <div className="scrollbar-subtle overflow-x-auto" ref={tableScrollRef}>
-            <table className="min-w-full border-collapse text-xs">
+          <div className="scrollbar-subtle max-w-full overflow-x-auto" ref={tableScrollRef}>
+            <table className="w-max min-w-full border-collapse text-xs">
               <thead>
                 <tr className="bg-[var(--surface-soft)] text-[var(--muted)]">
-                  <th className="sticky left-0 z-10 w-48 min-w-48 bg-[var(--surface-soft)] px-3 py-2 text-left">
+                  <th className="sticky left-0 z-10 w-36 min-w-36 bg-[var(--surface-soft)] px-2 py-2 text-left sm:w-48 sm:min-w-48 sm:px-3">
                     Médico · vigente
                   </th>
                   {dates.map((date) => (
@@ -328,7 +328,7 @@ export function ReplacementsView({
               <tbody>
                 {rankedDoctors.map(({ doctor, points, nextExpiry, expiringPoints }) => (
                   <tr className="border-t border-[var(--line)]" key={doctor.id}>
-                    <th className="sticky left-0 z-10 w-48 min-w-48 bg-[var(--surface)] px-3 py-2 text-left">
+                    <th className="sticky left-0 z-10 w-36 min-w-36 bg-[var(--surface)] px-2 py-2 text-left sm:w-48 sm:min-w-48 sm:px-3">
                       <div className="flex items-center justify-between gap-2">
                         <span className="inline-flex min-w-0 items-center gap-1 font-semibold">
                           <span className="truncate" title={doctor.shortName}>{doctor.shortName}</span>
@@ -414,23 +414,23 @@ export function ReplacementsView({
       </section>
       </div>
 
-      <div className="grid items-start gap-3 xl:grid-cols-[1.5fr_1fr]">
-        <div className="space-y-3">
-          <section className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <div className="min-w-0 space-y-3">
+          <section className="min-w-0 max-w-full rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
             <div className="flex items-center gap-2">
               <BookOpen className="text-[var(--brand)]" size={16} />
               <h2 className="text-sm font-semibold">Perlas del equipo</h2>
             </div>
-            <div className="mt-2 grid gap-2 md:grid-cols-2">
+            <div className="mt-2 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-2">
               {pearlSections.map(([key, lines]) => (
-                <article className="rounded-xl bg-[var(--surface-soft)] p-3" key={key}>
+                <article className="min-w-0 max-w-full rounded-xl bg-[var(--surface-soft)] p-3" key={key}>
                   <h3 className="text-xs font-semibold text-[var(--brand)]">
                     {pearlSectionLabels[key]}
                   </h3>
                   <div className="mt-1.5 divide-y divide-[var(--line)]">
                     {lines.map((line, index) => (
                       <p
-                        className="py-1.5 text-[11px] leading-[1.4] first:pt-0 last:pb-0"
+                        className="break-words py-1.5 text-[11px] leading-[1.4] [overflow-wrap:anywhere] first:pt-0 last:pb-0"
                         key={`${key}-${index}`}
                       >
                         {line}

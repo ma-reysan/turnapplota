@@ -529,7 +529,7 @@ html[data-color-theme="halloween"] .halloween-replacements-bats {
 }
 
 /* Keep the supplied photograph decorative and the numbers fully opaque. */
-:root:not(.dark) .analysis-cemetery-table {
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table {
   --foreground: #21182b;
   --muted: #50455c;
   --line: #c0b8ca;
@@ -540,18 +540,18 @@ html[data-color-theme="halloween"] .halloween-replacements-bats {
   background-position: center;
   background-repeat: no-repeat;
 }
-:root:not(.dark) .analysis-cemetery-table thead {
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table thead {
   color: #42394c;
   background-color: #eee9f4;
 }
-:root:not(.dark) .analysis-cemetery-table tbody tr:nth-child(even) {
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table tbody tr:nth-child(even) {
   background-color: rgb(255 255 255 / 18%);
 }
-:root:not(.dark) .analysis-cemetery-table .analysis-difference-positive { color: #804300; }
-:root:not(.dark) .analysis-cemetery-table .analysis-difference-negative { color: #075477; }
-:root:not(.dark) .analysis-cemetery-table .analysis-difference-balanced { color: #4c3064; }
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table .analysis-difference-positive { color: #804300; }
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table .analysis-difference-negative { color: #075477; }
+:root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table .analysis-difference-balanced { color: #4c3064; }
 @media print {
-  :root:not(.dark) .analysis-cemetery-table { background-image: none; background-color: #fff; }
+  :root[data-color-theme="halloween"]:not(.dark) .analysis-cemetery-table { background-image: none; background-color: #fff; }
 }
 
 .halloween-aps-ghost-layer,
