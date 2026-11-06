@@ -40,7 +40,9 @@ export function parseLunchMenuHtml(html: string) {
   if (!heading || heading.index === undefined) throw new Error("No se encontró el bloque ‘Menú del día’ en la fuente");
 
   const before = textBlocks(html.slice(0, heading.index)).slice(-20).join(" ");
-  const dates = Array.from(before.matchAll(/(?:LUNES|MARTES|MI[ÉE]RCOLES|JUEVES|VIERNES|S[ÁA]BADO|DOMINGO)?\s*(\d{1,2})\s+DE\s+([A-ZÁÉÍÓÚ]+)\s+DE\s+(20\s*\d\s*\d)/gi));
+  // Google Sites puede separar el día, el mes y los dígitos del año en distintos elementos.
+  // La Central publica tanto "06 DE NOVIEMBRE DE 2026" como "06 NOVIEMBRE DE 202 6".
+  const dates = Array.from(before.matchAll(/(?:LUNES|MARTES|MI[ÉE]RCOLES|JUEVES|VIERNES|S[ÁA]BADO|DOMINGO)?\s*(\d{1,2})\s+(?:DE\s+)?([A-ZÁÉÍÓÚ]+)\s+DE\s+(20\s*\d\s*\d)/gi));
   const date = dates.at(-1);
   if (!date) throw new Error("No se encontró la fecha del menú en la fuente");
   const month = MONTHS[date[2].normalize("NFD").replace(/[\u0300-\u036f]/g, "")];
